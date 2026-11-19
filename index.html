@@ -267,6 +267,9 @@ footer{max-width:1280px;margin:0 auto;padding:12px 24px 30px;font-size:12px;colo
       <div style="overflow-x:auto" id="mitTable"></div>
       <div class="toolbar" style="margin-top:16px"><h3 class="pph" style="margin:0">Loss Event</h3><label>Tahun: <select id="lossYear"><option value="">Semua tahun</option></select></label></div>
       <div style="overflow-x:auto" id="lossTable"></div>
+      <div class="toolbar" style="margin-top:18px"><h3 class="pph" style="margin:0">Potential Loss / Gain (belum terjadi) — Periode Terpilih</h3></div>
+      <p class="note" style="margin:2px 0 8px">Potential Loss/Gain = NPV Current − NPV FID (sheet Trending PG). Nilai negatif berarti potensi kerugian yang belum terjadi; nilai positif berarti potensi keuntungan. Kerugian yang sudah terjadi tercatat pada tabel Loss Event di atas.</p>
+      <div style="overflow-x:auto" id="potTable"></div>
       <details id="lossFormBox"><summary>Tambah Loss Event</summary><div id="lossForm" style="margin-top:10px"></div></details>
       <div id="lossSaved" class="ok" style="font-size:12.5px;margin-top:6px"></div>
     </section>
@@ -984,14 +987,14 @@ async function readTable(wb,name,must){
 }
 const nnum=v=>typeof v==="number"?v:(isStr(v)&&/^-?[\d.,]+$/.test(clean(v))?parseFloat(clean(v).replace(/,/g,"")):null);
 async function parseDB(wb,fileName){
-  const D={trend:[],movement:[],mitig:[],loss:[],timeline:[],index:[],rmt:[],akum:0,file:fileName}; const issues=[];
+  const D={trendBase:[],trend:[],movement:[],mitig:[],loss:[],timeline:[],index:[],rmt:[],akum:0,file:fileName}; const issues=[];
   const idName=(id,nm)=>{const mp=S.master.find(x=>x.id===clean(id));return mp?mp.name:clean(nm);};
   let t=await readTable(wb,"Trending PG","project id");
   if(t){const C={id:t.col(/^project id/),nm:t.col(/^project$/),mo:t.col(/^month/),npvF:t.col(/^npv fid/),ireF:t.col(/^ire fid/),rreF:t.col(/^rre fid/),rmtF:t.col(/^rmt fid/),pot:t.col(/^potent/),act:t.col(/^actual loss/),npvC:t.col(/^npv current/),reC:t.col(/^re current/),rreP:t.col(/^rre prognos/),rmtC:t.col(/^rmt current/)};
     for(const a of t.rows){const d=dateAny(a[C.mo]); if(!a[C.id]) continue;
       const row={id:clean(a[C.id]),name:idName(a[C.id],a[C.nm]),month:d?d.key:null};
       for(const k of ["npvF","ireF","rreF","rmtF","pot","act","npvC","reC","rreP","rmtC"]) row[k]=C[k]?nnum(a[C[k]]):null;
-      if(!row.month){ if(Object.keys(row).some(k=>!["id","name","month"].includes(k)&&row[k]!=null)) issues.push({lv:"info",month:null,proj:row.name,msg:`[Trending PG baris ${a._r}] memiliki nilai, tetapi kolom Month kosong (kemungkinan baris baseline) sehingga tidak ditampilkan pada grafik tren`}); continue; }
+      if(!row.month){ if(Object.keys(row).some(k=>!["id","name","month"].includes(k)&&row[k]!=null)){ D.trendBase.push(row); issues.push({lv:"info",month:null,proj:row.name,msg:`[Trending PG baris ${a._r}] kolom Month kosong (baris baseline); tidak ditampilkan pada grafik tren, tetapi dipakai sebagai nilai awal Potential Loss/Gain`}); } continue; }
       D.trend.push(row);
       for(const [n,l,lab] of [["npvF","rmtF","FID"],["npvC","rmtC","Current"]]) if(row[n]&&row[l]!=null&&Math.abs(row[l]-0.05*row[n])>Math.max(1,0.002*row[n]*0.05)) issues.push({lv:"warn",month:row.month,proj:row.name,msg:`[Trending PG] Risk Limit ${lab} ${fmt(row[l],1)} tidak sama dengan 5% × NPV ${lab} (seharusnya ${fmt(0.05*row[n],1)}; rasio ${fmt(row[l]/row[n]*100,2)}%)`});
       if(row.rreP!=null&&row.rmtC!=null&&row.rreP>row.rmtC) issues.push({lv:"bad",month:row.month,proj:row.name,msg:`[Trending PG] RRE Prognosed ${fmt(row.rreP,1)} melebihi Risk Limit Current ${fmt(row.rmtC,1)}`});
@@ -1074,7 +1077,7 @@ function renderMovementLine(){
 }
 
 /* ---------- RENDER: Mitigation & Loss Event ---------- */
-function renderMitLoss(){
+function renderMitLoss(){ renderPotential();
   const k=$("monthSel").value, only=$("mlOnlyProj").checked, p=$("projSel").value;
   const ok=name=>inZona(name)&&(S.focus?sameProj(name,S.focus):(!only||name===p||sim(name,p)>=0.9))&&flaggedNow(name);
   const mitDb=S.db?S.db.mitig.filter(m=>m.month===k&&ok(m.name)):[];
@@ -1726,10 +1729,37 @@ function renderProjPage(){
    <h2 style="margin-top:10px">${esc(p)}</h2><p class="sub">${[mp&&mp.id,mp?mp.regional:(r&&r.regional),mp&&mp.zona].filter(Boolean).map(esc).join(" · ")||"&nbsp;"}</p>
    ${r?`<div class="pgrid"><div class="pstat"><span class="small">NPV FID (US$ juta)</span><b>${fmt(r.npvF)}</b></div><div class="pstat"><span class="small">NPV Actual (US$ juta)</span><b>${fmt(r.npvA)}</b><span class="small">${pct(r.npvW)} terhadap FID</span></div>
      ${ind("npv","NPV",pct(r.npvW),`NPV vs FID: ${pct(r.npvW)}`)}${ind("cost","Cost",`EV − AC ${fmt(r.costW)}`,`EV − AC = ${fmt(r.costW)}`)}${ind("sch","Schedule",pct(r.schW),`Schedule ${pct(r.schW)}`)}${ind("risk","Current Risk",fr(ec.v),`Current risk ${fr(ec.v)}`)}
+     ${(()=>{const id=dbIdOf(p),v=id?potFor(id,k):null; if(!v||v.pot==null) return ""; const loss=v.pot<0; return `<div class="pstat"><span class="small">Potential Loss / Gain (US$ juta)</span><b style="color:${loss?"#c51e28":"#1a7f37"}">${fmt(v.pot/1000)}</b><span class="small">${loss?"potensi kerugian":"potensi keuntungan"}${v.month?" · "+monthLabel(v.month):" · baseline"}</span></div><div class="pstat"><span class="small">Actual Loss / Gain (US$ juta)</span><b>${fmt((v.act||0)/1000)}</b><span class="small">Risk Limit ${fmt(v.rmt!=null?v.rmt/1000:null)}</span></div>`;})()}
      <div class="pstat"><span class="small">Risk Rating Inherent</span><span class="lvc" style="background:${LVC(li&&li.k)};color:${LVT(li&&li.k)}">${li?`${li.t} (${fr(r.inh)})`:"—"}</span></div><div class="pstat"><span class="small">Risk Rating Current</span><span class="lvc" style="background:${LVC(lc&&lc.k)};color:${LVT(lc&&lc.k)}">${lc?`${lc.t} (${fr(ec.v)})`:"—"}</span></div></div>`:`<p class="empty">Proyek ini tidak tercantum pada EWS periode ${k?monthLabel(k):"terpilih"}.</p>`}
    ${mon}
    <p class="hint" style="margin-top:10px">Bagian berikutnya menampilkan tren NPV dan Risk Exposure, Risk Movement, Mitigation Plan dan Loss Event, Timeline, serta Penilaian Profesional untuk proyek ini.</p>`;
   $("projBack").onclick=()=>{try{if(location.hash==="#proyek")history.replaceState(null,"",location.pathname+location.search);}catch(e){} closeProject();};
+}
+
+
+/* ===================== POTENTIAL LOSS / GAIN (Trending PG) ===================== */
+function potFor(id,k){
+  if(!S.db) return null; const tr=S.db.trend.filter(t=>t.id===id&&(!k||t.month<=k)).sort((a,b)=>b.month.localeCompare(a.month));
+  const t=tr[0]||null, base=(S.db.trendBase||[]).find(b=>b.id===id)||null, src=t||base; if(!src) return null;
+  const npvF=src.npvF, npvC=src.npvC, calc=npvF!=null&&npvC!=null?npvC-npvF:null;
+  const pot=src.pot!=null?src.pot:calc;
+  return {month:t?t.month:null,npvF,npvC,pot,potSrc:src.pot!=null?"Database":"dihitung (NPV Current − NPV FID)",act:src.act,rmt:src.rmtC!=null?src.rmtC:src.rmtF,base:!t};
+}
+function renderPotential(){
+  const box=$("potTable"); if(!box) return; const k=$("monthSel").value;
+  if(!S.db||!S.db.trend.length){box.innerHTML=`<p class="empty">Unggah berkas Database Dashboard (sheet Trending PG) untuk menampilkan Potential Loss/Gain.</p>`;return;}
+  const names=[...new Set([...(k?rowsOf(k).map(r=>r.name):[]),...S.master.map(m=>m.name)])].filter(n=>inZona(n)&&passCross(n));
+  const seen=new Set(); const rows=names.map(n=>{const id=dbIdOf(n);if(!id||seen.has(id))return null;seen.add(id);const mp=masterOf(n);const v=potFor(id,k);return v&&v.pot!=null?{n:mp?mp.name:n,...v}:null;}).filter(Boolean).sort((a,b)=>a.pot-b.pot);
+  if(!rows.length){box.innerHTML=`<p class="empty">Tidak terdapat data Potential Loss/Gain untuk filter ini.</p>`;return;}
+  const J=v=>v==null?"—":fmt(v/1000);
+  const hasMon=n=>S.moneva.some(M=>sameProj(monTarget(M),n));
+  box.innerHTML=`<table class="ew"><thead><tr><th>Proyek</th><th>Data per</th><th>NPV FID (US$ juta)</th><th>NPV Current (US$ juta)</th><th>Potential Loss / Gain (US$ juta)</th><th>Actual Loss / Gain (US$ juta)</th><th>Risk Limit (US$ juta)</th><th>Status</th><th>Rincian per penyebab</th></tr></thead><tbody>${rows.map(r=>{
+    const loss=r.pot<0, over=loss&&r.rmt!=null&&-r.pot>r.rmt;
+    const st=!loss?`<span class="lvc" style="background:#d9f2df;color:#1a7f37">Potential Gain</span>`:over?`<span class="lvc" style="background:#d7262e;color:#fff">Potential Loss melebihi Risk Limit</span>`:`<span class="lvc" style="background:#fde7c2;color:#8a5200">Potential Loss dalam batas</span>`;
+    return `<tr><td class="pl" data-proj="${esc(r.n)}">${esc(r.n)}</td><td>${r.month?monthLabel(r.month):"Baseline"}</td><td class="num">${J(r.npvF)}</td><td class="num">${J(r.npvC)}</td>
+      <td class="num" style="color:${loss?"#c51e28":"#1a7f37"};font-weight:700" title="Sumber: ${esc(r.potSrc)}">${J(r.pot)}${r.potSrc==="Database"?"":"*"}</td><td class="num">${r.act?J(r.act):"0,00"}</td><td class="num">${J(r.rmt)}</td><td>${st}</td>
+      <td class="small">${hasMon(r.n)?`<a href="#" data-openproj="${esc(r.n)}">Lihat Loss &amp; Gain per penyebab</a>`:"Unggah PDF MONEVA"}</td></tr>`;}).join("")}</tbody></table>
+    <p class="note">Tanda * = dihitung dari NPV Current − NPV FID karena kolom Potential Loss/Gain pada Database belum terisi untuk periode tersebut. Status membandingkan potensi kerugian dengan Risk Limit (RMT) proyek.</p>`;
 }
 
 /* ===================== XLSX WRITER ===================== */
@@ -1834,6 +1864,7 @@ $("ppArea").addEventListener("click",ppOnClick);
 ppLoad(); lossLoad();
 $("ewTable").addEventListener("click",e=>{const tr=e.target.closest("tr[data-proj]"); if(tr) openProject(tr.dataset.proj);});
 $("projPage").addEventListener("change",autoInput);
+$("potTable").addEventListener("click",e=>{const a=e.target.closest("[data-openproj]"); if(a){e.preventDefault(); openProject(a.dataset.openproj); return;} const t=e.target.closest("td[data-proj]"); if(t) setFocus(t.dataset.proj);});
 $("kpis").addEventListener("click",e=>{const c=e.target.closest(".kpi[data-flag]"); if(c) setFlag(c.dataset.flag||null);});
 $("gantt").addEventListener("click",e=>{const g=e.target.closest("[data-proj]"); if(g) setFocus(g.dataset.proj);});
 $("mitTable").addEventListener("click",e=>{const t=e.target.closest("[data-proj]"); if(t) setFocus(t.dataset.proj);});
