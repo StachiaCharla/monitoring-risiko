@@ -43,6 +43,8 @@ table{border-collapse:collapse;width:100%}
 .ew td{border:1px solid var(--line);padding:6px 8px;font-size:13px;vertical-align:middle}
 .ew td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600}
 .ew td.ic{text-align:center;width:74px}
+.dot{display:inline-block;width:18px;height:18px;border-radius:50%;vertical-align:middle;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}.dot.sm{width:11px;height:11px;margin-right:6px;vertical-align:-1px}
+.d-g{background:#2e9e44}.d-o{background:#f39200}.d-r{background:#d7262e}.d-na{background:#1f1f1f}
 .ew td.rk{text-align:center;font-weight:600;font-size:12.5px;width:170px}
 .ew tr:hover td{background:#f7f9fc}
 .ew td.rk.lv-High{background:var(--hi);color:#fff}.ew td.rk.lv-MH{background:var(--mh)}.ew td.rk.lv-M{background:var(--mo)}.ew td.rk.lv-LM{background:var(--lm)}.ew td.rk.lv-L{background:var(--lo);color:#fff}
@@ -194,13 +196,13 @@ footer{max-width:1280px;margin:0 auto;padding:12px 24px 30px;font-size:12px;colo
         <h2 style="margin:0">Early Warning System</h2>
         <label>Periode: <select id="monthSel"></select></label>
         <label>Zona: <select id="zonaSel"></select></label>
-        <label><input type="checkbox" id="showNums"> Tampilkan nilai</label>
+        <label><input type="checkbox" id="showNums"> Tampilkan nilai</label><label>Indikator: <select id="indMode"><option value="warna">Warna (Index EWS)</option><option value="tanda">Tanda ! (PPT)</option></select></label>
       </div>
       <div id="ewSrc"></div>
       <div class="kpis" id="kpis"></div>
       <div style="overflow-x:auto"><table class="ew" id="ewTable"></table></div>
       <div class="legend">
-        <span class="hint" style="display:block;margin-bottom:4px">Klik baris proyek atau kartu peringatan untuk memfilter seluruh tampilan; klik kembali untuk membatalkan.</span><span>Kriteria tanda peringatan (<b>!</b>): NPV Actual kurang dari 95% NPV FID · Actual Cost melebihi Earned Value · keterlambatan progres fisik lebih dari 5% · Current Risk Rating ≥ 3,41 (Moderate to High)</span>
+        <span class="hint" style="display:block;margin-bottom:4px">Klik baris proyek atau kartu peringatan untuk memfilter seluruh tampilan; klik kembali untuk membatalkan.</span><span id="ewCrit" style="display:flex;flex-direction:column;gap:3px"></span>
       </div>
       <div class="legend">
         <span><i class="sw" style="background:var(--lo)"></i>Low 1,00–1,80</span>
@@ -434,8 +436,7 @@ async function parseEws(wb,fileName){
       if(row.evA!=null&&row.acA&&Math.abs(row.evA)>50*Math.abs(row.acA)) ctx.issue("warn",`Earned Value (${fmt(row.evA)}) jauh lebih besar daripada Actual Cost (${fmt(row.acA)}) — mohon periksa satuan (ribu atau juta US$)`);
       row.costW=(row.evA!=null&&row.acA!=null)?row.evA-row.acA:null;
       row.schW=(row.pgF&&row.pgA!=null)?(row.pgA-row.pgF)/row.pgF:null;
-      row.f={npv:row.npvW!=null?row.npvW<-0.05:null, cost:row.costW!=null?row.costW<0:null,
-             sch:row.schW!=null?row.schW<-0.05:null, risk:row.cur!=null?r2(row.cur)>=3.41:null};
+      row.f=ewsFlags(row);
       const chk=(fv,mine,lab,tol)=>{if(typeof fv==="number"&&mine!=null&&Math.abs(fv-mine)>tol) ctx.issue("warn",`${lab} pada berkas (${lab.includes("Cost")?fmt(fv):pct(fv)}) berbeda dengan hasil rumus (${lab.includes("Cost")?fmt(mine):pct(mine)}); kemungkinan diinput secara manual`);};
       chk(fileNpvW,row.npvW,"NPV Warning",1e-4); chk(fileAcW,row.costW,"Cost Warning",0.01); chk(filePgW,row.schW,"Schedule Warning",1e-4);
       if(row.cur!=null&&(row.cur<1||row.cur>5)) ctx.issue("bad",`Current Risk ${fmt(row.cur)} di luar skala 1–5`);
@@ -577,6 +578,32 @@ function buildIssues(){
 }
 
 /* ===================== RENDER ===================== */
+
+/* ===================== INDIKATOR EWS (Index EWS: warna / tanda !) ===================== */
+let IND="warna"; try{IND=localStorage.getItem("mrind_v1")||"warna";}catch(e){}
+function idxCol(r,k){
+  if(!r) return null;
+  if(k==="npv"){const w=r.npvW;return w==null?null:w>=-0.05?"g":w>=-0.5?"o":"r";}
+  if(k==="cost"){const c=r.costW;return c==null?null:c>=0?"g":"r";}
+  if(k==="sch"){const w=r.schW;return w==null?null:w>=-0.05?"g":w>=-0.25?"o":"r";}
+  if(k==="risk"){const c=effCur(r).v;if(c==null)return null;const v=r2(c);return v<=2.6?"g":v<=4.2?"o":"r";}
+  return null;
+}
+const IDXLAB={g:"Hijau",o:"Oranye",r:"Merah"};
+function ewsFlags(row){const old={npv:()=>row.npvW!=null?row.npvW<-0.05:null,cost:()=>row.costW!=null?row.costW<0:null,sch:()=>row.schW!=null?row.schW<-0.05:null,risk:()=>row.cur!=null?r2(row.cur)>=3.41:null};
+  const o={};for(const k of ["npv","cost","sch","risk"])Object.defineProperty(o,k,{enumerable:true,get(){if(IND==="warna"){const c=idxCol(row,k);return c==null?null:c!=="g";}return old[k]();}});return o;}
+function indCell(r,k,on,tip){
+  if(IND!=="warna") return tri(on,tip);
+  const c=idxCol(r,k);
+  return `<span class="dot d-${c||"na"}" role="img" aria-label="${c?IDXLAB[c]:"Belum ada data"}" title="${esc(tip)} — ${c?IDXLAB[c]:"Belum ada data"}"></span>`;
+}
+const IDX_CRIT=`<span><b>Indikator Early Warning (Index EWS):</b></span>
+<span><i class="dot d-g sm"></i>Hijau: NPV turun ≤ 5% · Actual Cost ≤ Earned Value · progres tertinggal ≤ 5% · Current Risk 1,00–2,60</span>
+<span><i class="dot d-o sm"></i>Oranye: NPV turun 5%–50% · progres tertinggal 5%–25% · Current Risk 2,61–4,20</span>
+<span><i class="dot d-r sm"></i>Merah: NPV turun &gt; 50% · Actual Cost &gt; Earned Value · progres tertinggal &gt; 25% · Current Risk 4,21–5,00</span>
+<span><i class="dot d-na sm"></i>Hitam: belum ada data</span>`;
+const PPT_CRIT=`<span>Kriteria tanda peringatan (<b>!</b>): NPV Actual kurang dari 95% NPV FID · Actual Cost melebihi Earned Value · keterlambatan progres fisik lebih dari 5% · Current Risk Rating ≥ 3,41 (Moderate to High)</span>`;
+
 function tri(on,tip){
   if(on==null) return `<span title="Data belum lengkap" style="color:#999">—</span>`;
   return on?`<svg width="26" height="22" viewBox="0 0 26 22" role="img" aria-label="Peringatan aktif"><title>${esc(tip)}</title><path d="M13 2 L24.5 20 H1.5 Z" fill="#ffe600" stroke="#222" stroke-width="1.2" stroke-linejoin="round"/><text x="13" y="17.5" font-size="11" font-weight="700" text-anchor="middle" fill="#222">!</text></svg>`
@@ -604,12 +631,13 @@ function renderTable(){
     if(ec.adj) d+=`<span class="delta flat" title="Disesuaikan secara manual (EWS ${fr(r.cur)}): ${esc(ec.reason||"alasan belum diisi")}">✎</span>`;
     const sm=v=>show?`<span class="small">${v}</span>`:"";
     return `<tr data-proj="${esc(r.name)}" class="${S.focus?(sameProj(r.name,S.focus)?"sel":"dim"):""}" title="Klik untuk memfilter tampilan berdasarkan proyek ini"><td style="text-align:center">${i+1}</td><td>${esc(r.name)}</td><td class="num">${fmt(r.npvF)}</td><td class="num">${fmt(r.npvA)}</td>
-      <td class="ic">${tri(r.f.npv,`NPV vs FID: ${pct(r.npvW)}`)}${sm(pct(r.npvW))}</td>
-      <td class="ic">${tri(r.f.cost,`EV ${fmt(r.evA)} (${r.evSrc==="tim"?"input tim":"dihitung"}) − AC ${fmt(r.acA)} = ${fmt(r.costW)}`)}${sm(fmt(r.costW))}</td>
-      <td class="ic">${tri(r.f.sch,`Progres ${fmt(r.pgA)}% vs plan ${fmt(r.pgF)}% (${pct(r.schW)})`)}${sm(pct(r.schW))}</td>
-      <td class="ic">${tri(riskFlag(r),`Current risk ${fr(ec.v)}`)}${sm(fr(ec.v))}</td>
+      <td class="ic">${indCell(r,"npv",r.f.npv,`NPV vs FID: ${pct(r.npvW)}`)}${sm(pct(r.npvW))}</td>
+      <td class="ic">${indCell(r,"cost",r.f.cost,`EV ${fmt(r.evA)} (${r.evSrc==="tim"?"input tim":"dihitung"}) − AC ${fmt(r.acA)} = ${fmt(r.costW)}`)}${sm(fmt(r.costW))}</td>
+      <td class="ic">${indCell(r,"sch",r.f.sch,`Progres ${fmt(r.pgA)}% vs plan ${fmt(r.pgF)}% (${pct(r.schW)})`)}${sm(pct(r.schW))}</td>
+      <td class="ic">${indCell(r,"risk",riskFlag(r),`Current risk ${fr(ec.v)}`)}${sm(fr(ec.v))}</td>
       <td class="rk ${li?"lv-"+li.k:""}">${li?`${li.t} (${fr(r.inh)})`:"—"}</td>
       <td class="rk ${lc?"lv-"+lc.k:""}">${lc?`${lc.t} (${fr(ec.v)})`:"—"}${d}</td></tr>`;}).join("");
+  $("ewCrit").innerHTML=IND==="warna"?IDX_CRIT:PPT_CRIT;
   $("ewTable").innerHTML=head+`<tbody>${body||`<tr><td colspan="10" class="empty">Tidak terdapat data untuk periode ini</td></tr>`}</tbody>`;
 }
 function renderProjSel(){
@@ -703,7 +731,7 @@ function ppCalc(e){
 }
 function adjOf(p,k){const e=S.pp[ppKey(p,k)];return e&&e.adj&&e.adj.val!=null&&e.adj.val!==""&&!isNaN(+e.adj.val)?e.adj:null;}
 function effCur(r){if(!r)return {v:null,adj:false};const a=adjOf(r.name,r.month);return a?{v:+a.val,adj:true,reason:a.reason||""}:{v:r.cur,adj:false};}
-const riskFlag=r=>{const c=effCur(r).v;return c==null?null:r2(c)>=3.41;};
+const riskFlag=r=>{const c=effCur(r).v;return c==null?null:(IND==="warna"?r2(c)>2.6:r2(c)>=3.41);};
 function mitFor(e,evText){return e.mit.filter(m=>m.event&&(norm(m.event)===norm(evText)||sim(m.event,evText)>=0.6));}
 
 function ppAnalysis(p,k){
@@ -982,7 +1010,7 @@ async function parseDB(wb,fileName){
       const g=k=>C[k]?nnum(a[C[k]]):null;
       const row={month:d.key,sheet:"Akumulasi (EWS)",file:fileName,no:0,regional:clean(a[C.reg]),name:idName(a[C.id],a[C.nm]),issues:[],src:"db",
         npvF:g("npvF"),npvA:g("npvA"),npvW:g("npvW"),costW:g("costW"),schW:g("schW"),inh:g("inh"),cur:g("cur"),evA:null,acA:null,pgA:null,pgF:null};
-      row.f={npv:row.npvW!=null?row.npvW<-0.05:null,cost:row.costW!=null?row.costW<0:null,sch:row.schW!=null?row.schW<-0.05:null,risk:row.cur!=null?r2(row.cur)>=3.41:null};
+      row.f=ewsFlags(row);
       (byM[d.key]=byM[d.key]||[]).push(row);}
     for(const [k,rows] of Object.entries(byM)) if(!S.months[k]||S.months[k].src==="db"){rows.forEach((r,i)=>r.no=i+1); S.months[k]={key:k,sheet:"Akumulasi (EWS)",rows,file:fileName,src:"db"}; D.akum++;}}
   D.issues=issues; return D;
@@ -1669,8 +1697,8 @@ function exportXlsx(){
   for(const rr of S.rr){ if(!rr.target) continue; const mp=masterOf(rr.target); const reg=(findRow(rr.month,rr.target)||{}).regional;
     rm.push([mp?mp.id:null,mp?mp.regional:reg,mp?mp.zona:null,rr.target,rr.month?D(rr.month):null,...CAT_KEYS.map(([c])=>rr.cats[c]?r2(rr.cats[c].score):null),r2(rr.total)]); }
   const ew=[["No","Proyek","NPV Plan","NPV Actual","NPV Warning","Warning NPV","Cost Warning","Warning Cost","Schedule Warning","Warning Schedule","Current Risk","Warning Risk","Inherent","Level Inherent","Level Current"]];
-  const yn=b=>b==null?"Data kurang":b?"YA (!)":"Tidak";
-  rowsOf(sel).forEach((r,i)=>{const c=effCur(r).v; ew.push([i+1,r.name,N(r.npvF),N(r.npvA),Pp(r.npvW),yn(r.f.npv),N(r.costW),yn(r.f.cost),Pp(r.schW),yn(r.f.sch),c,yn(riskFlag(r)),r.inh,(level(r.inh)||{}).t,(level(c)||{}).t]);});
+  const yn=(b,r,k)=>{if(IND==="warna"){const c=idxCol(r,k);return c?IDXLAB[c]:"Belum ada data";}return b==null?"Data kurang":b?"YA (!)":"Tidak";};
+  rowsOf(sel).forEach((r,i)=>{const c=effCur(r).v; ew.push([i+1,r.name,N(r.npvF),N(r.npvA),Pp(r.npvW),yn(r.f.npv,r,"npv"),N(r.costW),yn(r.f.cost,r,"cost"),Pp(r.schW),yn(r.f.sch,r,"sch"),c,yn(riskFlag(r),r,"risk"),r.inh,(level(r.inh)||{}).t,(level(c)||{}).t]);});
   const is=[["Tingkat","Bulan","Proyek","Keterangan"]];
   for(const i of buildIssues()) is.push([{bad:"Perlu dicek",warn:"Periksa",info:"Info"}[i.lv],i.month?monthLabel(i.month):"",i.proj,i.msg]);
   const pe=[["Proyek","Bulan","Jenis Usulan Investasi","BTR (000 USD)","Risk Event","Kategori","Jenis Dampak","Nilai Dampak (000 USD)","Impact","Impact (input manual)","Probability","RPN","Level"]],
@@ -1737,6 +1765,7 @@ $("lossTable").addEventListener("click",lossTableClick);
 $("lossFormBox").addEventListener("toggle",()=>{if($("lossFormBox").open) renderLossForm();});
 $("showNums").onchange=renderTable; $("onlyMonth").onchange=renderIssues; $("projSel").onchange=()=>setFocus($("projSel").value,false);
 $("exportBtn").onclick=exportXlsx;
+$("indMode").value=IND; $("indMode").onchange=()=>{IND=$("indMode").value;try{localStorage.setItem("mrind_v1",IND);}catch(e){} refreshCross();};
 $("autoToday").value=new Date().toISOString().slice(0,10);
 $("autoPer").onchange=renderAuto; $("autoToday").onchange=renderAuto; $("autoBtn").onclick=exportAuto;
 $("autoArea").addEventListener("change",autoInput); $("autoArea").addEventListener("input",e=>{if(e.target.dataset.ai)autoInput(e);});
