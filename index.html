@@ -139,6 +139,14 @@ g.grow{cursor:pointer}g.grow:hover text{fill:var(--accent)}
 .wf{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:6px;background:#fdeaec;color:#8a1020;margin:1px 4px 1px 0}
 .lvc{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600}
 table.auto td{font-size:12.5px;vertical-align:top}table.auto select,table.auto input{font:inherit;font-size:12px;padding:3px 5px;border:1px solid var(--line);border-radius:6px;max-width:230px}
+.lgwrap{display:grid;grid-template-columns:minmax(260px,1fr) minmax(380px,1.6fr);gap:16px;margin-top:10px}.amon h5{margin:4px 0 6px;color:var(--navy);font-size:13px}table.mini td,table.mini th{font-size:12px;padding:4px 7px}table.mini select,table.mini input{font:inherit;font-size:12px;padding:2px 4px;border:1px solid var(--line);border-radius:5px}
+#projPage{display:none}body.pmode #projPage{display:block}
+body.pmode #results>section:not(.pkeep):not(#projPage){display:none}
+body.pmode #results{display:flex;flex-direction:column}body.pmode #projPage{order:0}body.pmode #trenCard{order:1}body.pmode #rmCard{order:2}body.pmode #mitCard{order:3}body.pmode #ganttCard{order:4}body.pmode #ppCard{order:5}
+body.pmode #mitCard .toolbar label{display:none}body.pmode #uploadCard{display:none}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+.pstat,.pind{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fbfcfe;display:flex;flex-direction:column;gap:3px}
+.pstat b{font-size:20px;color:var(--navy)}.pind{flex-direction:row;align-items:center;gap:10px}
 .adet{margin-top:12px}.adet summary{cursor:pointer;font-weight:600;color:var(--navy)}.amon{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:10px;background:#fbfcfe}
 .amon h4{margin:0 0 6px;color:var(--navy)}.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;font-size:12.5px}
 footer{max-width:1280px;margin:0 auto;padding:12px 24px 30px;font-size:12px;color:var(--muted);border-top:3px solid var(--red)}
@@ -185,6 +193,7 @@ footer{max-width:1280px;margin:0 auto;padding:12px 24px 30px;font-size:12px;colo
   </section>
 
   <div id="results" class="hidden">
+    <section class="card" id="projPage"></section>
     <section class="card" id="autoCard">
       <h2>Isi Otomatis: ALERT, EWS, dan Dashboard</h2>
       <p class="sub">Unggah PDF laporan MONEVA ("Detail Upstream") setiap proyek beserta berkas Risk Register (RR). Website membaca kedua sumber, menghitung kolom turunan (Risk Limit, Delta NPV, durasi, dan lainnya), lalu menyusun isian ALERT, EWS, serta sheet Database Dashboard dengan susunan kolom yang sama seperti format tim. Periksa pratinjau, lengkapi kolom yang belum dapat diisi otomatis, kemudian unduh hasilnya.</p>
@@ -202,7 +211,7 @@ footer{max-width:1280px;margin:0 auto;padding:12px 24px 30px;font-size:12px;colo
       <div class="kpis" id="kpis"></div>
       <div style="overflow-x:auto"><table class="ew" id="ewTable"></table></div>
       <div class="legend">
-        <span class="hint" style="display:block;margin-bottom:4px">Klik baris proyek atau kartu peringatan untuk memfilter seluruh tampilan; klik kembali untuk membatalkan.</span><span id="ewCrit" style="display:flex;flex-direction:column;gap:3px"></span>
+        <span class="hint" style="display:block;margin-bottom:4px">Klik baris proyek untuk membuka halaman proyek; klik kartu peringatan untuk memfilter seluruh tampilan (klik kembali untuk membatalkan).</span><span id="ewCrit" style="display:flex;flex-direction:column;gap:3px"></span>
       </div>
       <div class="legend">
         <span><i class="sw" style="background:var(--lo)"></i>Low 1,00–1,80</span>
@@ -219,7 +228,7 @@ footer{max-width:1280px;margin:0 auto;padding:12px 24px 30px;font-size:12px;colo
       <div id="drill"></div>
     </section>
 
-    <section class="card" id="ppCard">
+    <section class="card pkeep" id="ppCard">
       <div class="toolbar">
         <h2 style="margin:0">Penilaian Profesional</h2>
         <label>Proyek: <select id="ppProj"></select></label>
@@ -230,29 +239,29 @@ footer{max-width:1280px;margin:0 auto;padding:12px 24px 30px;font-size:12px;colo
       <div id="ppArea"></div>
     </section>
 
-    <section class="card">
+    <section class="card pkeep" id="trenCard">
       <div class="toolbar">
-        <h2 style="margin:0">Tren Kinerja Proyek</h2>
+        <h2 style="margin:0">Tren NPV dan Risk Exposure</h2>
         <label>Proyek: <select id="projSel"></select></label>
       </div>
       <div class="grid2">
-        <div class="chartbox"><h3>Risk Rating (Current dan Inherent)</h3><div id="chartRisk"></div></div>
         <div class="chartbox"><h3>NPV Actual dan NPV FID (US$ juta)</h3><div id="chartNpv"></div></div>
+        <div class="chartbox"><h3>Risk Exposure dan Risk Limit (ribu USD)</h3><div id="chartRE"></div></div>
       </div>
       <div id="trendPG"></div>
     </section>
 
-    <section class="card">
+    <section class="card pkeep" id="rmCard">
       <h2>Risk Movement</h2>
-      <p class="sub">Pergerakan skor enam kategori risiko setiap periode untuk proyek yang dipilih pada Tren Kinerja Proyek. Di bawahnya ditampilkan skor dari berkas RR yang diunggah (Total = Σ skor × bobot), yang dicocokkan dengan Current Risk Rating pada EWS.</p>
+      <p class="sub">Pergerakan skor enam kategori risiko, Risk Rating, dan Inherent (FID) setiap periode dalam satu grafik, untuk proyek yang dipilih pada Tren NPV dan Risk Exposure. Di bawahnya ditampilkan skor dari berkas RR yang diunggah (Total = Σ skor × bobot), yang dicocokkan dengan Current Risk Rating pada EWS.</p>
       <div id="rmLine" style="margin-bottom:14px"></div>
       <div id="rrArea"></div>
     </section>
 
-    <section class="card">
+    <section class="card pkeep" id="mitCard">
       <div class="toolbar">
         <h2 style="margin:0">Mitigation Plan dan Loss Event</h2>
-        <label><input type="checkbox" id="mlOnlyProj"> Tampilkan hanya proyek yang dipilih pada Tren Kinerja Proyek</label>
+        <label><input type="checkbox" id="mlOnlyProj"> Tampilkan hanya proyek yang dipilih pada Tren NPV dan Risk Exposure</label>
       </div>
       <h3 class="pph" style="margin-top:4px">Mitigation Plan dan Response — Periode Terpilih</h3>
       <div style="overflow-x:auto" id="mitTable"></div>
@@ -262,9 +271,9 @@ footer{max-width:1280px;margin:0 auto;padding:12px 24px 30px;font-size:12px;colo
       <div id="lossSaved" class="ok" style="font-size:12.5px;margin-top:6px"></div>
     </section>
 
-    <section class="card">
-      <h2>Timeline FID dan Actual</h2>
-      <p class="sub">Perbandingan rentang waktu proyek berdasarkan FID dengan realisasinya (sheet Trending Prioritas (Timeline)). Tampilan mengikuti filter Zona.</p>
+    <section class="card pkeep" id="ganttCard">
+      <h2>Timeline FID dan Pelaporan Terakhir</h2>
+      <p class="sub">Perbandingan rentang waktu proyek berdasarkan FID dengan status pada pelaporan terakhir (sheet Trending Prioritas (Timeline)), bukan data real-time. Garis merah putus-putus menandai periode pelaporan yang dipilih. Tampilan mengikuti filter Zona.</p>
       <div id="gantt" style="overflow-x:auto"></div>
     </section>
 
@@ -630,7 +639,7 @@ function renderTable(){
     let d=""; if(pc!=null&&ec.v!=null){const dd=r2(ec.v)-r2(pc); d=Math.abs(dd)<0.005?`<span class="delta flat" title="Sama dengan periode sebelumnya">=</span>`:`<span class="delta ${dd>0?"up":"down"}" title="Periode sebelumnya ${fr(pc)}">${dd>0?"▲":"▼"}${fmt(Math.abs(dd))}</span>`;}
     if(ec.adj) d+=`<span class="delta flat" title="Disesuaikan secara manual (EWS ${fr(r.cur)}): ${esc(ec.reason||"alasan belum diisi")}">✎</span>`;
     const sm=v=>show?`<span class="small">${v}</span>`:"";
-    return `<tr data-proj="${esc(r.name)}" class="${S.focus?(sameProj(r.name,S.focus)?"sel":"dim"):""}" title="Klik untuk memfilter tampilan berdasarkan proyek ini"><td style="text-align:center">${i+1}</td><td>${esc(r.name)}</td><td class="num">${fmt(r.npvF)}</td><td class="num">${fmt(r.npvA)}</td>
+    return `<tr data-proj="${esc(r.name)}" class="${S.focus?(sameProj(r.name,S.focus)?"sel":"dim"):""}" title="Klik untuk membuka halaman proyek"><td style="text-align:center">${i+1}</td><td>${esc(r.name)}</td><td class="num">${fmt(r.npvF)}</td><td class="num">${fmt(r.npvA)}</td>
       <td class="ic">${indCell(r,"npv",r.f.npv,`NPV vs FID: ${pct(r.npvW)}`)}${sm(pct(r.npvW))}</td>
       <td class="ic">${indCell(r,"cost",r.f.cost,`EV ${fmt(r.evA)} (${r.evSrc==="tim"?"input tim":"dihitung"}) − AC ${fmt(r.acA)} = ${fmt(r.costW)}`)}${sm(fmt(r.costW))}</td>
       <td class="ic">${indCell(r,"sch",r.f.sch,`Progres ${fmt(r.pgA)}% vs plan ${fmt(r.pgF)}% (${pct(r.schW)})`)}${sm(pct(r.schW))}</td>
@@ -667,15 +676,18 @@ function lineChart(el,series,opt){
   el.innerHTML=`<svg viewBox="0 0 ${W} ${ly+8}" width="100%" role="img" aria-label="${esc(opt.aria)}">${g}${leg}</svg>`;
 }
 function renderCharts(){
-  const p=$("projSel").value, ks=monthKeys(); const at=f=>ks.map(k=>{const r=findRow(k,p);return r?r[f]:null;});
-  lineChart($("chartRisk"),[{name:"Current",vals:ks.map(k=>effCur(findRow(k,p)).v),color:"#00246b"},{name:"Inherent (FID)",vals:at("inh"),color:"#8a94a6",dash:true}],
-    {min:1,max:5,ticks:[1,1.8,2.6,3.4,4.2,5],dec:1,aria:"Tren risk rating",bands:[[1,1.8,LVCOL.L],[1.8,2.6,LVCOL.LM],[2.6,3.4,LVCOL.M],[3.4,4.2,LVCOL.MH],[4.2,5,LVCOL.High]]});
-  lineChart($("chartNpv"),[{name:"NPV Actual",vals:at("npvA"),color:"#0255c1"},{name:"NPV FID",vals:at("npvF"),color:"#8a94a6",dash:true}],{aria:"Tren NPV",dec:0});
+  const p=$("projSel").value, id=dbIdOf(p), tr=S.db?S.db.trend.filter(t=>t.id===id):[];
+  const keys=[...new Set([...monthKeys().filter(k=>findRow(k,p)),...tr.map(t=>t.month)])].sort();
+  if(!keys.length){$("chartNpv").innerHTML=`<p class="empty">Belum terdapat data NPV untuk proyek ini.</p>`;return;}
+  const v=(k,f,tf)=>{const r=findRow(k,p);if(r&&r[f]!=null)return r[f];const t=tr.find(x=>x.month===k);return t&&t[tf]!=null?t[tf]/1000:null;};
+  lineChart($("chartNpv"),[{name:"NPV Actual / Current",vals:keys.map(k=>v(k,"npvA","npvC")),color:"#0255c1"},{name:"NPV FID",vals:keys.map(k=>v(k,"npvF","npvF")),color:"#8a94a6",dash:true}],{keys,aria:"Tren NPV",dec:0});
 }
 function renderRR(){
   if(!S.rr.length){$("rrArea").innerHTML=`<p class="empty">Belum terdapat berkas RR. Unggah berkas Risk Register yang memiliki sheet "Score RR" pada bagian Unggah Data.</p>`;return;}
   const ps=allProjects(), ks=monthKeys();
+  if(S.page&&S.focus&&!S.rr.some(rr=>rr.target&&sameProj(rr.target,S.focus))){$("rrArea").innerHTML=`<p class="note">Belum terdapat berkas RR yang dipasangkan dengan proyek ini.</p>`;return;}
   $("rrArea").innerHTML=`<div class="rrcards">${S.rr.map((rr,i)=>{
+    if(S.page&&S.focus&&!(rr.target&&sameProj(rr.target,S.focus))) return "";
     const row=rr.target?findRow(rr.month,rr.target):null; const lv=level(rr.total);
     const match=row&&row.cur!=null?(sameRisk(rr.total,row.cur)?`<span class="ok">✓ sesuai dengan EWS (${fr(row.cur)})</span>`:`<span class="nok">✗ berbeda dengan EWS: RR ${fr(rr.total)} vs EWS ${fr(row.cur)}</span>`):`<span class="note">belum terdapat pembanding pada EWS</span>`;
     const bars=CAT_KEYS.map(([c])=>{const v=rr.cats[c]?rr.cats[c].score:null; const l=level(v);
@@ -699,7 +711,7 @@ function renderAll(full=true){
   renderFiles(); renderHistResume(); $("demoBadge").classList.toggle("hidden",!S.demo);
   const has=monthKeys().length>0||S.rr.length>0||!!S.db||S.lossIn.length>0||S.moneva.length>0; $("results").classList.toggle("hidden",!has); if(!has) return;
   if(full){renderMonthSel(); renderProjSel(); renderZonaSel();}
-  renderAuto(); renderFilterBar(); renderDrill(); renderTable(); renderPP(); renderCharts(); renderTrendPG(); renderMovementLine(); renderRR(); renderMitLoss(); renderGantt(); renderIndex(); renderIssues(); if($("lossFormBox").open) renderLossForm();
+  renderAuto(); renderProjPage(); renderFilterBar(); renderDrill(); renderTable(); renderPP(); renderCharts(); renderTrendPG(); renderMovementLine(); renderRR(); renderMitLoss(); renderGantt(); renderIndex(); renderIssues(); if($("lossFormBox").open) renderLossForm();
 }
 
 /* ===================== PENILAIAN PROFESIONAL ===================== */
@@ -1032,17 +1044,14 @@ function dbTrendIssues(){
 /* ---------- RENDER: Trending PG charts ---------- */
 function renderTrendPG(){
   const box=$("trendPG"); if(!box) return;
-  if(!S.db||!S.db.trend.length){box.innerHTML=`<p class="empty">Unggah berkas <b>Database Dashboard</b> untuk menampilkan tren NPV, Risk Exposure, dan Risk Limit (sheet Trending PG).</p>`;return;}
+  if(!S.db||!S.db.trend.length){$("chartRE").innerHTML=`<p class="empty">Unggah berkas <b>Database Dashboard</b> untuk menampilkan Risk Exposure dan Risk Limit (sheet Trending PG).</p>`;box.innerHTML="";return;}
   const p=$("projSel").value, id=dbIdOf(p); const rows=S.db.trend.filter(t=>t.id===id);
   const rr=rrTrend().filter(x=>x.id===id);
   const keys=[...new Set([...rows.map(r=>r.month),...rr.map(r=>r.month)])].sort();
-  if(!keys.length){box.innerHTML=`<p class="empty">Tidak terdapat data Trending PG untuk proyek ini${id?"":" (nama proyek belum sesuai dengan Master Project)"}.</p>`;return;}
+  if(!keys.length){$("chartRE").innerHTML=`<p class="empty">Tidak terdapat data Trending PG untuk proyek ini${id?"":" (nama proyek belum sesuai dengan Master Project)"}.</p>`;box.innerHTML="";return;}
   const at=k=>keys.map(m=>{const r=rows.find(x=>x.month===m); const q=rr.find(x=>x.month===m); return r&&r[k]!=null?r[k]:(q&&q[k]!=null?q[k]:null);});
-  box.innerHTML=`<div class="grid3"><div class="chartbox"><h3>NPV (000 USD)</h3><div id="tpg1"></div></div><div class="chartbox"><h3>RRE vs Risk Limit (000 USD)</h3><div id="tpg2"></div></div><div class="chartbox"><h3>Risk Exposure &amp; Loss/Gain (000 USD)</h3><div id="tpg3"></div></div></div>
-    <p class="note">Sumber: sheet Trending PG di Database${rr.length?"; periode yang belum tercantum pada Database diisi dari berkas RR (NPV, Σ IRE, Σ RRE, BTR = 5% NPV)":""}. Risk Limit (RMT) = 5% × NPV.</p>`;
-  lineChart($("tpg1"),[{name:"NPV Current",vals:at("npvC"),color:"#0255c1"},{name:"NPV FID",vals:at("npvF"),color:"#8a94a6",dash:true}],{keys,aria:"Tren NPV",dec:0});
-  lineChart($("tpg2"),[{name:"RRE Prognosed",vals:at("rreP"),color:"#d93025"},{name:"RRE FID",vals:at("rreF"),color:"#e8a09a",dash:true},{name:"Limit Current",vals:at("rmtC"),color:"#00246b"},{name:"Limit FID",vals:at("rmtF"),color:"#8a94a6",dash:true}],{keys,aria:"RRE vs Risk Limit",dec:0});
-  lineChart($("tpg3"),[{name:"RE Current",vals:at("reC"),color:"#f29d38"},{name:"IRE FID",vals:at("ireF"),color:"#c9a26b",dash:true},{name:"Potential L/G",vals:at("pot"),color:"#7b61ff"},{name:"Actual L/G",vals:at("act"),color:"#3f9b4a"}],{keys,aria:"Risk exposure",dec:0});
+  box.innerHTML=`<p class="note">Sumber: sheet Trending PG di Database${rr.length?"; periode yang belum tercantum pada Database diisi dari berkas RR (NPV, Σ IRE, Σ RRE, BTR = 5% NPV)":""}. Risk Limit (RMT) = 5% × NPV.</p>`;
+  lineChart($("chartRE"),[{name:"RE Current",vals:at("reC"),color:"#f29d38"},{name:"IRE FID",vals:at("ireF"),color:"#c9a26b",dash:true},{name:"RRE Prognosed",vals:at("rreP"),color:"#d93025"},{name:"RRE FID",vals:at("rreF"),color:"#e8a09a",dash:true},{name:"Risk Limit Current",vals:at("rmtC"),color:"#00246b",bold:true},{name:"Risk Limit FID",vals:at("rmtF"),color:"#8a94a6",dash:true}],{keys,aria:"Risk Exposure dan Risk Limit",dec:0});
 }
 
 /* ---------- RENDER: Risk Movement monthly ---------- */
@@ -1058,9 +1067,10 @@ function renderMovementLine(){
   if(!keys.length){box.innerHTML=`<p class="empty">Belum terdapat data Risk Movement untuk proyek ini. Unggah berkas Database Dashboard atau berkas RR, atau lengkapi Penilaian Profesional.</p>`;return;}
   const pick=m=>extra.find(x=>x.month===m)||db.find(x=>x.month===m);
   const ser=CAT_KEYS.map(([c])=>({name:CAT_LABEL[c],color:CATCOL[c],vals:keys.map(m=>{const r=pick(m);return r&&r.cats[c]!=null?r.cats[c]:null;})}));
-  ser.push({name:"Risk Rating",color:"#111",vals:keys.map(m=>{const r=pick(m);return r?r.total:null;}),bold:true});
-  box.innerHTML=`<div class="chartbox"><h3>Pergerakan Skor per Kategori — ${esc(p)}</h3><div id="rmChart"></div><p class="note">Sumber: sheet Risk Movement di Database${extra.length?`; bulan ${extra.map(x=>`${monthLabel(x.month)} dari ${x.src}`).join(", ")}`:""}.</p></div>`;
-  lineChart($("rmChart"),ser,{keys,min:1,max:5,ticks:[1,2,3,4,5],dec:0,aria:"Risk movement",W:1100,H:280});
+  ser.push({name:"Risk Rating (Current)",color:"#111",vals:keys.map(m=>{const r=pick(m);if(r&&r.total!=null)return r.total;const e=findRow(m,p);return e?effCur(e).v:null;}),bold:true});
+  ser.push({name:"Inherent (FID)",color:"#8a94a6",vals:keys.map(m=>{const e=findRow(m,p);return e&&e.inh!=null?e.inh:null;}),dash:true});
+  box.innerHTML=`<div class="chartbox"><h3>Risk Movement — ${esc(p)}</h3><div id="rmChart"></div><p class="note">Sumber: sheet Risk Movement di Database${extra.length?`; bulan ${extra.map(x=>`${monthLabel(x.month)} dari ${x.src}`).join(", ")}`:""}.</p></div>`;
+  lineChart($("rmChart"),ser,{keys,min:1,max:5,ticks:[1,1.8,2.6,3.4,4.2,5],dec:1,aria:"Risk movement",W:1100,H:300,bands:[[1,1.8,LVCOL.L],[1.8,2.6,LVCOL.LM],[2.6,3.4,LVCOL.M],[3.4,4.2,LVCOL.MH],[4.2,5,LVCOL.High]]});
 }
 
 /* ---------- RENDER: Mitigation & Loss Event ---------- */
@@ -1088,13 +1098,13 @@ function renderGantt(){
   const box=$("gantt"); if(!box) return;
   if(!S.db||!S.db.timeline.length){box.innerHTML=`<p class="empty">Unggah berkas <b>Database Dashboard</b> untuk menampilkan timeline FID dan Actual (sheet Trending Prioritas (Timeline)).</p>`;return;}
   const items=S.db.timeline.filter(t=>t.start&&t.end&&(!S.zona||t.zona===S.zona||zonaOf(t.name)===S.zona)&&flaggedNow(t.name));
-  const ids=[...new Set(items.map(t=>t.id))];
-  if(!ids.length){box.innerHTML=`<p class="empty">Tidak terdapat proyek untuk zona ini.</p>`;return;}
+  const ids=[...new Set(items.filter(t=>!(S.page&&S.focus)||sameProj(t.name,S.focus)).map(t=>t.id))];
+  if(!ids.length){box.innerHTML=`<p class="empty">${S.page?"Tidak terdapat data timeline untuk proyek ini.":"Tidak terdapat proyek untuk zona ini."}</p>`;return;}
   const y0=Math.min(...items.map(t=>t.start.y)), y1=Math.max(...items.map(t=>t.end.y))+1;
   const W=1180,L=330,R=20,T=28,RH=34; const H=T+ids.length*RH+30;
   const x=d=>L+(W-L-R)*((d.y+(d.m-1)/12)-y0)/(y1-y0);
   let g=""; for(let y=y0;y<=y1;y++){const xx=L+(W-L-R)*(y-y0)/(y1-y0); g+=`<line x1="${xx}" x2="${xx}" y1="${T-6}" y2="${H-24}" stroke="#e3e7ee"/><text x="${xx}" y="${T-10}" font-size="11" text-anchor="middle" fill="#667">${y}</text>`;}
-  const now=new Date(), nx=x({y:now.getFullYear(),m:now.getMonth()+1}); g+=`<line x1="${nx}" x2="${nx}" y1="${T-6}" y2="${H-24}" stroke="#d93025" stroke-dasharray="4 3"/><text x="${nx+4}" y="${H-12}" font-size="11" fill="#d93025">Hari ini</text>`;
+  const rk=$("monthSel").value||monthKeys().at(-1); if(rk){const [ry,rm]=rk.split("-").map(Number), nx=x({y:ry,m:rm}); if(nx>=L&&nx<=W-R) g+=`<line x1="${nx}" x2="${nx}" y1="${T-6}" y2="${H-24}" stroke="#d93025" stroke-dasharray="4 3"/><text x="${nx+4}" y="${H-12}" font-size="11" fill="#d93025">Pelaporan terakhir: ${monthLabel(rk)}</text>`;}
   ids.forEach((id,i)=>{const yy=T+i*RH; const f=items.find(t=>t.id===id&&/fid/i.test(t.tipe)), a=items.find(t=>t.id===id&&/actual/i.test(t.tipe)); const nm=(f||a).name;
     const dim=S.focus&&!sameProj(nm,S.focus); g+=`<g class="grow" data-proj="${esc(nm)}" opacity="${dim?0.3:1}"><rect x="0" y="${yy}" width="${W}" height="${RH}" fill="${S.focus&&!dim?"#e3eefc":"transparent"}"/>`;
     g+=`<text x="${L-10}" y="${yy+19}" font-size="12" text-anchor="end" fill="#223">${esc(nm.length>46?nm.slice(0,44)+"…":nm)}<title>${esc(nm)}</title></text>`;
@@ -1103,7 +1113,7 @@ function renderGantt(){
     g+=`</g>`;
   });
   box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Timeline FID vs Actual">${g}</svg>
-    <div class="legend"><span><i class="sw" style="background:#b8c1cf"></i>FID</span><span><i class="sw" style="background:#00246b"></i>Actual</span><span><i class="sw" style="background:#d93025"></i>Actual selesai lebih lambat daripada FID</span></div>`;
+    <div class="legend"><span><i class="sw" style="background:#b8c1cf"></i>FID</span><span><i class="sw" style="background:#00246b"></i>Pelaporan terakhir</span><span><i class="sw" style="background:#d93025"></i>Pelaporan terakhir selesai lebih lambat daripada FID</span></div>`;
 }
 
 /* ---------- RENDER: Index ---------- */
@@ -1205,7 +1215,7 @@ function sameProj(a,b){if(!a||!b)return false;if(a===b||norm(a)===norm(b))return
 function flagOfRow(r,f){if(!r)return false;return f==="risk"?!!riskFlag(r):!!(r.f&&r.f[f]);}
 function flaggedNow(name){if(!S.flag)return true;const r=rowsOf($("monthSel").value).find(x=>sameProj(x.name,name));return flagOfRow(r,S.flag);}
 function passCross(name){return (!S.focus||sameProj(name,S.focus))&&flaggedNow(name);}
-function refreshCross(){renderFilterBar();renderDrill();renderTable();renderPP();renderCharts();renderTrendPG();renderMovementLine();renderMitLoss();renderGantt();renderIssues();}
+function refreshCross(){renderProjPage();renderRR();renderFilterBar();renderDrill();renderTable();renderPP();renderCharts();renderTrendPG();renderMovementLine();renderMitLoss();renderGantt();renderIssues();}
 function setFocus(name,toggle=true){
   S.drillCat=null; S.focus=(toggle&&S.focus&&sameProj(S.focus,name))?null:name;
   if(S.focus){const ps=allProjects();const t=ps.find(x=>sameProj(x,S.focus));if(t){$("projSel").value=t;$("ppProj").value=t;S.focus=t;}}
@@ -1315,7 +1325,7 @@ async function histSave(added){
     await hPut(s); S.sessionId=s.id; histMsg(""); await renderHist();
   }catch(e){ const q=e&&(e.name==="QuotaExceededError"||/quota/i.test(e.message||"")); histMsg(q?"Riwayat tidak dapat disimpan karena kapasitas penyimpanan peramban penuh. Hapus beberapa sesi lama, lalu unggah kembali.":"Riwayat tidak dapat disimpan: "+(e&&e.message||e)); renderHistResume(); }
 }
-function resetSession(){ S.moneva=[]; S.files=[];S.months={};S.rr=[];S.master=[];S.db=null;S.zona="";S.focus=null;S.flag=null;S.drillCat=null;S.demo=false;S.sessionId=null; if($("zonaSel")) $("zonaSel").value=""; }
+function resetSession(){ S.page=false; S.moneva=[]; S.files=[];S.months={};S.rr=[];S.master=[];S.db=null;S.zona="";S.focus=null;S.flag=null;S.drillCat=null;S.demo=false;S.sessionId=null; if($("zonaSel")) $("zonaSel").value=""; }
 function newSession(){ resetSession(); renderAll(); renderFilterBar(); renderHist(); closeHist(); window.scrollTo(0,0); }
 async function histOpen(id){
   try{ const s=await hGet(id); if(!s){histMsg("Sesi tidak ditemukan.");await renderHist();return;}
@@ -1592,15 +1602,62 @@ function renderAuto(){
     <td><input list="autoStatusList" data-ai="status" value="${esc(r.inp.status||"")}" placeholder="isi status" style="width:140px"></td><td><input data-ai="prio" value="${esc(r.inp.prio||"")}" placeholder="—" style="width:60px"></td>
     <td class="small">${r.notes.length?r.notes.map(esc).join("<br>"):'<span style="color:#1a7f37">Lengkap</span>'}</td></tr>`;}).join("")}</tbody></table></div>
   <datalist id="autoStatusList"><option>On-Track</option><option>Descoping</option><option>Delay</option><option>Closing</option><option>Penghentian Proyek</option></datalist>
-  ${rows.some(r=>r.mon)?`<details class="adet"><summary>Rincian isian MONEVA per proyek</summary>${rows.filter(r=>r.mon).map(r=>{const M=r.mon;return `<div class="amon"><h4>${esc(M.judul)} <span class="small">· ${esc(M.periodText||"")} · ${esc(M.file)}</span></h4>
+  ${rows.some(r=>r.mon)?`<details class="adet" ${AUTO.open?"open":""} ontoggle="AUTO.open=this.open;autoSave()"><summary>Rincian MONEVA per proyek: Project Economic, Loss &amp; Gain, dan Waterfall</summary>${rows.filter(r=>r.mon).map(r=>{const M=r.mon;return `<div class="amon"><h4>${esc(M.judul)} <span class="small">· ${esc(M.periodText||"")} · ${esc(M.file)}</span></h4>
     <div class="agrid"><div><b>Jadwal</b><br>Start ${M.start?monthLabel(M.start):"—"} · Finish Plan ${M.finishPlan?monthLabel(M.finishPlan):"—"} · Finish Update ${M.finishUpd?monthLabel(M.finishUpd):"—"}</div>
     <div><b>Ekonomi (Plan → Update)</b><br>IRR ${f2((M.econ.irr||[])[0])} → ${f2(r.irr.v)} · Disc. rate ${f2((M.econ.disc||[])[0])} → ${f2(r.disc.v)} · Disc. POT ${f2((M.econ.pot||[])[0])} → ${f2(r.pot.v)}</div>
     <div><b>Break Even</b><br>Oil ${f2(M.bepOil)} US$/bbl · Gas ${f2(M.bepGas)} · Opex/BBL ${f2(M.opexBbl)}</div>
     <div><b>Scenario Analysis NPV</b><br>${[["Oil Volume","oilVol"],["Gas Volume","gasVol"],["Capex","capex"],["Opex","opex"],["Time/Schedule","sched"],["Oil Price","oilPrice"],["Gas Price","gasPrice"],["Insentif","insentif"],["Others","others"]].map(([l,k])=>`${l} ${f2(M.scen[k])}`).join(" · ")}</div></div>
     <p class="small"><b>Potential Impact / Analysis:</b> ${M.analysis.map(a=>`<b>${esc(a.h)}</b>: ${esc(a.t.slice(0,220))}${a.t.length>220?"…":""}`).join(" · ")||"—"}</p>
-    <p class="small"><b>Future Outlook:</b> ${esc(M.outlook.slice(0,400))}${M.outlook.length>400?"…":""}</p></div>`;}).join("")}</details>`:""}`;
+    <p class="small"><b>Future Outlook:</b> ${esc(M.outlook.slice(0,400))}${M.outlook.length>400?"…":""}</p>${lgBlock(r,per)}</div>`;}).join("")}</details>`:""}`;
 }
-function autoInput(e){const t=e.target;const tr=t.closest("tr[data-ap]");if(!tr)return;const per=$("autoPer").value;
+
+/* ===================== LOSS & GAIN + PROJECT ECONOMIC (dari MONEVA) ===================== */
+const LG=[["oilVol","Oil Volume"],["gasVol","Gas Volume"],["capex","Capex"],["opex","Opex"],["sched","Schedule"],["oilPrice","Oil Price"],["gasPrice","Gas Price"],["insentif","Insentif"],["others","Others"]];
+const lgKey=(name,per,k)=>name+"||"+per+"||"+k;
+function lgData(r,per){const M=r.mon;return LG.map(([k,l])=>{const v=M.scen[k]??null;const st=(AUTO.lg&&AUTO.lg[lgKey(r.name,per,k)])||{};
+  return {k,l,v,jenis:v==null||Math.abs(v)<1e-9?null:v<0?"Loss":"Gain",sifat:st.sifat||"Potential",alasan:st.alasan||""};});}
+function lgTotals(d){const t={pl:0,al:0,pg:0,ag:0};d.forEach(x=>{if(!x.jenis)return;t[(x.sifat==="Actual"?"a":"p")+(x.jenis==="Loss"?"l":"g")]+=x.v;});return t;}
+function lgSvg(r,d){
+  const M=r.mon,fid=M.npvFid,upd=M.npvUpd; if(fid==null) return "";
+  const steps=[];let cum=fid;d.forEach(x=>{const v=x.v||0;steps.push({...x,a:cum,b:cum+v});cum+=v;});
+  const end=upd!=null?upd:cum, lim=r.riskLimit!=null?fid-r.riskLimit:null;
+  const vals=[0,fid,end,...steps.flatMap(x=>[x.a,x.b]),...(lim!=null?[lim]:[])], lo=Math.min(...vals), hi=Math.max(...vals);
+  const W=760,H=300,L=48,Rt=16,T=28,B=46, n=steps.length+2, slot=(W-L-Rt)/n, bw=slot*0.62;
+  const Y=v=>T+(hi-v)/((hi-lo)||1)*(H-T-B), X=i=>L+i*slot+(slot-bw)/2;
+  const nav="#00246b",red="#d7262e",grn="#2e9e44";
+  let g=`<line x1="${L}" x2="${W-Rt}" y1="${Y(0)}" y2="${Y(0)}" stroke="#9aa6b8" stroke-width="1"/>`;
+  const bar=(i,a,b,col,pot,lab,val)=>{const y=Math.min(Y(a),Y(b)),h=Math.max(1.5,Math.abs(Y(a)-Y(b)));
+    g+=`<rect x="${X(i)}" y="${y}" width="${bw}" height="${h}" fill="${col}" fill-opacity="${pot?0.4:1}" stroke="${col}" stroke-width="1.3" ${pot?'stroke-dasharray="4 3"':""} rx="2"><title>${esc(lab)}: ${fmt(val)}${pot?" (Potential)":""}</title></rect>`;
+    const vy=b>=a?y-5:y+h+12; g+=`<text x="${X(i)+bw/2}" y="${vy}" text-anchor="middle" font-size="10.5" fill="#1a2233">${fmt(val)}</text>`;
+    g+=`<text x="${X(i)+bw/2}" y="${H-B+16}" text-anchor="middle" font-size="10.5" fill="#55607a">${esc(lab)}</text>`;};
+  bar(0,0,fid,nav,false,"NPV FID",fid);
+  steps.forEach((x,i)=>{g+=`<line x1="${X(i)+bw}" x2="${X(i+1)}" y1="${Y(x.a)}" y2="${Y(x.a)}" stroke="#b7c0cc" stroke-dasharray="2 2"/>`;
+    bar(i+1,x.a,x.b,!x.jenis?"#9aa6b8":x.jenis==="Loss"?red:grn,x.jenis&&x.sifat==="Potential",x.l,x.v||0);});
+  g+=`<line x1="${X(n-2)+bw}" x2="${X(n-1)}" y1="${Y(cum)}" y2="${Y(cum)}" stroke="#b7c0cc" stroke-dasharray="2 2"/>`;
+  bar(n-1,0,end,nav,false,"NPV Update",end);
+  if(lim!=null) g+=`<line x1="${L}" x2="${W-Rt}" y1="${Y(lim)}" y2="${Y(lim)}" stroke="${red}" stroke-width="1.2" stroke-dasharray="6 4"/><text x="${W-Rt}" y="${Y(lim)-5}" text-anchor="end" font-size="10.5" fill="${red}">Batas Risk Limit (NPV FID − 5%) ${fmt(lim)}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Waterfall NPV FID ke NPV Update" style="width:100%;max-width:820px;height:auto;display:block">${g}</svg>`;
+}
+function lgViz(r,per){const d=lgData(r,per),t=lgTotals(d),tot=t.pl+t.al+t.pg+t.ag, loss=-tot;
+  const over=r.riskLimit!=null&&loss>r.riskLimit;
+  return lgSvg(r,d)+`<p class="small" style="margin-top:6px">Potential Loss <b>${fmt(t.pl)}</b> · Actual Loss <b>${fmt(t.al)}</b> · Potential Gain <b>${fmt(t.pg)}</b> · Actual Gain <b>${fmt(t.ag)}</b> · Total <b>${fmt(tot)}</b> juta USD (= NPV Update − NPV FID). ${over?`<b style="color:#c51e28">Penurunan NPV bersih ${fmt(loss)} melebihi Risk Limit ${fmt(r.riskLimit)}.</b>`:""} Batang putus-putus dan pucat = Potential; batang penuh = Actual.</p>`;}
+function econBlock(r){const M=r.mon,E=M.econ,f=v=>v==null?"—":fmt(v);
+  const rows=[["Capex (US$ juta)","capex"],["Opex (US$ juta)","opex"],["Oil volume (MMBO)","oilVol"],["Gas volume (BSCF)","gasVol"],["Oil price (US$/bbl)","oilPrice"],["Gas price (US$/MMBTU)","gasPrice"],["NPV (US$ juta)","npv1"],["IRR (%)","irr"],["Payback / Disc. POT (tahun)","pot"],["HR / Disc. rate (%)","disc"]];
+  return `<table class="ew mini"><thead><tr><th>Parameter</th><th>FID</th><th>Update</th><th>BEP</th></tr></thead><tbody>${rows.map(([l,k])=>{const a=E[k]||[];const u=k==="npv1"?{v:M.npvUpd}:pickUpd(a);const bep=k==="oilPrice"?M.bepOil:k==="gasPrice"?M.bepGas:null;
+    return `<tr><td>${l}</td><td class="num">${f(a[0])}</td><td class="num">${f(u.v)}</td><td class="num">${bep!=null&&bep!==0?f(bep):""}</td></tr>`;}).join("")}</tbody></table>`;}
+function lgBlock(r,per){const d=lgData(r,per);
+  return `<div class="lgwrap"><div><h5>Project Economic</h5>${econBlock(r)}</div>
+  <div><h5>Loss &amp; Gain per Penyebab (juta USD)</h5><table class="ew mini"><thead><tr><th>Penyebab</th><th>Nilai</th><th>Jenis</th><th>Sifat</th><th>Alasan (bila Actual)</th></tr></thead><tbody>${d.map(x=>`<tr><td>${x.l}</td><td class="num" style="color:${!x.jenis?"inherit":x.jenis==="Loss"?"#c51e28":"#1a7f37"}">${x.v==null?"—":fmt(x.v)}</td><td>${x.jenis||"—"}</td>
+    <td>${x.jenis?`<select data-lg="${esc(lgKey(r.name,per,x.k))}" data-lgf="sifat"><option ${x.sifat==="Potential"?"selected":""}>Potential</option><option ${x.sifat==="Actual"?"selected":""}>Actual</option></select>`:"—"}</td>
+    <td>${x.jenis?`<input data-lg="${esc(lgKey(r.name,per,x.k))}" data-lgf="alasan" value="${esc(x.alasan)}" placeholder="contoh: slot pemboran sudah habis" style="width:200px">`:""}</td></tr>`).join("")}</tbody></table></div></div>
+  <h5 style="margin-top:12px">Waterfall NPV FID ke NPV Update</h5><div data-lgsvg="${esc(r.name)}">${lgViz(r,per)}</div>`;}
+
+function autoInput(e){const t=e.target;const per=$("autoPer").value;
+  if(t.dataset.lg){AUTO.lg=AUTO.lg||{};(AUTO.lg[t.dataset.lg]=AUTO.lg[t.dataset.lg]||{})[t.dataset.lgf]=t.value;autoSave();
+    const [name,lper]=t.dataset.lg.split("||"), r=autoRows(lper).find(x=>x.name===name);
+    document.querySelectorAll("[data-lg]").forEach(el=>{if(el!==t&&el.dataset.lg===t.dataset.lg&&el.dataset.lgf===t.dataset.lgf)el.value=t.value;});
+    if(r&&r.mon) document.querySelectorAll("[data-lgsvg]").forEach(b=>{if(b.dataset.lgsvg===name)b.innerHTML=lgViz(r,lper);}); return;}
+  const tr=t.closest("tr[data-ap]");if(!tr)return;
   if(t.dataset.am!==undefined){AUTO.map=AUTO.map||{};AUTO.map[t.dataset.am]=t.value;autoSave();renderAuto();return;}
   if(t.dataset.ai){AUTO.inp=AUTO.inp||{};const k=tr.dataset.ap+"||"+per;(AUTO.inp[k]=AUTO.inp[k]||{})[t.dataset.ai]=t.value;autoSave();}}
 function exportAuto(){
@@ -1624,13 +1681,18 @@ function exportAuto(){
   const rm=[["Project ID","Regional","Zona","Proyek","Month","BUSSINESS SCENARIO","TECHNICAL","MANAGEMENT","COMMERCIAL","EXTERNAL","HSSE","RISK RATING"]];
   rows.filter(r=>r.rr).forEach(r=>rm.push([id(r),r.regional,r.zona,r.name,D(per),...CAT_KEYS.map(([c])=>r.cats[c]?r2(r.cats[c].score):null),r2(r.cur)]));
   const tp=[["Project ID","Regional","Zona","Project","Month","NPV FID","IRE FID","RRE FID","RMT FID","Potentian Loss / Gain","Actual Loss / Gain","NPV Current","RE Current","RRE Prognosed","RMT CURRENT"]];
-  const K=v=>v==null?null:v*1000; rows.forEach(r=>{const R=r.rr;tp.push([id(r),r.regional,r.zona,r.name,D(per),N(K(r.npvFid)),Y(null),Y(null),N(K(r.riskLimit)),Y(null),Y(null),N(R&&R.npv!=null?R.npv:K(r.npvUpd)),R?N(R.ire):Y(null),R?N(R.rre):Y(null),R?N(R.btr):Y(null)]);});
+  const K=v=>v==null?null:v*1000; rows.forEach(r=>{const R=r.rr;const t=r.mon?lgTotals(lgData(r,per)):null;tp.push([id(r),r.regional,r.zona,r.name,D(per),N(K(r.npvFid)),Y(null),Y(null),N(K(r.riskLimit)),t?N(K(t.pl+t.pg)):Y(null),t?N(K(t.al+t.ag)):Y(null),N(R&&R.npv!=null?R.npv:K(r.npvUpd)),R?N(R.ire):Y(null),R?N(R.rre):Y(null),R?N(R.btr):Y(null)]);});
   const mi=[["Project id","Regional","Zona","Project Name","Month","Risk Event Issue","Mitigation Plan","Response"]];
   rows.filter(r=>r.rr).forEach(r=>{const seen=new Set();(r.rr.mitig||[]).forEach(m=>{const k=norm(m.event||"")+"|"+norm(m.activity||"");if(seen.has(k))return;seen.add(k);mi.push([id(r),r.regional,r.zona,r.name,D(per),m.event,m.activity,m.option||""]);});});
+  const lg=[["Project ID","Regional","Zona","Project","Month","Penyebab","Nilai (juta USD)","Jenis","Sifat","Alasan","Sumber"]];
+  rows.filter(r=>r.mon).forEach(r=>lgData(r,per).forEach(x=>lg.push([id(r),r.regional,r.zona,r.name,D(per),x.l,N(x.v),x.jenis||"",x.jenis?x.sifat:"",x.alasan,r.mon.file])));
+  const pe=[["Project ID","Project","Month","Parameter","FID","Update","BEP"]];
+  const PE=[["Capex (US$ juta)","capex"],["Opex (US$ juta)","opex"],["Oil volume (MMBO)","oilVol"],["Gas volume (BSCF)","gasVol"],["Oil price (US$/bbl)","oilPrice"],["Gas price (US$/MMBTU)","gasPrice"],["NPV (US$ juta)","npv1"],["IRR (%)","irr"],["Payback / Disc. POT (tahun)","pot"],["HR / Disc. rate (%)","disc"]];
+  rows.filter(r=>r.mon).forEach(r=>{const M=r.mon;PE.forEach(([l,k])=>{const a=M.econ[k]||[];const u=k==="npv1"?{v:M.npvUpd}:pickUpd(a);const bep=k==="oilPrice"?M.bepOil:k==="gasPrice"?M.bepGas:null;pe.push([id(r),r.name,D(per),l,N(a[0]),N(u.v),bep?N(bep):null]);});});
   const ct=[["Bagian","Keterangan"],["Periode",pl],["Tanggal acuan (Today)",todayV],["Sumber","PDF MONEVA (Detail Upstream) dan berkas Risk Register (RR)"],
     ["Rumus Risk LIMIT","5% × NPV Plan FID"],["Rumus Delta NPV","NPV Plan FID − NPV Update (positif = penurunan NPV)"],["Rumus NPV Loss > Risk Limit","1 apabila Delta NPV > Risk LIMIT, selain itu 0"],
     ["Rumus Remaining Progress Fisik","Scope Plan − Scope Update pada MONEVA (mohon konfirmasi kepada tim)"],["Rumus Durasi","Durasi Plan = Project Start s.d. Finish Plan; Durasi Actual = Project Start s.d. Finish Update; Progress = Project Start s.d. Today; Persentase = Progress ÷ Durasi Actual"],
-    ["NPV Update","NPV 1 Update 1 pada MONEVA (sama dengan hasil Scenario Analysis); tanpa MONEVA, NPV Current pada RR ÷ 1.000"],["Satuan","ALERT dan EWS dalam juta USD; sheet Trending PG dalam ribu USD mengikuti Database Dashboard"],["IRR / HR / Payback ACT","Update 1 pada MONEVA; apabila bernilai 0, menggunakan Update berikutnya yang terisi"],
+    ["NPV Update","NPV 1 Update 1 pada MONEVA (sama dengan hasil Scenario Analysis); tanpa MONEVA, NPV Current pada RR ÷ 1.000"],["Satuan","ALERT, EWS, Loss & Gain, dan Project Economic dalam juta USD; sheet Trending PG dalam ribu USD mengikuti Database Dashboard"],["Loss & Gain","Nilai dari Scenario Analysis MONEVA: negatif = Loss, positif = Gain. Sifat bawaan Potential; diubah menjadi Actual oleh tim bila sudah final. Total = NPV Update − NPV FID. Potential/Actual Loss/Gain pada Trending PG = jumlah per sifat (ribu USD)"],["IRR / HR / Payback ACT","Update 1 pada MONEVA; apabila bernilai 0, menggunakan Update berikutnya yang terisi"],
     ["Sel kuning","Belum dapat diisi otomatis; mohon dilengkapi tim (misalnya Status Project, Risk Mitigation Priority, Earned Value, Actual Cost, Progres Fisik)"]];
   const blob=buildXlsx([
     {name:`ALERT ${sp}`.replace(/'/g,"").slice(0,31),rows:al,widths:[5,12,10,46,12,12,12,70,70,11,11,11,11,11,11,11,13,11,11,11,11,12,12,12,11,11,12,12,12,12,12,10,10,10,12,10,16,14,12,70]},
@@ -1639,9 +1701,35 @@ function exportAuto(){
     {name:"Risk Movement",rows:rm,widths:[11,13,12,46,11,18,12,13,13,11,8,12]},
     {name:"Trending PG",rows:tp,widths:[11,13,12,46,11,11,10,10,10,14,14,12,12,14,13]},
     {name:"Risk Mitigation",rows:mi,widths:[11,13,12,46,11,50,70,30]},
+    {name:"Loss & Gain",rows:lg,widths:[11,13,12,46,11,14,14,8,11,40,50]},
+    {name:"Project Economic",rows:pe,widths:[11,46,11,28,12,12,10]},
     {name:"Catatan Isi Otomatis",rows:ct,widths:[34,110]}]);
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`Isi_Otomatis_ALERT_EWS_Dashboard_${pl.replace(" ","_")}.xlsx`; document.body.appendChild(a); a.click();
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+}
+
+
+/* ===================== HALAMAN PROYEK ===================== */
+function openProject(name){S.page=true; try{if(location.hash!=="#proyek")history.pushState({proyek:1},"","#proyek");}catch(e){} setFocus(name,false); window.scrollTo(0,0);}
+function closeProject(){S.page=false; S.focus=null; S.drillCat=null; refreshCross(); window.scrollTo(0,0);}
+window.addEventListener("popstate",()=>{if(S.page) closeProject();});
+function renderProjPage(){
+  const box=$("projPage"); if(!box) return;
+  if(!S.page||!S.focus){document.body.classList.remove("pmode");box.innerHTML="";return;}
+  document.body.classList.add("pmode");
+  const p=S.focus,k=$("monthSel").value,r=rowsOf(k).find(x=>sameProj(x.name,p)),mp=masterOf(p),ec=effCur(r),li=r?level(r.inh):null,lc=level(ec.v);
+  const ind=(key,lab,val,tip)=>`<div class="pind">${indCell(r,key,key==="risk"?riskFlag(r):r.f[key],tip)}<div><b>${lab}</b><br><span class="small">${val}</span></div></div>`;
+  const mons=S.moneva.filter(M=>sameProj(monTarget(M),p)).sort((a,b)=>(b.period||"").localeCompare(a.period||""));
+  let mon=`<p class="note" style="margin-top:12px">Unggah PDF MONEVA proyek ini untuk menampilkan Project Economic, Loss &amp; Gain, dan Waterfall NPV.</p>`;
+  if(mons.length){const M=mons[0],per=M.period,ar=per?autoRows(per).find(x=>x.mon===M):null; if(ar) mon=`<h3 class="pph" style="margin-top:16px">Project Economic serta Loss &amp; Gain — MONEVA ${esc(M.periodText||"")}</h3><div class="amon">${lgBlock(ar,per)}</div>`;}
+  box.innerHTML=`<div class="toolbar"><button class="btn" id="projBack">← Kembali ke Ringkasan</button><span class="small">Periode pelaporan: ${k?monthLabel(k):"—"}</span></div>
+   <h2 style="margin-top:10px">${esc(p)}</h2><p class="sub">${[mp&&mp.id,mp?mp.regional:(r&&r.regional),mp&&mp.zona].filter(Boolean).map(esc).join(" · ")||"&nbsp;"}</p>
+   ${r?`<div class="pgrid"><div class="pstat"><span class="small">NPV FID (US$ juta)</span><b>${fmt(r.npvF)}</b></div><div class="pstat"><span class="small">NPV Actual (US$ juta)</span><b>${fmt(r.npvA)}</b><span class="small">${pct(r.npvW)} terhadap FID</span></div>
+     ${ind("npv","NPV",pct(r.npvW),`NPV vs FID: ${pct(r.npvW)}`)}${ind("cost","Cost",`EV − AC ${fmt(r.costW)}`,`EV − AC = ${fmt(r.costW)}`)}${ind("sch","Schedule",pct(r.schW),`Schedule ${pct(r.schW)}`)}${ind("risk","Current Risk",fr(ec.v),`Current risk ${fr(ec.v)}`)}
+     <div class="pstat"><span class="small">Risk Rating Inherent</span><span class="lvc" style="background:${LVC(li&&li.k)};color:${LVT(li&&li.k)}">${li?`${li.t} (${fr(r.inh)})`:"—"}</span></div><div class="pstat"><span class="small">Risk Rating Current</span><span class="lvc" style="background:${LVC(lc&&lc.k)};color:${LVT(lc&&lc.k)}">${lc?`${lc.t} (${fr(ec.v)})`:"—"}</span></div></div>`:`<p class="empty">Proyek ini tidak tercantum pada EWS periode ${k?monthLabel(k):"terpilih"}.</p>`}
+   ${mon}
+   <p class="hint" style="margin-top:10px">Bagian berikutnya menampilkan tren NPV dan Risk Exposure, Risk Movement, Mitigation Plan dan Loss Event, Timeline, serta Penilaian Profesional untuk proyek ini.</p>`;
+  $("projBack").onclick=()=>{try{if(location.hash==="#proyek")history.replaceState(null,"",location.pathname+location.search);}catch(e){} closeProject();};
 }
 
 /* ===================== XLSX WRITER ===================== */
@@ -1744,7 +1832,8 @@ $("ppArea").addEventListener("input",e=>{if(e.target.tagName!=="SELECT") ppOnInp
 $("ppArea").addEventListener("change",e=>{if(e.target.tagName==="SELECT") ppOnInput(e);});
 $("ppArea").addEventListener("click",ppOnClick);
 ppLoad(); lossLoad();
-$("ewTable").addEventListener("click",e=>{const tr=e.target.closest("tr[data-proj]"); if(tr) setFocus(tr.dataset.proj);});
+$("ewTable").addEventListener("click",e=>{const tr=e.target.closest("tr[data-proj]"); if(tr) openProject(tr.dataset.proj);});
+$("projPage").addEventListener("change",autoInput);
 $("kpis").addEventListener("click",e=>{const c=e.target.closest(".kpi[data-flag]"); if(c) setFlag(c.dataset.flag||null);});
 $("gantt").addEventListener("click",e=>{const g=e.target.closest("[data-proj]"); if(g) setFocus(g.dataset.proj);});
 $("mitTable").addEventListener("click",e=>{const t=e.target.closest("[data-proj]"); if(t) setFocus(t.dataset.proj);});

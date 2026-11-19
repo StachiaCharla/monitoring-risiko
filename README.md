@@ -9,10 +9,12 @@ Prototipe website monitoring risiko proyek prioritas.
 
 ## Fitur
 - **Isi Otomatis**: membaca RR dan PDF MONEVA, lalu menyusun isian ALERT, EWS, dan sheet Database Dashboard dalam satu berkas Excel
-- Early Warning System (NPV, Cost, Schedule, Current Risk)
+- Early Warning System (NPV, Cost, Schedule, Current Risk) dengan indikator warna sesuai Index EWS
+- Halaman proyek: klik baris EWS untuk melihat ringkasan proyek, Project Economic, Loss & Gain, Waterfall NPV, tren, Risk Movement, mitigasi, dan timeline
+- Loss & Gain per penyebab (Potential/Actual) dari Scenario Analysis MONEVA
 - Telusur Risiko (drill-down): Zona → Proyek → Kategori Risiko → Risk Event
 - Penilaian Profesional (Impact & Probability, penyesuaian Current Risk, mitigasi) dengan analisis otomatis
-- Tren Kinerja Proyek, Risk Movement, Mitigation Plan dan Loss Event, Timeline FID dan Actual
+- Tren NPV dan Risk Exposure (grafik terpisah), Risk Movement dalam satu grafik, Mitigation Plan dan Loss Event, Timeline FID dan pelaporan terakhir
 - Pemeriksaan Data otomatis dan Daftar Istilah
 - Filter interaktif (klik untuk memfilter seluruh tampilan)
 - Riwayat Laporan yang tersimpan di peramban perangkat pengguna
