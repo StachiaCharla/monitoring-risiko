@@ -1542,6 +1542,12 @@ function parseMoneva(pages,file){
   M.scen={}; const pi=low.findIndex(x=>/^parameter\s+value$/.test(x.replace(/\t/g," ")));
   const SK=[["oilVol","oil volume"],["gasVol","gas volume"],["capex","capex"],["opex","opex"],["sched","time/schedule"],["oilPrice","oil price"],["gasPrice","gas price"],["insentif","insentif"],["others","others"]];
   if(pi>=0) for(let j=pi+1;j<L.length;j++){const p=L[j].split("\t").map(clean);const k=SK.find(([,n])=>p[0].toLowerCase().replace(/\s+/g,"")===n.replace(/\s+/g,""));if(!k)break;M.scen[k[0]]=monNum(p[1]);}
+  M.cash=[]; const cfi=low.findIndex(x=>x.startsWith("cashflow profile"));
+  if(cfi>=0) for(let j=cfi+1;j<L.length;j++){ if(/^scenario analysis/.test(low[j])) break; const q=L[j].split("\t").map(clean);
+    if(q.length===3&&/^\d{4}$/.test(q[0])){const a=monNum(q[1]),b=monNum(q[2]); if(a!=null||b!=null) M.cash.push({y:+q[0],plan:a,upd:b});}}
+  M.sens=[]; const sni=low.findIndex(x=>x.startsWith("sensitivity analysis"));
+  if(sni>=0){ M.sensTitle=clean(L[sni]); const SN=["oil volume","gas volume","capex","opex","oil price","gas price"];
+    for(let j=sni+1;j<L.length;j++){const q=L[j].split("\t").map(clean); if(SN.includes((q[0]||"").toLowerCase())&&q.length>=6&&!M.sens.some(x=>x.l.toLowerCase()===q[0].toLowerCase())) M.sens.push({l:q[0],v:q.slice(1,6).map(monNum)});}}
   M.bepOil=monNum(after("Oil Break Even Price")); M.bepGas=monNum(after("Gas Break Even Price")); M.opexBbl=monNum(after("Opex/BBL"));
   // nilai turunan
   const n=M.econ.npv1||[]; M.npvFid=n[0]??null;
@@ -1619,6 +1625,40 @@ function renderAuto(){
     <p class="small"><b>Future Outlook:</b> ${esc(M.outlook.slice(0,400))}${M.outlook.length>400?"…":""}</p>${lgBlock(r,per)}</div>`;}).join("")}</details>`:""}`;
 }
 
+
+/* ===================== GRAFIK MONEVA: Cashflow & Sensitivity ===================== */
+function svgLines(xl,series,o={}){
+  const W=o.W||560,H=o.H||250,L=46,Rt=14,T=o.legend?34:14,B=30;
+  const vals=series.flatMap(s=>s.v).filter(v=>v!=null); if(!vals.length) return "";
+  let lo=Math.min(...vals,o.zero?0:Infinity),hi=Math.max(...vals,o.zero?0:-Infinity); const pad=(hi-lo)*0.08||1; lo-=pad; hi+=pad;
+  const step=(()=>{const r=(hi-lo)/5,m=Math.pow(10,Math.floor(Math.log10(r))),f=r/m;return (f<1.5?1:f<3.5?2:f<7.5?5:10)*m;})();
+  const X=i=>L+(xl.length===1?(W-L-Rt)/2:i*(W-L-Rt)/(xl.length-1)), Y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+  let g="";
+  for(let t=Math.ceil(lo/step)*step;t<=hi;t+=step) g+=`<line x1="${L}" x2="${W-Rt}" y1="${Y(t)}" y2="${Y(t)}" stroke="${Math.abs(t)<1e-9?"#9aa6b8":"#e3e7ee"}"/><text x="${L-5}" y="${Y(t)+3.5}" font-size="10" text-anchor="end" fill="#667">${fmt(t,0)}</text>`;
+  const every=Math.ceil(xl.length/12); xl.forEach((x,i)=>{const last=xl.length-1; if(i===last||(i%every===0&&last-i>=every)) g+=`<text x="${X(i)}" y="${H-12}" font-size="10" text-anchor="middle" fill="#667">${esc(String(x))}</text>`;});
+  if(o.vline!=null) g+=`<line x1="${X(o.vline)}" x2="${X(o.vline)}" y1="${T}" y2="${H-B}" stroke="#9aa6b8" stroke-dasharray="3 3"/>`;
+  series.forEach(s=>{let d="",pen=false;s.v.forEach((v,i)=>{if(v==null){pen=false;return;}d+=(pen?"L":"M")+X(i)+" "+Y(v)+" ";pen=true;});
+    g+=`<path d="${d}" fill="none" stroke="${s.c}" stroke-width="${s.w||2}" ${s.dash?'stroke-dasharray="5 4"':""}/>`;
+    s.v.forEach((v,i)=>{if(v!=null&&(o.dots||i===s.v.length-1)) g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="${o.dots?2.6:3}" fill="#fff" stroke="${s.c}" stroke-width="1.6"><title>${esc(s.n)} · ${esc(String(xl[i]))}: ${fmt(v)}</title></circle>`;});
+  });
+  if(o.endLabel){const ends=series.map(s=>({s,v:s.v.at(-1)})).filter(e=>e.v!=null).sort((a,b)=>b.v-a.v);let prev=-1e9;
+    ends.forEach(e=>{let y=Y(e.v)-7; if(y<prev+12) y=prev+12; prev=y; g+=`<text x="${X(xl.length-1)-6}" y="${y}" font-size="10" text-anchor="end" fill="${e.s.c}" font-weight="700">${fmt(e.v)}</text>`;});}
+  if(o.legend){let lx=L;series.forEach(s=>{g+=`<rect x="${lx}" y="8" width="12" height="7" rx="2" fill="${s.c}"/><text x="${lx+16}" y="15" font-size="10" fill="#445">${esc(s.n)}</text>`;lx+=26+s.n.length*5.6;});}
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria||"grafik")}" style="width:100%;height:auto;display:block">${g}</svg>`;
+}
+const SENSCOL={"oil volume":"#2ecc71","gas volume":"#c2188f","capex":"#e67e22","opex":"#8fb8de","oil price":"#8e44ad","gas price":"#9be22d"};
+function monCharts(M){
+  const parts=[];
+  if(M.cash&&M.cash.length){const xl=M.cash.map(c=>c.y);
+    parts.push(`<div class="chartbox"><h3>Cashflow Profile (US$ juta)</h3>${svgLines(xl,[{n:"Plan",c:"#1fb5ad",v:M.cash.map(c=>c.plan)},{n:"Update",c:"#e8484f",v:M.cash.map(c=>c.upd)}],{legend:true,zero:true,endLabel:true,aria:"Cashflow profile"})}
+      <p class="note">Kumulatif cashflow terdiskonto per tahun; nilai akhir kurva = NPV (Plan ${fmt(M.cash.at(-1).plan)} · Update ${fmt(M.cash.at(-1).upd)}).${(()=>{const i=M.cash.findIndex(c=>c.upd!=null&&c.upd>=0);const j=M.cash.findIndex(c=>c.plan!=null&&c.plan>=0);return i>=0&&j>=0?` Titik impas (payback) Plan tahun ${M.cash[j].y}, Update tahun ${M.cash[i].y}.`:"";})()}</p></div>`);}
+  if(M.sens&&M.sens.length){const xl=["60%","80%","100%","120%","140%"];const base=(M.sens[0].v||[])[2];
+    parts.push(`<div class="chartbox"><h3>Sensitivity Analysis NPV (US$ juta)</h3>${svgLines(xl,M.sens.map(x=>({n:x.l,c:SENSCOL[x.l.toLowerCase()]||"#777",v:x.v,w:1.8})),{legend:true,dots:true,vline:2,aria:"Sensitivity analysis"})}
+      <table class="ew mini" style="margin-top:6px"><thead><tr><th>Parameter</th>${xl.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${M.sens.map(x=>`<tr><td><i class="sw" style="background:${SENSCOL[x.l.toLowerCase()]||"#777"}"></i>${esc(x.l)}</td>${x.v.map(v=>`<td class="num">${fmt(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>
+      <p class="note">NPV jika parameter berubah menjadi 60%–140% dari nilai dasar${base!=null?` (nilai dasar ${fmt(base)} pada 100%)`:""}. Garis paling curam = parameter paling berpengaruh.${M.sensTitle?` Sumber: ${esc(M.sensTitle)}.`:""}</p></div>`);}
+  return parts.length?`<h5 style="margin-top:14px">Grafik MONEVA</h5><div class="grid2">${parts.join("")}</div>`:"";
+}
+
 /* ===================== LOSS & GAIN + PROJECT ECONOMIC (dari MONEVA) ===================== */
 const LG=[["oilVol","Oil Volume"],["gasVol","Gas Volume"],["capex","Capex"],["opex","Opex"],["sched","Schedule"],["oilPrice","Oil Price"],["gasPrice","Gas Price"],["insentif","Insentif"],["others","Others"]];
 const lgKey=(name,per,k)=>name+"||"+per+"||"+k;
@@ -1658,7 +1698,7 @@ function lgBlock(r,per){const d=lgData(r,per);
   <div><h5>Loss &amp; Gain per Penyebab (juta USD)</h5><table class="ew mini"><thead><tr><th>Penyebab</th><th>Nilai</th><th>Jenis</th><th>Sifat</th><th>Alasan (bila Actual)</th></tr></thead><tbody>${d.map(x=>`<tr><td>${x.l}</td><td class="num" style="color:${!x.jenis?"inherit":x.jenis==="Loss"?"#c51e28":"#1a7f37"}">${x.v==null?"—":fmt(x.v)}</td><td>${x.jenis||"—"}</td>
     <td>${x.jenis?`<select data-lg="${esc(lgKey(r.name,per,x.k))}" data-lgf="sifat"><option ${x.sifat==="Potential"?"selected":""}>Potential</option><option ${x.sifat==="Actual"?"selected":""}>Actual</option></select>`:"—"}</td>
     <td>${x.jenis?`<input data-lg="${esc(lgKey(r.name,per,x.k))}" data-lgf="alasan" value="${esc(x.alasan)}" placeholder="contoh: slot pemboran sudah habis" style="width:200px">`:""}</td></tr>`).join("")}</tbody></table></div></div>
-  <h5 style="margin-top:12px">Waterfall NPV FID ke NPV Update</h5><div data-lgsvg="${esc(r.name)}">${lgViz(r,per)}</div>`;}
+  <h5 style="margin-top:12px">Scenario Analysis: Waterfall NPV FID ke NPV Update</h5><div data-lgsvg="${esc(r.name)}">${lgViz(r,per)}</div>${monCharts(r.mon)}`;}
 
 function autoInput(e){const t=e.target;const per=$("autoPer").value;
   if(t.dataset.lg){AUTO.lg=AUTO.lg||{};(AUTO.lg[t.dataset.lg]=AUTO.lg[t.dataset.lg]||{})[t.dataset.lgf]=t.value;autoSave();
@@ -1697,6 +1737,8 @@ function exportAuto(){
   const pe=[["Project ID","Project","Month","Parameter","FID","Update","BEP"]];
   const PE=[["Capex (US$ juta)","capex"],["Opex (US$ juta)","opex"],["Oil volume (MMBO)","oilVol"],["Gas volume (BSCF)","gasVol"],["Oil price (US$/bbl)","oilPrice"],["Gas price (US$/MMBTU)","gasPrice"],["NPV (US$ juta)","npv1"],["IRR (%)","irr"],["Payback / Disc. POT (tahun)","pot"],["HR / Disc. rate (%)","disc"]];
   rows.filter(r=>r.mon).forEach(r=>{const M=r.mon;PE.forEach(([l,k])=>{const a=M.econ[k]||[];const u=k==="npv1"?{v:M.npvUpd}:pickUpd(a);const bep=k==="oilPrice"?M.bepOil:k==="gasPrice"?M.bepGas:null;pe.push([id(r),r.name,D(per),l,N(a[0]),N(u.v),bep?N(bep):null]);});});
+  const cf=[["Project ID","Project","Month","Tahun","Plan (US$ juta)","Update (US$ juta)"]], sv=[["Project ID","Project","Month","Parameter","60%","80%","100%","120%","140%"]];
+  rows.filter(r=>r.mon).forEach(r=>{(r.mon.cash||[]).forEach(c=>cf.push([id(r),r.name,D(per),c.y,N(c.plan),N(c.upd)]));(r.mon.sens||[]).forEach(x=>sv.push([id(r),r.name,D(per),x.l,...x.v.map(N)]));});
   const ct=[["Bagian","Keterangan"],["Periode",pl],["Tanggal acuan (Today)",todayV],["Sumber","PDF MONEVA (Detail Upstream) dan berkas Risk Register (RR)"],
     ["Rumus Risk LIMIT","5% × NPV Plan FID"],["Rumus Delta NPV","NPV Plan FID − NPV Update (positif = penurunan NPV)"],["Rumus NPV Loss > Risk Limit","1 apabila Delta NPV > Risk LIMIT, selain itu 0"],
     ["Rumus Remaining Progress Fisik","Scope Plan − Scope Update pada MONEVA (mohon konfirmasi kepada tim)"],["Rumus Durasi","Durasi Plan = Project Start s.d. Finish Plan; Durasi Actual = Project Start s.d. Finish Update; Progress = Project Start s.d. Today; Persentase = Progress ÷ Durasi Actual"],
@@ -1711,6 +1753,8 @@ function exportAuto(){
     {name:"Risk Mitigation",rows:mi,widths:[11,13,12,46,11,50,70,30]},
     {name:"Loss & Gain",rows:lg,widths:[11,13,12,46,11,14,14,8,11,40,50]},
     {name:"Project Economic",rows:pe,widths:[11,46,11,28,12,12,10]},
+    {name:"Cashflow MONEVA",rows:cf,widths:[11,46,11,8,16,16]},
+    {name:"Sensitivity MONEVA",rows:sv,widths:[11,46,11,14,10,10,10,10,10]},
     {name:"Catatan Isi Otomatis",rows:ct,widths:[34,110]}]);
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`Isi_Otomatis_ALERT_EWS_Dashboard_${pl.replace(" ","_")}.xlsx`; document.body.appendChild(a); a.click();
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
