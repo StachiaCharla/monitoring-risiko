@@ -471,7 +471,7 @@ table.need td:first-child{text-align:left}table.need .y{color:#1a7f37;font-weigh
 
     <section class="card" id="exportCard" data-pg="unduh">
       <h2>Unduh Data <button class="ib" data-info="export" aria-label="Penjelasan">i</button></h2>
-      <p class="sub">Satu berkas Excel berisi seluruh isian dan hasil perhitungan periode terpilih. Berkas ini dapat diunggah kembali untuk melanjutkan pengisian.</p>
+      <p class="sub">Satu berkas Excel dengan format yang sama seperti berkas dasar tim: sheet bulanan <b>Calculation EWS</b> (periode terpilih) serta sheet <b>Akumulasi (EWS)</b>, <b>Risk Movement</b>, <b>Trending PG</b>, <b>Loss Event</b>, dan <b>Master Project</b> dari Database Dashboard. Baris dapat langsung disalin ke berkas induk, dan berkas ini dapat diunggah kembali untuk melanjutkan pengisian.</p>
       <button class="btn primary" id="exportBtn">Unduh Berkas Excel</button>
     </section>
   </div>
@@ -605,7 +605,8 @@ async function parseEws(wb,fileName){
     const col={npvF:pick(sNPV,/^(ori|fid)/), npvA:pick(sNPV,/^act/), npvW:pick(sNPV,/early/),
       evF:pick(sEV,/^fid/), evA:pick(sEV,/^act/), acA:pick(sAC,/^act/), acW:pick(sAC,/early/),
       pgF:pick(sPG,/^fid/), pgA:pick(sPG,/^act/), pgW:pick(sPG,/early/),
-      inh:pick(sRR,/inherent/), cur:pick(sRR,/current/)};
+      inh:pick(sRR,/inherent/), cur:pick(sRR,/current/), acF:pick(sAC,/^fid/), acR:pick(sAC,/^rkap/)};
+    let n1=null,n2=null; for(let c=1;c<=m.maxC;c++){const v=G(m,c,hr); if(isStr(v)){const t=clean(v).toLowerCase(); if(t==="note1"&&!n1) n1=c; else if(t==="note2"&&!n2) n2=c;}}
     const rows=[]; let started=false;
     for(let r=hr+3;r<=m.maxR;r++){
       const no=G(m,noC,r), nm=G(m,nc,r);
@@ -618,6 +619,8 @@ async function parseEws(wb,fileName){
       row.evF=g(col.evF,"Capex/EV FID"); row.evAfile=g(col.evA,"Earned Value Actual"); row.acA=g(col.acA,"Actual Cost");
       row.pgF=g(col.pgF,"Progres FID"); row.pgA=g(col.pgA,"Progres Actual");
       row.inh=g(col.inh,"Risk Inherent"); row.cur=g(col.cur,"Risk Current");
+      row.acF=col.acF?nnum(G(m,col.acF,r)):null; row.acR=col.acR?nnum(G(m,col.acR,r)):null;
+      row.note1=n1&&G(m,n1,r)!=null?clean(String(G(m,n1,r))):null; row.note2=n2&&G(m,n2,r)!=null?clean(String(G(m,n2,r))):null;
       const fileNpvW=col.npvW?G(m,col.npvW,r):null, fileAcW=col.acW?G(m,col.acW,r):null, filePgW=col.pgW?G(m,col.pgW,r):null;
       row.npvW=(row.npvF&&row.npvA!=null)?(row.npvA-row.npvF)/row.npvF:null;
       row.evAcalc=(row.pgA!=null&&row.evF!=null)?row.pgA*row.evF/100:null;
@@ -697,7 +700,7 @@ async function addFiles(list,opt={}){
       if(names.includes("master project")){const mp=await parseMaster(wb); if(mp.length){S.master=mp; kinds.push("mp"); entry.info=(entry.info?entry.info+" · ":"")+`Master Project · ${mp.length} proyek`;}}
       const ownExport=names.includes("pp risk event")||names.includes("loss event (input)");
       if(names.includes("loss event (input)")){const n=await parseLossInput(wb); kinds.push("pp"); entry.info=(entry.info?entry.info+" · ":"")+`Loss Event input · ${n} baris baru dimuat`;}
-      if(!ownExport&&names.some(n=>["trending pg","risk movement","loss event","risk mitigation","akumulasi (ews)","index","trending prioritas (timeline)"].includes(n))){S.db=await parseDB(wb,file.name); kinds.push("db");
+      if(names.some(n=>["trending pg","risk movement","loss event","risk mitigation","akumulasi (ews)","index","trending prioritas (timeline)","rmt"].includes(n))){const nd=await parseDB(wb,file.name); S.db=S.db&&S.db.file!==file.name?mergeDB(S.db,nd):nd; kinds.push("db");
         entry.info=(entry.info?entry.info+" · ":"")+`Database · Trending PG ${S.db.trend.length} · Risk Movement ${S.db.movement.length} · Mitigasi ${S.db.mitig.length} · Loss Event ${S.db.loss.length} · Timeline ${S.db.timeline.length}${S.db.akum?` · ${S.db.akum} bulan Akumulasi dipakai`:""}`;}
       const ews=await parseEws(wb,file.name);
       if(ews.length){ for(const mo of ews){ if(S.months[mo.key]&&S.months[mo.key].file!==file.name) mo.replaced=S.months[mo.key].file; S.months[mo.key]={...mo,file:file.name,src:"ews"}; }
@@ -1221,6 +1224,15 @@ async function parseDB(wb,fileName){
       (byM[d.key]=byM[d.key]||[]).push(row);}
     for(const [k,rows] of Object.entries(byM)) if(!S.months[k]||S.months[k].src==="db"){rows.forEach((r,i)=>r.no=i+1); S.months[k]={key:k,sheet:"Akumulasi (EWS)",rows,file:fileName,src:"db"}; D.akum++;}}
   D.issues=issues; return D;
+}
+function mergeDB(a,b){
+  const M=(x,y,key)=>{const kb=new Set(y.map(key));return [...x.filter(r=>!kb.has(key(r))),...y];};
+  const o={...a,file:a.file+" + "+b.file,akum:(a.akum||0)+(b.akum||0)};
+  o.trend=M(a.trend,b.trend,r=>r.id+"|"+r.month); o.trendBase=M(a.trendBase||[],b.trendBase||[],r=>r.id);
+  o.movement=M(a.movement,b.movement,r=>r.id+"|"+r.month); o.mitig=M(a.mitig,b.mitig,r=>[r.id,r.month,norm(r.event||""),norm(r.plan||"")].join("|"));
+  o.loss=M(a.loss,b.loss,r=>[r.id,norm(r.desc||""),r.date?r.date.key+(r.date.d||""):""].join("|")); o.timeline=M(a.timeline,b.timeline,r=>r.id+"|"+r.tipe);
+  o.index=M(a.index,b.index,r=>r.k); o.rmt=M(a.rmt||[],b.rmt||[],r=>JSON.stringify([r.id,r.month])); o.issues=[...(a.issues||[]),...(b.issues||[])];
+  return o;
 }
 const dbIdOf=name=>{const m=masterOf(name);return m?m.id:null;};
 const zonaOf=name=>{const m=masterOf(name);return m?m.zona:null;};
@@ -1902,59 +1914,6 @@ function autoInput(e){const t=e.target;const per=$("autoPer").value;
   const tr=t.closest("tr[data-ap]");if(!tr)return;
   if(t.dataset.am!==undefined){AUTO.map=AUTO.map||{};AUTO.map[t.dataset.am]=t.value;autoSave();renderAuto();return;}
   if(t.dataset.ai){AUTO.inp=AUTO.inp||{};const k=tr.dataset.ap+"||"+per;(AUTO.inp[k]=AUTO.inp[k]||{})[t.dataset.ai]=t.value;autoSave();}}
-function exportAuto(){
-  const per=$("autoPer").value; if(!per) return; const rows=autoRows(per), pl=monthLabel(per), sp=pl.slice(0,3)+" '"+per.slice(2,4);
-  const N=v=>v==null?null:{v,s:4}, P=v=>v==null?null:{v,s:3}, Y=v=>({v:v==null?"":v,s:6}), Dt=k=>keySerialDate(k);
-  const todayV=$("autoToday").value||new Date().toISOString().slice(0,10); const [ty,tm,td]=todayV.split("-").map(Number); const todayS={v:(Date.UTC(ty,tm-1,td)-Date.UTC(1899,11,30))/86400000,s:5};
-  const anaTxt=M=>M?M.analysis.map(a=>`${a.h}\n${a.t}`).join("\n\n"):null;
-  const al=[["No","Regional","Zona","Judul Proyek ",`Remaining Progress Fisik\nBor ${sp}`,`Remaining Progress Fisik\nWO ${sp}`,`Remaining Progress Fisik\nFacility ${sp}`,`Potential Impact / Analysis ${sp}`,`Future Outlook ${sp}`,"NPV Plan FID",`NPV Update ${sp}`,`Update NPV vs Plan ${sp}`,"OIL VOLUME","GAS VOLUME","CAPEX","OPEX","TIME/SCHEDULE","OIL PRICE","GAS PRICE","INSENTIF","OTHERS",`Oil BEP STATUS ${sp}`,`Gas BEP STATUS ${sp}`,"Risk Mitigation Priority","Risk LIMIT","Delta NPV","NPV Loss > Risk Limit","Project Start","Finish Plan","Finish Update","Today","Durasi Plan (month)","Durasi Actual (month)","Delta Finish (month)","Progress (Delta Finish vs today) month","Persentase",`Status Project ${sp}`,"Last Update MONEVA","Current Risk Rating (RR)","Catatan Isi Otomatis"]];
-  rows.forEach(r=>{const M=r.mon,sc=M?M.scen:{};const v=k=>M?N(sc[k]):Y(null);
-    al.push([r.no,r.regional,r.zona,r.name,M?r.remBor:Y(null),M?r.remWo:Y(null),M?r.remFac:Y(null),M?anaTxt(M):Y(null),M?M.outlook:Y(null),N(r.npvFid),N(r.npvUpd),P(r.npvVs),
-      v("oilVol"),v("gasVol"),v("capex"),v("opex"),v("sched"),v("oilPrice"),v("gasPrice"),v("insentif"),v("others"),M?N(M.bepOil):Y(null),M?N(M.bepGas):Y(null),r.inp.prio?(+r.inp.prio||r.inp.prio):Y(null),N(r.riskLimit),N(r.deltaNpv),r.lossFlag,
-      M?Dt(M.start):Y(null),M?Dt(M.finishPlan):Y(null),M?Dt(M.finishUpd):Y(null),todayS,r.durPlan,r.durAct,r.deltaFin,r.prog,P(r.pct),r.inp.status||Y(null),M?Dt(M.period):null,r.cur!=null?r2(r.cur):Y(null),r.notes.join("; ")]);});
-  const ew=[["No","Regional","Nama Proyek","NPV ($juta) ORI","NPV ($juta) ACT","NPV Early Warning","IRR (%) ORI","IRR (%) ACT","HR (%) ORI","HR (%) ACT","Payback (Years) ORI","Payback (Years) ACT","Earned Value FID","Earned Value ACT","Actual Cost ($Juta) FID","Actual Cost ($Juta) RKAP","Actual Cost ($Juta) ACT","Progres Fisik (%) FID","Progres Fisik (%) ACT","Risk Rating Inherent","Risk Rating Current","Catatan Isi Otomatis"]];
-  rows.forEach(r=>{const M=r.mon,e=r.ews,ec=M?M.econ:{};const pv=(f,v)=>e&&e[f]!=null?N(e[f]):Y(v);
-    ew.push([r.no,r.regional,r.name,N(r.npvFid),N(r.npvUpd),P(r.npvVs),M?N((ec.irr||[])[0]):Y(null),M?N(r.irr.v):Y(null),M?N((ec.disc||[])[0]):Y(null),M?N(r.disc.v):Y(null),M?N((ec.pot||[])[0]):Y(null),M?N(r.pot.v):Y(null),
-      pv("evF"),pv("evA"),Y(null),Y(null),pv("acA"),pv("pgF"),pv("pgA"),r.inh!=null?r.inh:Y(null),r.cur!=null?r2(r.cur):Y(null),
-      [e?"Earned Value, Actual Cost, dan Progres diambil dari EWS periode ini":"Earned Value, Actual Cost, dan Progres belum tersedia (sel kuning)",...r.notes].join("; ")]);});
-  const D=k=>({v:serial(k),s:2}), id=r=>r.mp?r.mp.id:null;
-  const ak=[["Project ID","Regional","Zona","Project","Month","NPV US (Plan)","NPV US (Actual)","NPV Warning","Cost Warning","Schedule Warning","FID Risk Rating","Current Risk Rating"]];
-  rows.forEach(r=>{const e=r.ews;ak.push([id(r),r.regional,r.zona,r.name,D(per),N(r.npvFid),N(r.npvUpd),P(r.npvVs),e&&e.costW!=null?N(e.costW):Y(null),e&&e.schW!=null?P(e.schW):Y(null),r.inh!=null?r.inh:Y(null),r.cur!=null?r2(r.cur):Y(null)]);});
-  const rm=[["Project ID","Regional","Zona","Proyek","Month","BUSSINESS SCENARIO","TECHNICAL","MANAGEMENT","COMMERCIAL","EXTERNAL","HSSE","RISK RATING"]];
-  rows.filter(r=>r.rr).forEach(r=>rm.push([id(r),r.regional,r.zona,r.name,D(per),...CAT_KEYS.map(([c])=>r.cats[c]?r2(r.cats[c].score):null),r2(r.cur)]));
-  const tp=[["Project ID","Regional","Zona","Project","Month","NPV FID","IRE FID","RRE FID","RMT FID","Potentian Loss / Gain","Actual Loss / Gain","NPV Current","RE Current","RRE Prognosed","RMT CURRENT"]];
-  const K=v=>v==null?null:v*1000; rows.forEach(r=>{const R=r.rr;const t=r.mon?lgTotals(lgData(r,per)):null;tp.push([id(r),r.regional,r.zona,r.name,D(per),N(K(r.npvFid)),Y(null),Y(null),N(K(r.riskLimit)),t?N(K(t.pl+t.pg)):Y(null),t?N(K(t.al+t.ag)):Y(null),N(R&&R.npv!=null?R.npv:K(r.npvUpd)),R?N(R.ire):Y(null),R?N(R.rre):Y(null),R?N(R.btr):Y(null)]);});
-  const mi=[["Project id","Regional","Zona","Project Name","Month","Risk Event Issue","Mitigation Plan","Response"]];
-  rows.filter(r=>r.rr).forEach(r=>{const seen=new Set();(r.rr.mitig||[]).forEach(m=>{const k=norm(m.event||"")+"|"+norm(m.activity||"");if(seen.has(k))return;seen.add(k);mi.push([id(r),r.regional,r.zona,r.name,D(per),m.event,m.activity,m.option||""]);});});
-  const lg=[["Project ID","Regional","Zona","Project","Month","Penyebab","Nilai (juta USD)","Jenis","Sifat","Alasan","Sumber"]];
-  rows.filter(r=>r.mon).forEach(r=>lgData(r,per).forEach(x=>lg.push([id(r),r.regional,r.zona,r.name,D(per),x.l,N(x.v),x.jenis||"",x.jenis?x.sifat:"",x.alasan,r.mon.file])));
-  const pe=[["Project ID","Project","Month","Parameter","FID","Update","BEP"]];
-  const PE=[["Capex (US$ juta)","capex"],["Opex (US$ juta)","opex"],["Oil volume (MMBO)","oilVol"],["Gas volume (BSCF)","gasVol"],["Oil price (US$/bbl)","oilPrice"],["Gas price (US$/MMBTU)","gasPrice"],["NPV (US$ juta)","npv1"],["IRR (%)","irr"],["Payback / Disc. POT (tahun)","pot"],["HR / Disc. rate (%)","disc"]];
-  rows.filter(r=>r.mon).forEach(r=>{const M=r.mon;PE.forEach(([l,k])=>{const a=M.econ[k]||[];const u=k==="npv1"?{v:M.npvUpd}:pickUpd(a);const bep=k==="oilPrice"?M.bepOil:k==="gasPrice"?M.bepGas:null;pe.push([id(r),r.name,D(per),l,N(a[0]),N(u.v),bep?N(bep):null]);});});
-  const cf=[["Project ID","Project","Month","Tahun","Plan (US$ juta)","Update (US$ juta)"]], sv=[["Project ID","Project","Month","Parameter","60%","80%","100%","120%","140%"]];
-  rows.filter(r=>r.mon).forEach(r=>{(r.mon.cash||[]).forEach(c=>cf.push([id(r),r.name,D(per),c.y,N(c.plan),N(c.upd)]));(r.mon.sens||[]).forEach(x=>sv.push([id(r),r.name,D(per),x.l,...x.v.map(N)]));});
-  const ct=[["Bagian","Keterangan"],["Periode",pl],["Tanggal acuan (Today)",todayV],["Sumber","PDF MONEVA (Detail Upstream) dan berkas Risk Register (RR)"],
-    ["Rumus Risk LIMIT","5% × NPV Plan FID"],["Rumus Delta NPV","NPV Plan FID − NPV Update (positif = penurunan NPV)"],["Rumus NPV Loss > Risk Limit","1 apabila Delta NPV > Risk LIMIT, selain itu 0"],
-    ["Rumus Remaining Progress Fisik","Scope Plan − Scope Update pada MONEVA (mohon konfirmasi kepada tim)"],["Rumus Durasi","Durasi Plan = Project Start s.d. Finish Plan; Durasi Actual = Project Start s.d. Finish Update; Progress = Project Start s.d. Today; Persentase = Progress ÷ Durasi Actual"],
-    ["NPV Update","NPV 1 Update 1 pada MONEVA (sama dengan hasil Scenario Analysis); tanpa MONEVA, NPV Current pada RR ÷ 1.000"],["Satuan","ALERT, EWS, Loss & Gain, dan Project Economic dalam juta USD; sheet Trending PG dalam ribu USD mengikuti Database Dashboard"],["Loss & Gain","Nilai dari Scenario Analysis MONEVA: negatif = Loss, positif = Gain. Sifat bawaan Potential; diubah menjadi Actual oleh tim bila sudah final. Total = NPV Update − NPV FID. Potential/Actual Loss/Gain pada Trending PG = jumlah per sifat (ribu USD)"],["IRR / HR / Payback ACT","Update 1 pada MONEVA; apabila bernilai 0, menggunakan Update berikutnya yang terisi"],
-    ["Sel kuning","Belum dapat diisi otomatis; mohon dilengkapi tim (misalnya Status Project, Risk Mitigation Priority, Earned Value, Actual Cost, Progres Fisik)"]];
-  const blob=buildXlsx([
-    {name:`ALERT ${sp}`.replace(/'/g,"").slice(0,31),rows:al,widths:[5,12,10,46,12,12,12,70,70,11,11,11,11,11,11,11,13,11,11,11,11,12,12,12,11,11,12,12,12,12,12,10,10,10,12,10,16,14,12,70]},
-    {name:`EWS ${pl}`.slice(0,31),rows:ew,widths:[5,12,46,11,11,11,9,9,9,9,10,10,12,12,12,12,12,12,12,11,11,70]},
-    {name:"Akumulasi (EWS)",rows:ak,widths:[11,13,12,46,11,13,13,12,12,14,13,15]},
-    {name:"Risk Movement",rows:rm,widths:[11,13,12,46,11,18,12,13,13,11,8,12]},
-    {name:"Trending PG",rows:tp,widths:[11,13,12,46,11,11,10,10,10,14,14,12,12,14,13]},
-    {name:"Risk Mitigation",rows:mi,widths:[11,13,12,46,11,50,70,30]},
-    {name:"Loss & Gain",rows:lg,widths:[11,13,12,46,11,14,14,8,11,40,50]},
-    {name:"Project Economic",rows:pe,widths:[11,46,11,28,12,12,10]},
-    {name:"Cashflow MONEVA",rows:cf,widths:[11,46,11,8,16,16]},
-    {name:"Sensitivity MONEVA",rows:sv,widths:[11,46,11,14,10,10,10,10,10]},
-    {name:"Catatan Isi Otomatis",rows:ct,widths:[34,110]}]);
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`Isi_Otomatis_ALERT_EWS_Dashboard_${pl.replace(" ","_")}.xlsx`; document.body.appendChild(a); a.click();
-  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
-}
-
-
 /* ===================== HALAMAN PROYEK ===================== */
 function openProject(name){S.page=true; S.focus=null; setFocus(name,false); go("proyek");}
 function closeProject(){go("dashboard");}
@@ -2001,7 +1960,7 @@ function renderPotential(){
     <p class="note">Tanda * = dihitung dari NPV Current − NPV FID karena kolom Potential Loss/Gain pada Database belum terisi untuk periode tersebut. Tanda † = diambil dari PDF MONEVA yang lebih baru daripada Database (NPV Update − NPV FID). Status membandingkan potensi kerugian dengan Risk Limit (RMT) proyek.</p>`;
 }
 
-/* ===================== XLSX WRITER ===================== */
+/* ===================== XLSX WRITER v2 (gaya, rumus, merge, freeze, filter) ===================== */
 const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
 function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
 function zipStore(entries){
@@ -2020,69 +1979,309 @@ function zipStore(entries){
   return new Blob([...parts,...cen,new Uint8Array(e.buffer)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
 }
 const xe=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,"");
-function sheetXml(rows,widths){
-  const out=rows.map((row,ri)=>`<row r="${ri+1}">`+row.map((cell,ci)=>{
+const serial=k=>{const [y,m]=k.split("-").map(Number);return (Date.UTC(y,m-1,1)-Date.UTC(1899,11,30))/86400000;};
+const dSerial=iso=>{if(!iso)return null;const [y,m,d]=iso.split("-").map(Number);return (Date.UTC(y,(m||1)-1,d||1)-Date.UTC(1899,11,30))/86400000;};
+/* gaya: {font:{name,sz,b,i,color}, fill:"RRGGBB", bd:"lrtb", h, v, wrap, nf} */
+const XBASE={font:{name:"Calibri",sz:11}};
+const XLEG={0:{},1:{font:{b:1,color:"FFFFFF"},fill:"16365C",bd:"lrtb",h:"center",v:"center",wrap:1},2:{nf:"mmm yyyy",h:"center"},3:{nf:"0.00%",h:"center"},4:{nf:"#,##0.00"},5:{nf:"dd mmm yyyy",h:"center"},6:{fill:"FFF2CC",bd:"lrtb"}};
+function XStyles(){
+  const fonts=[],fills=["<fill><patternFill patternType=\"none\"/></fill>","<fill><patternFill patternType=\"gray125\"/></fill>"],borders=["<border><left/><right/><top/><bottom/><diagonal/></border>"],nfs=[],xfs=[];
+  const fK={},flK={},bK={},nK={},xK={};
+  const BUILTIN={"General":0,"0":1,"0.00":2,"#,##0":3,"#,##0.00":4,"0%":9,"0.00%":10};
+  const font=f=>{f={...XBASE.font,...(f||{})};const k=JSON.stringify(f);if(fK[k]==null){fK[k]=fonts.length;fonts.push(`<font>${f.b?"<b/>":""}${f.i?"<i/>":""}<sz val="${f.sz}"/>${f.color?`<color rgb="FF${f.color}"/>`:""}<name val="${xe(f.name)}"/></font>`);}return fK[k];};
+  const fill=c=>{if(!c)return 0;if(flK[c]==null){flK[c]=fills.length;fills.push(`<fill><patternFill patternType="solid"><fgColor rgb="FF${c}"/><bgColor indexed="64"/></patternFill></fill>`);}return flK[c];};
+  const border=b=>{if(!b)return 0;if(bK[b]==null){bK[b]=borders.length;const s=x=>b.includes(x[0])?`<${x} style="thin"><color auto="1"/></${x}>`:`<${x}/>`;borders.push(`<border>${s("left")}${s("right")}${s("top")}${s("bottom")}<diagonal/></border>`);}return bK[b];};
+  const nf=f=>{if(!f||f==="General")return 0;if(BUILTIN[f]!=null)return BUILTIN[f];if(nK[f]==null){nK[f]=164+nfs.length;nfs.push(`<numFmt numFmtId="${nK[f]}" formatCode="${xe(f)}"/>`);}return nK[f];};
+  const id=st=>{st=typeof st==="number"?XLEG[st]||{}:(st||{});const k=JSON.stringify(st);if(xK[k]!=null)return xK[k];
+    const fo=font(st.font),fi=fill(st.fill),bo=border(st.bd),n=nf(st.nf);const al=st.h||st.v||st.wrap?`<alignment${st.h?` horizontal="${st.h}"`:""}${st.v?` vertical="${st.v}"`:""}${st.wrap?` wrapText="1"`:""}/>`:"";
+    xK[k]=xfs.length;xfs.push(`<xf numFmtId="${n}" fontId="${fo}" fillId="${fi}" borderId="${bo}" xfId="0"${n?` applyNumberFormat="1"`:""}${fo?` applyFont="1"`:""}${fi?` applyFill="1"`:""}${bo?` applyBorder="1"`:""}${al?` applyAlignment="1">${al}</xf>`:"/>"}`);return xK[k];};
+  id({});
+  const xml=()=>`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${nfs.length?`<numFmts count="${nfs.length}">${nfs.join("")}</numFmts>`:""}<fonts count="${fonts.length}">${fonts.join("")}</fonts><fills count="${fills.length}">${fills.join("")}</fills><borders count="${borders.length}">${borders.join("")}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfs.join("")}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  return {id,xml};
+}
+const refRC=ref=>{const m=/^([A-Z]+)(\d+)$/.exec(ref);let c=0;for(const ch of m[1])c=c*26+ch.charCodeAt(0)-64;return {c,r:+m[2]};};
+function sheetXml2(sh,ST){
+  const rows=sh.rows,H=sh.heights||{};let maxC=1;
+  const out=rows.map((row,ri)=>{row=row||[];const r=ri+1;const cells=row.map((cell,ci)=>{
     if(cell==null||cell==="") return "";
-    const ref=colL(ci+1)+(ri+1); let v=cell, s=ri===0?1:0;
-    if(typeof cell==="object"){v=cell.v;s=cell.s;} if(v==null||v==="") return typeof cell==="object"&&cell.s?`<c r="${ref}" s="${cell.s}"/>`:"";
-    return typeof v==="number"?`<c r="${ref}" s="${s}"><v>${v}</v></c>`:`<c r="${ref}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${xe(v)}</t></is></c>`;
-  }).join("")+`</row>`).join("");
-  const cols=widths?`<cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols>`:"";
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>${cols}<sheetData>${out}</sheetData></worksheet>`;
+    const ref=colL(ci+1)+r; let v=cell,s=sh.defStyle!=null?sh.defStyle:0,f=null;
+    if(typeof cell==="object"){v=cell.v;f=cell.f||null;s=cell.s!=null?cell.s:(cell.st||0);}
+    const sid=ST.id(s); maxC=Math.max(maxC,ci+1);
+    if(f){const fx=`<f>${xe(f.replace(/^=/,""))}</f>`;
+      if(v==null||v==="") return `<c r="${ref}" s="${sid}">${fx}</c>`;
+      return typeof v==="number"&&isFinite(v)?`<c r="${ref}" s="${sid}">${fx}<v>${v}</v></c>`:`<c r="${ref}" s="${sid}" t="str">${fx}<v>${xe(v)}</v></c>`;}
+    if(v==null||v==="") return sid?`<c r="${ref}" s="${sid}"/>`:"";
+    return typeof v==="number"&&isFinite(v)?`<c r="${ref}" s="${sid}"><v>${v}</v></c>`:`<c r="${ref}" s="${sid}" t="inlineStr"><is><t xml:space="preserve">${xe(v)}</t></is></c>`;
+  }).join("");
+  return `<row r="${r}"${H[r]?` ht="${H[r]}" customHeight="1"`:""}>${cells}</row>`;}).join("");
+  const cols=sh.widths?`<cols>${sh.widths.map((w,i)=>w?`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`:"").join("")}</cols>`:"";
+  let pane="";
+  if(sh.freeze){const {c,r}=refRC(sh.freeze),xs=c-1,ys=r-1;const ap=xs&&ys?"bottomRight":ys?"bottomLeft":"topRight";
+    if(xs||ys) pane=`<pane${xs?` xSplit="${xs}"`:""}${ys?` ySplit="${ys}"`:""} topLeftCell="${sh.freeze}" activePane="${ap}" state="frozen"/><selection pane="${ap}" activeCell="${sh.freeze}" sqref="${sh.freeze}"/>`;}
+  const dim=`<dimension ref="A1:${colL(Math.max(maxC,(sh.widths||[]).length||1))}${Math.max(rows.length,1)}"/>`;
+  const af=sh.filter?`<autoFilter ref="${sh.filter}"/>`:"";
+  const mg=sh.merges&&sh.merges.length?`<mergeCells count="${sh.merges.length}">${sh.merges.map(m=>`<mergeCell ref="${m}"/>`).join("")}</mergeCells>`:"";
+  const tab=sh.tab?`<sheetPr><tabColor rgb="FF${sh.tab}"/></sheetPr>`:"";
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${tab}${dim}<sheetViews><sheetView workbookViewId="0"${sh.zoom?` zoomScale="${sh.zoom}"`:""}>${pane}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>${cols}<sheetData>${out}</sheetData>${af}${mg}<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>`;
 }
 function buildXlsx(sheets){
+  sheets=sheets.map(s=>({...s,name:s.name.replace(/[\\\/?*\[\]:]/g," ").slice(0,31)}));
+  const ST=XStyles(); const sx=sheets.map(s=>sheetXml2(s,ST));
   const ct=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((s,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>`;
   const rels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
-  const wb=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((s,i)=>`<sheet name="${xe(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join("")}</sheets></workbook>`;
+  const q=n=>`'${n.replace(/'/g,"''")}'`;
+  const dn=sheets.map((s,i)=>s.filter?`<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">${xe(q(s.name))}!${s.filter.replace(/([A-Z]+)(\d+)/g,"$$$1$$$2")}</definedName>`:"").join("");
+  const wb=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>${sheets.map((s,i)=>`<sheet name="${xe(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join("")}</sheets>${dn?`<definedNames>${dn}</definedNames>`:""}<calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`;
   const wbr=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((s,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join("")}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
-  const st=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="3"><numFmt numFmtId="164" formatCode="mmm yyyy"/><numFmt numFmtId="165" formatCode="0.00%"/><numFmt numFmtId="166" formatCode="dd mmm yyyy"/></numFmts><fonts count="2"><font><sz val="10"/><name val="Arial"/></font><font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Arial"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF16365C"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFF2B3"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="7"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="4" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1"/></cellXfs></styleSheet>`;
-  return zipStore([["[Content_Types].xml",ct],["_rels/.rels",rels],["xl/workbook.xml",wb],["xl/_rels/workbook.xml.rels",wbr],["xl/styles.xml",st],...sheets.map((s,i)=>[`xl/worksheets/sheet${i+1}.xml`,sheetXml(s.rows,s.widths)])]);
+  return zipStore([["[Content_Types].xml",ct],["_rels/.rels",rels],["xl/workbook.xml",wb],["xl/_rels/workbook.xml.rels",wbr],["xl/styles.xml",ST.xml()],...sx.map((x,i)=>[`xl/worksheets/sheet${i+1}.xml`,x])]);
 }
-const serial=k=>{const [y,m]=k.split("-").map(Number);return (Date.UTC(y,m-1,1)-Date.UTC(1899,11,30))/86400000;};
+function saveBlob(blob,name){const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}
+
+/* ===================== TEMPLATE: gaya sel sesuai berkas dasar tim ===================== */
+const TS=(()=>{const B="lrb",A="lrtb",C={h:"center",v:"center"};
+  const hdr=(fill,color,extra)=>({font:{b:1,...(color?{color}:{})},fill,bd:A,...C,wrap:1,...(extra||{})});
+  return {
+    hTeal:hdr("3F8F9B","FFFFFF"), hRM:hdr("75B7BE"), hLE:hdr("C58F78"), hNavy:hdr("17365D","FFFFFF"), hPL:hdr("D5B56F",null,{font:{b:1,name:"Arial",sz:10}}),
+    txt:{bd:B,v:"center"}, txtL:{bd:B,h:"left",v:"top",wrap:1}, txtT:{bd:B,v:"top",wrap:1}, cen:{bd:B,...C},
+    mon:{bd:B,...C,nf:"mmm-yy"}, monS:{bd:B,h:"center",v:"top",wrap:1,nf:"mmm\\ yy"}, monRM:{bd:B,...C,nf:"[$-409]mmm\\-yy;@"},
+    n2:{bd:B,...C,wrap:1,nf:"0.00"}, pct:{bd:B,...C,nf:"0.00%"}, num:{bd:B,...C,nf:"#,##0.00"}, numA:{bd:A,nf:"#,##0.00"},
+    risk:{bd:B,...C,fill:"FFFF00",font:{color:"0000CC"},nf:"0.00"}, riskB:{bd:B,...C,fill:"FFFF00",font:{b:1,color:"0000CC"},nf:"0.00"},
+    trend:{fill:"CCFFFF",font:{b:1},...C,wrap:1}, dateLE:{bd:B,...C,wrap:1,font:{sz:10},nf:"[$-409]d\\-mmm\\-yy;@"}, txtLE:{bd:B,...C,wrap:1,font:{sz:10}},
+    need:{bd:B,...C,fill:"FFF2CC"}, needL:{bd:B,v:"top",wrap:1,fill:"FFF2CC"},
+    mpH:{font:{b:1,color:"FFFFFF"},fill:"17365D",bd:"rb",...C}, mpID:{font:{b:1,color:"17365D"},fill:"DCEAF2",bd:"rb"}, mpT:{bd:"rb"},
+    web:{font:{b:1,color:"FFFFFF"},fill:"16365C",bd:A,...C,wrap:1}, webT:{bd:A,v:"top",wrap:1}, webN:{bd:A,nf:"#,##0.00"}, webD:{bd:A,h:"center",nf:"mmm yyyy"}, webP:{bd:A,h:"center",nf:"0.00%"}};})();
+const XV=(v,st)=>v==null||v===""||(typeof v==="number"&&!isFinite(v))?{v:null,st:TS.need}:{v,st};
+const XO=(v,st)=>({v:v==null||(typeof v==="number"&&!isFinite(v))?null:v,st});
+const XF=(f,v,st)=>({f,v:v==null||(typeof v==="number"&&!isFinite(v))?null:v,st});
+const zonaCode=z=>{if(!z)return null;const c=String(z).replace(/^zona\s*/i,"").trim();return /^\d+$/.test(c)?+c:c;};
+const MLONG=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const MUP=k=>{const [y,m]=k.split("-").map(Number);return `${MLONG[m-1].toUpperCase()} ${y}`;};
+const MSHORT=k=>{const [y,m]=k.split("-").map(Number);return `${["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][m-1]} '${String(y).slice(2)}`;};
+const SHM=k=>{const [y,m]=k.split("-").map(Number);return ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sept","Okt","Nov","Des"][m-1]+String(y).slice(2);};
+const addMonths=(k,n)=>{const [y,m]=k.split("-").map(Number);const t=y*12+(m-1)+n;return `${Math.floor(t/12)}-${String(t%12+1).padStart(2,"0")}`;};
+
+/* ---------- Master Project ---------- */
+function tMaster(){
+  const rows=[["Project ID","Regional","Zona","Project Name"].map(h=>({v:h,st:TS.mpH}))];
+  S.master.forEach(m=>rows.push([{v:m.id,st:TS.mpID},XO(m.regional,TS.mpT),XO(m.zona,TS.mpT),XO(m.name,TS.mpT)]));
+  return {name:"Master Project",rows,widths:[11.2,10.8,10,77.3],heights:{1:33}};
+}
+const idCell=(withMaster,id,row,dCol)=>withMaster&&id?XF(`INDEX('Master Project'!$A:$A,MATCH(${dCol}${row},'Master Project'!$D:$D,0))`,id,TS.txt):XO(id||"(belum ada ID)",TS.txt);
+const idCellQ=(withMaster,id,row,sheet,dCol)=>withMaster&&id?XF(`INDEX('Master Project'!$A:$A,MATCH('${sheet}'!${dCol}${row},'Master Project'!$D:$D,0))`,id,TS.txt):XO(id||"(belum ada ID)",TS.txt);
+
+/* ---------- Akumulasi (EWS): judul di baris 2, data mulai baris 3 ---------- */
+function tAkumulasi(list,withMaster){ // list: {id,regional,zona,name,month,npvF,npvA,npvW,costW,schW,inh,cur,tRisk,tNpv,tSch}
+  const rows=[[],["Project ID","Regional","Zona","Project","Month","NPV US (Plan)","NPV US (Actual)","NPV Warning","Cost Warning","Schedule Warning","FID Risk Rating","Current Risk Rating","Time"].map(h=>({v:h,st:TS.hTeal}))];
+  list.forEach((x,i)=>{const r=i+3;rows.push([idCell(withMaster,x.id,r,"D"),XO(x.regional,TS.txt),XO(x.zona,TS.txt),XO(x.name,TS.txt),XO(serial(x.month),TS.mon),XV(x.npvF,TS.n2),XV(x.npvA,TS.n2),XV(x.npvW,TS.pct),XV(x.costW,TS.num),XV(x.schW,TS.pct),XV(x.inh,TS.risk),XV(x.cur,TS.risk),XO(x.tRisk,TS.trend),XO(x.tNpv,TS.trend),XO(x.tSch,TS.trend)]);});
+  return {name:"Akumulasi (EWS)",rows,widths:[11.3,10.8,11.2,53.5,8.7,13.5,13.8,12,12,12,12,12,12,12,14],heights:{1:16,2:33},freeze:"K3",filter:`A2:O${Math.max(3,list.length+2)}`};
+}
+/* ---------- Risk Movement ---------- */
+function tRiskMovement(list,withMaster){ // {id,regional,zona,name,month,cats{},total}
+  const rows=[["Project ID","Regional","Zona","Proyek","Month","BUSSINESS SCENARIO","TECHNICAL","MANAGEMENT","COMMERCIAL","EXTERNAL","HSSE","RISK RATING"].map(h=>({v:h,st:TS.hRM}))];
+  list.forEach((x,i)=>{const r=i+2;rows.push([idCellQ(withMaster,x.id,r,"Risk Movement","D"),XO(x.regional,TS.txt),XO(x.zona,TS.txt),XO(x.name,TS.txt),XO(x.month?serial(x.month):null,TS.monRM),...CAT_KEYS.map(([c])=>XV(x.cats&&x.cats[c]!=null?r2(x.cats[c]):null,TS.riskB)),XV(x.total!=null?r2(x.total):null,TS.riskB)]);});
+  return {name:"Risk Movement",rows,widths:[10.8,10.8,13.2,54.5,11,13.7,12,13,13,11,13.7,12],heights:{1:35},freeze:"E2",filter:`A1:L${Math.max(2,list.length+1)}`};
+}
+/* ---------- Trending PG (ribu USD); kolom J dan M kosong seperti berkas dasar ---------- */
+function tTrendingPG(list,withMaster,name){ // {id,regional,zona,name,month,npvF,ireF,rreF,rmtF,pot,act,npvC,reC,rreP,rmtC,note}
+  const H=["Project ID","Regional","Zona","Project","Month","NPV FID","IRE FID","RRE FID","RMT FID","","Potentian Loss / Gain","Actual Loss / Gain","","NPV Current","RE Current","RRE Prognosed","RMT CURRENT"];
+  const rows=[H.map((h,i)=>({v:h||null,st:i===10||i===11?TS.hPL:TS.hTeal}))];
+  list.forEach((x,i)=>{const r=i+2;rows.push([idCellQ(withMaster,x.id,r,name||"Trending PG","D"),XO(x.regional,TS.txt),XO(x.zona,TS.txt),XO(x.name,TS.txt),XO(x.month?serial(x.month):null,TS.mon),
+    XV(x.npvF,TS.numA),XV(x.ireF,TS.numA),XV(x.rreF,TS.numA),XV(x.rmtF,TS.numA),null,XV(x.pot,TS.numA),XV(x.act,TS.numA),null,XV(x.npvC,TS.numA),XV(x.reC,TS.numA),XV(x.rreP,TS.numA),XV(x.rmtC,TS.numA),XO(x.note,{})]);});
+  return {name:name||"Trending PG",rows,widths:[9.7,9.7,10.8,73.8,11.2,13.8,13,13,13,4,14,14,4,13,13,14,14,40],heights:{1:38.5},freeze:"E2",filter:`A1:Q${Math.max(2,list.length+1)}`};
+}
+/* ---------- RMT ---------- */
+function tRMT(list,withMaster){
+  const rows=[["Project ID","Regional","Zona","Project Name","Month","RMT PLAN","RRE PLAN","CRE PLAN","RMT CURRENT","RRE CURRENT","CRE CURRENT"].map(h=>({v:h,st:TS.hTeal}))];
+  list.forEach((x,i)=>{const r=i+2;rows.push([idCellQ(withMaster,x.id,r,"RMT","D"),XO(x.regional,TS.txt),XO(x.zona,TS.txt),XO(x.name,TS.txt),XO(serial(x.month),TS.mon),XV(x.rmtP,TS.numA),XV(x.rreP,TS.numA),XV(x.creP,TS.numA),XV(x.rmtC,TS.numA),XV(x.rreC,TS.numA),XV(x.creC,TS.numA)]);});
+  return {name:"RMT",rows,widths:[9.5,10,10.2,49.7,8.7,12,12,12,13,13,13],heights:{1:30},freeze:"E2",filter:`A1:K${Math.max(2,list.length+1)}`};
+}
+/* ---------- Risk Mitigation ---------- */
+function tRiskMitigation(list,withMaster){ // {id,regional,zona,name,month,event,plan,resp}
+  const rows=[["Project id","Regional","Zona","Project Name","Month","Risk Event Issue","Mitigation Plan","Response"].map(h=>({v:h,st:TS.hTeal}))];
+  list.forEach((x,i)=>{const r=i+2;rows.push([idCellQ(withMaster,x.id,r,"Risk Mitigation","D"),XO(x.regional,TS.txtL),XO(x.zona,TS.txtL),XO(x.name,TS.txtL),XO(x.month?serial(x.month):null,TS.monS),XO(x.event,TS.txtL),XO(x.plan,TS.txtT),x.resp?XO(x.resp,TS.txtT):{v:null,st:TS.needL}]);});
+  return {name:"Risk Mitigation",rows,widths:[11.7,10.8,11.2,40,9.7,40.2,60,50],heights:{1:39},freeze:"A2",filter:`A1:H${Math.max(2,list.length+1)}`};
+}
+/* ---------- Loss Event ---------- */
+function tLossEvent(list,withMaster,name){ // {id,regional,zona,name,desc,date(iso),event,cat,raw,val,ll,rem}
+  const rows=[["Project ID","Regional","Zona","Project Name","Loss Event Description","Date of Event/ Reporting","Risk Event","Impact Category","Loss Event Value (USD/BOEPD/Hari/NOA) (x)","Loss Event Value (MMUSD)","Lesson Learn","Remarks"].map(h=>({v:h,st:TS.hLE}))];
+  list.forEach((x,i)=>{const r=i+2;rows.push([idCellQ(withMaster,x.id,r,name||"Loss Event","D"),XO(x.regional,TS.txtLE),XO(x.zona,TS.txtLE),XO(x.name,TS.txtLE),XO(x.desc,TS.txtLE),XO(dSerial(x.date),TS.dateLE),XO(x.event,TS.txtLE),XO(x.cat,TS.txtLE),XO(x.raw,TS.txtLE),XO(x.val,TS.txtLE),XO(x.ll,TS.txtLE),XO(x.rem,TS.txtLE)]);});
+  return {name:name||"Loss Event",rows,widths:[18.8,13.2,10.3,27.7,37.8,10.2,25,12,16,13,40,30],heights:{1:59},freeze:"B2",filter:`A1:L${Math.max(2,list.length+1)}`};
+}
+/* ---------- Calculation EWS: satu sheet per bulan (judul baris 3–4, header baris 6–8, data mulai baris 9) ---------- */
+function tEwsMonth(k,list){ // {no,regional,name,npvF,npvA,evF,evA,acF,acR,acA,pgF,pgA,inh,cur,note1,note2,adj}
+  const H={fill:"D0CECE",font:{b:1},bd:"lrtb",h:"center",v:"center",wrap:1}, HB={...H,fill:"C6D9F1",font:{b:1,sz:10}};
+  const ttl={font:{b:1,sz:16,color:"0070C0"}}, t2={font:{b:1,sz:12}}, t3={font:{b:1}};
+  const rows=[[],[],[null,{v:"Proyek Prioritas Subholding Upstream",st:ttl},null,null,null,null,null,{v:"Earned Value ACT = Progress fisik Actual x Capex FID",st:t3},null,null,null,null,null,null,null,{v:"Risk Rating Status lihat dari FID di Risk Register dan Current bulanan",st:t3}],
+    [null,{v:`Periode Monitoring : ${monthLabel(k)}`,st:t2},null,null,null,null,null,{v:"dimasukkan kedalam kolom i",st:t3}],[]];
+  const r6=[null,{v:"No",st:HB},{v:"Regional",st:HB},{v:"Nama Proyek",st:HB},{v:"Early Warning",st:H}];for(let c=6;c<=18;c++)r6[c-1]={v:null,st:H};r6[18]={v:"Note1",st:HB};r6[19]={v:"Note2",st:HB};
+  const r7=[null,{v:null,st:HB},{v:null,st:HB},{v:null,st:HB},{v:"NPV ($juta)",st:H},{v:null,st:H},{v:null,st:H},{v:"Earned Value",st:H},{v:null,st:H},{v:"Actual Cost ($Juta)",st:H},{v:null,st:H},{v:null,st:H},{v:null,st:H},{v:"Progres Fisik (%)",st:H},{v:null,st:H},{v:null,st:H},{v:"Risk Rating Status",st:H},{v:null,st:H},{v:null,st:HB},{v:null,st:HB}];
+  const r8=[null,{v:null,st:HB},{v:null,st:HB},{v:null,st:HB},...["ORI (FID)",`ACT                (${monthLabel(k)})`,"Early Warning","FID","ACT (Input Tim Project)","FID\n (Input SIIP)","RKAP \n(Input SIIP)","ACT (Input Monthly Slide)","Early Warning","FID \n(Input SIIP)","ACT\n (Input SIIP)","Early Warning","Inherent (FID)","Current (Update)"].map(v=>({v,st:H})),{v:null,st:HB},{v:null,st:HB}];
+  rows.push(r6,r7,r8);
+  const no={bd:"lrtb",h:"center",v:"center",fill:"DCE6F1",font:{name:"Arial",sz:10}}, nm={fill:"D0CECE",font:{b:1},bd:"ltb",v:"center",wrap:1},
+    fid={fill:"D0CECE",font:{b:1,color:"008000"},bd:"lrtb",h:"center",v:"center",nf:"0.00"}, inp={bd:"lrb",h:"center",v:"center",nf:"0.00"}, inpN={bd:"lrb",h:"center",v:"center",nf:"#,##0.00"},
+    calc={fill:"F2F2F2",font:{color:"008000"},bd:"lrb",h:"center",v:"center",nf:"#,##0.00"}, ew={fill:"FDE9D9",font:{b:1,color:"0000CC"},bd:"lrb",h:"center",v:"center",nf:"0.00%"}, ewN={...ew,nf:"#,##0.00"},
+    rk={fill:"FFFF00",font:{b:1,color:"0000CC"},bd:"lrb",h:"center",v:"center",nf:"0.00"}, nt={bd:"lrb",v:"center",wrap:1};
+  list.forEach((x,i)=>{const r=i+9, q=v=>v==null?null:v;
+    const npvW=x.npvF&&x.npvA!=null?(x.npvA-x.npvF)/x.npvF:null, evA=x.pgA!=null&&x.evF!=null?x.pgA*x.evF/100:x.evA, costW=evA!=null&&x.acA!=null?evA-x.acA:null, schW=x.pgF&&x.pgA!=null?(x.pgA-x.pgF)/x.pgF:null;
+    rows.push([null,{v:x.no||i+1,st:no},XO(x.regional,{...no,font:{name:"Arial",sz:10}}),XO(x.name,nm),XV(q(x.npvF),fid),XV(q(x.npvA),inp),XF(`(F${r}-E${r})/E${r}`,npvW,ew),XV(q(x.evF),inpN),XF(`O${r}*H${r}/100`,evA,calc),XO(q(x.acF),inpN),XO(q(x.acR),inpN),XV(q(x.acA),inpN),XF(`I${r}-L${r}`,costW,ewN),XV(q(x.pgF),inp),XV(q(x.pgA),inp),XF(`(O${r}-N${r})/N${r}`,schW,ew),XV(q(x.inh),rk),XV(q(x.cur),rk),XO(x.note1,nt),XO(x.note2,nt)]);});
+  return {name:monthLabel(k),rows,widths:[5.3,8.7,14.5,43.8,10.8,18.2,11,12,13.5,12.7,15.7,13.7,12,12.7,13.3,11.2,14.5,14,8.2,51.2],heights:{3:21,4:11.5,5:16,6:23.5,7:29.25,8:43.25},
+    merges:["B6:B8","C6:C8","D6:D8","E6:R6","E7:G7","H7:I7","J7:M7","N7:P7","Q7:R7","S6:S8","T6:T8"],freeze:"G9"};
+}
+/* ---------- ALERT (format sheet "ALERT Des26": blok triwulan sebelumnya + triwulan berjalan) ---------- */
+function tAlert(per,rows,todayIso){
+  const prevQ=addMonths(per,-3), lP=MSHORT(prevQ), lC=MSHORT(per);
+  const blk=(q,cur)=>[`Remaining Progress Fisik\nBor ${q}`,`Remaining Progress Fisik\nWO ${q}`,`Remaining Progress Fisik\nFacility ${q}`,cur?"Potential Impact / Analysis":`Potential Impact / Analysis ${q}`,cur?"Future Outlook":`Future Outlook ${q}`,"NPV Plan FID",`NPV Update ${q}`,`Update NPV vs Plan ${q}`,"OIL VOLUME","GAS VOLUME","CAPEX","OPEX","TIME/SCHEDULE","OIL PRICE","GAS PRICE","INSENTIF","OTHERS",`Oil BEP STATUS ${q}`,`Gas BEP STATUS ${q}`];
+  const tail=["Risk Mitigation Priority","Risk LIMIT","Delta NPV","NPV Loss > Risk Limit","Project Start","Finish Plan","Finish Update","Today","Durasi Plan (month)","Durasi Actual (month)","Delta Finish (month)","Progress (Delts Finish vs today) month","Persentase","Zona Batas",`Status Project ${lC}`,`Status ALERT ${MLONG[+prevQ.slice(5)-1]} (On return)`,"Notes","Last Update MONEVA",`Status di pelaporan web MONEVA ${monthLabel(per)}`,`Status Web Moneva pelaporan ${monthLabel(per)}`,"Note 1","Note 2","Note 3",`Status Rekomendasi Project (Update ALERT ${MLONG[+per.slice(5)-1]})`,`Kondisi NPV di ${monthLabel(per)}`,`Catatan Untuk ALERT ${MLONG[+addMonths(per,3).slice(5)-1]}`,`Kajian PnP ${monthLabel(per)}`];
+  const gH={fill:"D9D9D9",font:{name:"Aptos Narrow",b:1},bd:"lrt",h:"center",v:"center",wrap:1}, pH={...gH,fill:"EBFFFF"}, cH={...gH,fill:"FFEBF3"};
+  const hdr=["No","No","Threshold","Regional","Zona","Judul Proyek ","namavlookup","Nama PnP",...blk(lP),...blk(lC,1),...tail];
+  const h2=hdr.map((v,i)=>({v,st:i>=8&&i<27?pH:i>=27&&i<46?cH:i===60?pH:gH}));
+  const h1=[];h1[8]={v:MUP(prevQ),st:{fill:"CCFFFF",font:{name:"Aptos Narrow",sz:13,b:1},h:"center",v:"center",wrap:1}};h1[27]={v:MUP(per),st:{fill:"FFCCCC",font:{name:"Aptos Narrow",sz:13,b:1},h:"center",v:"center",wrap:1}};h1[50]={v:MUP(per),st:{fill:"808080",font:{name:"Aptos Narrow",sz:13,b:1},h:"center",v:"center",wrap:1}};
+  const out=[h1,h2]; const A={font:{name:"Aptos Narrow"},bd:"lrtb",h:"center",v:"center",wrap:1}, AB={...A,font:{name:"Aptos Narrow",b:1}}, AT={font:{name:"Aptos Narrow"},bd:"lrtb",v:"top",wrap:1}, AN={...A,fill:"FFF2CC"};
+  const val=(v,st=A)=>v==null||v===""||(typeof v==="number"&&!isFinite(v))?{v:null,st:AN}:{v,st};
+  const ana=M=>M&&M.analysis&&M.analysis.length?M.analysis.map(a=>`${a.h}\n${a.t}`).join("\n\n"):null;
+  const tdy=dSerial(todayIso);
+  rows.forEach((r,i)=>{const R=i+3, M=r.mon;
+    const Mp=S.moneva.filter(x=>x.period&&x.period<per&&sameProj(monTarget(x),r.name)).sort((a,b)=>b.period.localeCompare(a.period))[0]||null;
+    const block=(m,isCur,col0)=>{if(!m) return Array(19).fill(null).map((_,j)=>j===5?val(r.npvFid,A):{v:null,st:isCur?AN:A});
+      const sc=m.scope||{}, rem=k=>sc[k]&&sc[k].plan!=null&&sc[k].upd!=null?sc[k].plan-sc[k].upd:null, s=m.scen||{};
+      const fidC=colL(col0+5), updC=colL(col0+6), vs=m.npvFid?(m.npvUpd-m.npvFid)/m.npvFid:null;
+      return [val(rem("drilling")),val(rem("workover")),val(rem("facility")),val(ana(m),AT),val(m.outlook,AT),val(m.npvFid),val(m.npvUpd,AB),XF(`(${updC}${R}-${fidC}${R})/${fidC}${R}`,vs,{...AB,nf:"0%"}),
+        ...["oilVol","gasVol","capex","opex","sched","oilPrice","gasPrice","insentif","others"].map(k=>val(s[k]!=null?s[k]:0)),val(m.bepOil,AB),val(m.bepGas,AB)];};
+    const cur=block(M,true,28), prev=block(Mp,false,9);
+    const limit=r.npvFid!=null?r.npvFid*0.05:null, delta=r.npvFid!=null&&r.npvUpd!=null?r.npvFid-r.npvUpd:null, flag=limit!=null&&delta!=null?(delta>=limit?1:0):null;
+    const st=M?M.start:null, fp=M?M.finishPlan:null, fu=M?M.finishUpd:null;
+    const md=(a,b)=>a&&b?mDiff(a,b):null, durP=md(st,fp), durA=md(st,fu), dF=md(fu,fp), prog=st&&todayIso?mDiff(st,todayIso.slice(0,7)):null, pctv=prog!=null&&durA?Math.min(prog/durA,1):null;
+    const zb=pctv==null?null:pctv<0.26?"25%":pctv<0.51?"50%":pctv<0.76?"75%":"100%";
+    const vsC=r.npvFid?(r.npvUpd-r.npvFid)/r.npvFid:null;
+    const kond=r.npvUpd==null?null:r.npvUpd<0?"NPV NEGATIF":vsC<-0.5?"NPV Turun Lebih dari 50%":vsC<-0.4?"NPV Turun Lebih dari 40%":vsC<-0.3?"NPV Turun Lebih dari 30%":vsC<-0.2?"NPV Turun Lebih dari 20%":vsC<-0.1?"NPV Turun lebih dari 10%":vsC<0?"NPV Turun kurang dari 10%":vsC===0?"NPV Stagnan":"Ontrack";
+    const D=(iso,nf)=>iso?{v:dSerial(iso.length===7?iso+"-01":iso),st:{...A,nf}}:{v:null,st:AN};
+    out.push([{v:null,st:A},{v:i+1,st:A},{v:null,st:A},val(r.regional),val(zonaCode(r.zona)),{v:r.name,st:{...A,h:"left",fill:"FFC000",font:{name:"Aptos Narrow",color:"0000CC"}}},XO(M?M.judul:r.name,A),XO(M?M.judul:r.name,A),...prev,...cur,
+      val(r.inp.prio?(+r.inp.prio||r.inp.prio):null),XF(`$AG${R}*0.05`,limit,{...A,nf:"0.00"}),XF(`$AG${R}-$AH${R}`,delta,{...A,nf:"0.00"}),XF(`IF(AW${R}>=AV${R},1,0)`,flag,A),
+      D(st,"[$-409]mmm\\-yy;@"),D(fp,"[$-409]mmm\\-yy;@"),D(fu,"[$-409]mmm\\-yy;@"),{v:tdy,st:{...A,nf:"[$-409]d\\-mmm\\-yy;@"}},
+      XF(`((YEAR(AZ${R})-YEAR(AY${R}))*12+MONTH(AZ${R})-MONTH(AY${R}))`,durP,A),XF(`((YEAR(BA${R})-YEAR(AY${R}))*12+MONTH(BA${R})-MONTH(AY${R}))`,durA,A),XF(`(YEAR(AZ${R})-YEAR(BA${R}))*12 + MONTH(AZ${R})-MONTH(BA${R})`,dF,A),XF(`(YEAR(BB${R})-YEAR(AY${R}))*12 + MONTH(BB${R})-MONTH(AY${R})`,prog,A),
+      XF(`IFERROR(MIN(BF${R}/BD${R},1),"")`,pctv,{...AB,nf:"0.00%"}),XF(`IF(BG${R}="","",IF(BG${R}<26%,"25%",IF(BG${R}<51%,"50%",IF(BG${R}<76%,"75%","100%"))))`,zb,{...A,nf:"0.00%"}),
+      val(r.inp.status||null),{v:null,st:A},XO(r.notes.join("; ")||null,AT),M?{v:serial(M.period),st:{...AB,nf:"mmm-yy"}}:{v:null,st:AN},{v:null,st:A},{v:null,st:A},{v:null,st:AT},{v:null,st:AT},{v:null,st:AT},{v:null,st:AT},
+      XF(`IF(AH${R}<0,"NPV NEGATIF",(IF($AI${R}<-50%,"NPV Turun Lebih dari 50%",(IF($AI${R}<-40%,"NPV Turun Lebih dari 40%",IF($AI${R}<-30%,"NPV Turun Lebih dari 30%",IF($AI${R}<-20%,"NPV Turun Lebih dari 20%",IF($AI${R}<-10%,"NPV Turun lebih dari 10%",IF($AI${R}<0%,"NPV Turun kurang dari 10%",IF($AI${R}=0%,"NPV Stagnan","Ontrack"))))))))))`,kond,AT),{v:null,st:AT},{v:null,st:A}]);});
+  const W=[3.8,4,17,11.5,8.2,59,40,40,20.2,12,12,30.5,30.5,11.5,11.5,11,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,20.2,12,12,30.5,30.5,11.5,11.5,11,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,11.5,15,11.5,11.5,11.5,11.5,11.5,11.5,20.7,38.5,32.8,16.3,28.8,29,40,40,40,50.2,39.8,45.8,23.5];
+  return {name:`ALERT ${SHM(per)}`,rows:out,widths:W,heights:{1:22.25,2:64},merges:["I1:AA1","AB1:AT1","AY1:BA1"],freeze:"G3",filter:`A2:BU${Math.max(3,rows.length+2)}`};
+}
+/* ---------- LOSS GAIN (format sheet "LOSS GAIN Sept26") ---------- */
+function tLossGain(per,rows){
+  const L9=["Oil Volume","Gas Volume","Capex","Opex","Schedule","Oil Price","Gas Price","Insentif","Others"], K9=["oilVol","gasVol","capex","opex","sched","oilPrice","gasPrice","insentif","others"];
+  const F="Aptos Narrow", g={fill:"D0CECE",font:{name:F,b:1},bd:"lrtb",h:"center",v:"center",wrap:1}, gs={...g,font:{name:F,b:1,sz:9}};
+  const c1={fill:"FBE2D5",font:{name:F,b:1,sz:12},bd:"lrt",h:"center",v:"center"}, c2={...c1,fill:"F7C7AC"}, c3={...c1,fill:"DAF2D0"}, c4={...c1,fill:"B5E6A2"};
+  const grp=[["Potential Loss",c1,"Total Pot Loss"],["Actual Loss",c2,"Total Act Loss"],["Potential Gain",c3,"Total Pot Gain"],["Actual Gain",c4,"Total Act Gain"]];
+  const lP=monthLabel(per);
+  const h1=[];grp.forEach(([t,st],i)=>{h1[8+i*10]={v:t,st};for(let j=1;j<10;j++)h1[8+i*10+j]={v:null,st};});
+  const h2=[{v:"Zona",st:{...g,font:{name:F,b:1,sz:14}}},{v:"Judul Proyek ",st:g},{v:"NPV Plan FID",st:{...g,fill:"EBFFFF"}},{v:`NPV Update ${MSHORT(per)}`,st:{...g,fill:"EBFFFF"}},{v:"CAPEX",st:g},{v:"CAPEX",st:g},{v:"CAPEX",st:g},{v:"CAPEX",st:g}];
+  grp.forEach(([,st,tot])=>{L9.forEach(l=>h2.push({v:l,st:{...st,bd:"lrtb",font:{name:F,b:1},wrap:1}}));h2.push({v:tot,st:{...st,bd:"lrtb",font:{name:F,b:1},wrap:1}});});
+  h2.push({v:"NPV Update",st:{...g,fill:"CAEDFB"}},{v:`Status NPV vs ${lP}`,st:{bd:"lrtb",font:{name:F},h:"center",v:"center",wrap:1}},{v:`Status Project \n(${lP})`,st:{...g,font:{name:F,b:1,sz:14}}},{v:"Risk Rating Status",st:g});for(let j=0;j<13;j++)h2.push({v:null,st:g});
+  h2.push({v:"Summary / Rekomendasi Risiko",st:{font:{name:F,b:1},bd:"rtb",h:"center",v:"center"}},{v:`Status ALERT ${lP} (On return)`,st:g});
+  const h3=[{v:null,st:g},{v:null,st:g},{v:null,st:g},{v:null,st:g},{v:"FID",st:gs},{v:"Update",st:gs},{v:"FID",st:gs},{v:"Update",st:gs}];
+  grp.forEach(([,st])=>{for(let j=0;j<10;j++)h3.push({v:"MMUSD",st:{...st,bd:"lrtb",font:{name:F,b:1,sz:9}}});});
+  h3.push({v:"MMUSD",st:{...gs,fill:"CAEDFB"}},{v:null,st:g},{v:null,st:g});
+  ["Bussiness Scenario","Technical","Management","Commercial","External","HSSE","Inherent (FID)","Bussiness Scenario","Technical","Management","Commercial","External","HSSE","Current RR"].forEach(v=>h3.push({v,st:{...g,bd:"lrb"}}));
+  const out=[h1,h2,h3]; const dv={font:{name:F,color:"3A3838"},bd:"lrb",h:"center",v:"center"}, tot={font:{name:F,b:1,color:"3A3838"},bd:"lrtb",h:"center",v:"center",nf:"0.00"}, rk={fill:"FFFF00",font:{name:F,b:1,color:"0000CC"},bd:"lrtb",h:"center",v:"center",nf:"0.00"};
+  const list=rows.filter(r=>r.mon);
+  list.forEach((r,i)=>{const R=i+4, M=r.mon, d=lgData(r,per), byK={}; d.forEach((x,j)=>byK[K9[j]]=x);
+    const cap=(M.econ.capex||[]), cu=pickUpd(cap).v;
+    const cells=[{v:zonaCode(r.zona),st:{font:{name:F},h:"center",v:"center"}},{v:r.name,st:{fill:"FFEBF3",font:{name:F,color:"0000CC"},v:"center",wrap:1}},{v:r.npvFid,st:{fill:"EBFFFF",font:{name:F},h:"center",v:"center",wrap:1}},{v:r.npvUpd,st:{fill:"EBFFFF",font:{name:F},h:"center",v:"center",wrap:1}},XO(cap[0],dv),XO(cu,dv),XO(cap[0],dv),XO(cu,dv)];
+    [["Loss","Potential"],["Loss","Actual"],["Gain","Potential"],["Gain","Actual"]].forEach(([j,s],gi)=>{K9.forEach(k=>{const x=byK[k];cells.push(x&&x.jenis===j&&x.sifat===s&&x.v?{v:x.v,st:dv}:{v:null,st:dv});});
+      const c0=colL(9+gi*10),c1x=colL(17+gi*10);const sum=K9.reduce((a,k)=>{const x=byK[k];return a+(x&&x.jenis===j&&x.sifat===s?(x.v||0):0);},0);cells.push(XF(`SUM(${c0}${R}:${c1x}${R})`,sum,{...tot,fill:[ "FBE2D5","F7C7AC","DAF2D0","B5E6A2"][gi]}));});
+    const tAll=d.reduce((a,x)=>a+(x.v||0),0), aw=(r.npvFid||0)+tAll;
+    cells.push(XF(`C${R}+R${R}+AB${R}+AL${R}+AV${R}`,aw,{...tot,fill:"CAEDFB"}),XF(`AW${R}-D${R}`,r.npvUpd!=null?aw-r.npvUpd:null,{font:{name:F},bd:"lrb",v:"center",nf:"0.00"}),{v:r.inp.status||null,st:{fill:r.inp.status?"EBFFFF":"FFF2CC",font:{name:F,b:1,sz:12,color:"0000CC"},bd:"lrb",h:"center",v:"center",wrap:1}});
+    CAT_KEYS.forEach(()=>cells.push({v:null,st:{...rk,fill:"FFF2CC"}}));cells.push(XO(r.inh,rk));
+    CAT_KEYS.forEach(([c])=>cells.push(XO(r.cats&&r.cats[c]?r2(r.cats[c].score):null,rk)));cells.push(XO(r.cur!=null?r2(r.cur):null,rk));
+    cells.push({v:null,st:{fill:"FFEBF3",font:{name:F,color:"0000CC"},v:"top",wrap:1}},{v:r.inp.status||null,st:{font:{name:F},h:"center",v:"center"}});
+    out.push(cells);});
+  const n=list.length, last=3+Math.max(n,1), sr=last+3;
+  out.push([null,{v:`*Status data on return ${lP}`,st:{font:{name:F,i:1}}}]); out.push([]);
+  out.push(h1.slice()); out.push(h2.slice(0,49)); out.push(h3.slice(0,49));
+  const zs=[...new Set(list.map(r=>zonaCode(r.zona)).filter(z=>z!=null&&z!==""))];
+  zs.forEach((z,i)=>{const R=out.length+1;const row=[{v:z,st:{font:{name:F,b:1},bd:"lrtb",h:"center",v:"center"}},{v:`Zona ${z}`,st:{font:{name:F,b:1},bd:"lrtb",h:"left",v:"center"}}];
+    for(let c=3;c<=49;c++){const L=colL(c);const vals=list.filter(r=>zonaCode(r.zona)===z).map(r=>{const cell=out[3+list.indexOf(r)][c-1];return cell&&typeof cell.v==="number"?cell.v:0;});
+      row.push(XF(`SUMIF($A$4:$A$${last},$A$${R},${L}4:${L}${last})`,vals.reduce((a,b)=>a+b,0),{fill:c<=4?"EBFFFF":undefined,font:{name:F,b:1},bd:"lrtb",h:"center",v:"center",nf:"0.00"}));}
+    out.push(row);});
+  if(zs.length){const R=out.length+1, f0=R-zs.length;const row=[{v:null,st:{bd:"lrtb"}},{v:"TOTAL",st:{font:{name:F,b:1},bd:"lrtb",v:"center"}}];
+    for(let c=3;c<=49;c++){const L=colL(c);let s=0;for(let k=f0;k<R;k++){const cell=out[k-1][c-1];s+=cell&&typeof cell.v==="number"?cell.v:0;}row.push(XF(`SUM(${L}${f0}:${L}${R-1})`,s,{font:{name:F,b:1},bd:"lrtb",h:"center",v:"center",nf:"0.00"}));}
+    out.push(row);}
+  const W=[7.5,50.5,9,9,8.2,8.2,8.2,8.2];for(let i=0;i<40;i++)W.push(8.6);W.push(9.3,9.2,25.5);for(let i=0;i<14;i++)W.push(9.5);W.push(30.5,25.5);
+  const mg=["I1:R1","S1:AB1","AC1:AL1","AM1:AV1","A2:A3","B2:B3","C2:C3","D2:D3","AX2:AX3","AY2:AY3","AZ2:BM2","BN2:BN3","BO2:BO3"];
+  const s1=sr;mg.push(`I${s1}:R${s1}`,`S${s1}:AB${s1}`,`AC${s1}:AL${s1}`,`AM${s1}:AV${s1}`,`A${s1+1}:A${s1+2}`,`B${s1+1}:B${s1+2}`,`C${s1+1}:C${s1+2}`,`D${s1+1}:D${s1+2}`);
+  return {name:`LOSS GAIN ${SHM(per)}`,rows:out,widths:W,heights:{1:19.5,2:31.5,3:44.75},merges:mg,freeze:"C4"};
+}
+/* ---------- sheet tambahan website (bukan bagian berkas dasar) ---------- */
+function tWeb(name,header,body,widths){return {name,rows:[header.map(v=>({v,st:TS.web})),...body.map(r=>r.map(c=>c==null?null:typeof c==="object"?c:{v:c,st:typeof c==="number"?TS.webN:TS.webT}))],widths,freeze:"A2",tab:"7F7F7F"};}
+
+/* ===================== EKSPOR: Isi Otomatis ===================== */
+function prevRowOf(k,name){const p=prevKey(k);return p?findRow(p,name):null;}
+const trendTxt=(a,b,up,down,same,d=2)=>{if(a==null||b==null)return null;const q=v=>Math.round(v*10**d+1e-9);return q(a)>q(b)?up:q(a)<q(b)?down:same;};
+function akRow(k,r,cur){const mp=masterOf(r.name), p=prevRowOf(k,r.name), pc=p?effCur(p).v:null;
+  return {id:mp?mp.id:null,regional:mp?mp.regional:r.regional,zona:mp?mp.zona:null,name:mp?mp.name:r.name,month:k,npvF:r.npvF,npvA:r.npvA,npvW:r.npvW,costW:r.costW,schW:r.schW,inh:r.inh,cur,
+    tRisk:p?trendTxt(cur,pc,"Risk Naik","Risk Turun","Risk Tetap"):null,tNpv:p?trendTxt(r.npvW,p.npvW,"NPV Naik","NPV Turun","NPV Tetap",4):null,tSch:p?trendTxt(r.schW,p.schW,"Schedule Naik","Schedule Turun","Schedule Tetap",4):null};}
+function exportAuto(){
+  const per=$("autoPer").value; if(!per) return; const rows=autoRows(per), pl=monthLabel(per), wm=S.master.length>0;
+  const todayV=$("autoToday").value||new Date().toISOString().slice(0,10);
+  const id=r=>r.mp?r.mp.id:null, K=v=>v==null?null:v*1000;
+  // EWS bulanan (format Calculation EWS)
+  const ewl=rows.map((r,i)=>{const e=r.ews||{};return {no:i+1,regional:r.regional,name:r.name,npvF:r.npvFid,npvA:r.npvUpd,evF:e.evF,evA:e.evA,acF:e.acF,acR:e.acR,acA:e.acA,pgF:e.pgF,pgA:e.pgA,inh:r.inh,cur:r.cur!=null?r2(r.cur):null,note1:null,note2:[r.ews?"":"Earned Value, Actual Cost, dan Progres belum tersedia (sel kuning)",...r.notes].filter(Boolean).join("; ")||null};});
+  // Database Dashboard
+  const ak=rows.map(r=>{const e=r.ews;const x={npvF:r.npvFid,npvA:r.npvUpd,npvW:r.npvVs,costW:e?e.costW:null,schW:e?e.schW:null,inh:r.inh,name:r.name,regional:r.regional};return akRow(per,x,r.cur!=null?r2(r.cur):null);});
+  const rm=rows.filter(r=>r.rr).map(r=>({id:id(r),regional:r.regional,zona:r.zona,name:r.name,month:per,cats:Object.fromEntries(CAT_KEYS.map(([c])=>[c,r.cats[c]?r.cats[c].score:null])),total:r.cur}));
+  const tp=rows.map(r=>{const R=r.rr,t=r.mon?lgTotals(lgData(r,per)):null;return {id:id(r),regional:r.regional,zona:r.zona,name:r.name,month:per,npvF:K(r.npvFid),ireF:null,rreF:null,rmtF:K(r.riskLimit),pot:t?K(t.pl+t.pg):(r.npvFid!=null&&r.npvUpd!=null?K(r.npvUpd-r.npvFid):null),act:t?K(t.al+t.ag):null,npvC:R&&R.npv!=null?R.npv:K(r.npvUpd),reC:R?R.ire:null,rreP:R?R.rre:null,rmtC:R?R.btr:null};});
+  const rmt=rows.map(r=>{const R=r.rr;return {id:id(r),regional:r.regional,zona:r.zona,name:r.name,month:per,rmtP:K(r.riskLimit),rreP:null,creP:null,rmtC:R?R.btr:null,rreC:R?R.rre:null,creC:null};});
+  const mi=[];rows.filter(r=>r.rr).forEach(r=>{const seen=new Set();(r.rr.mitig||[]).forEach(m=>{const k=norm(m.event||"")+"|"+norm(m.activity||"");if(seen.has(k))return;seen.add(k);mi.push({id:id(r),regional:r.regional,zona:r.zona,name:r.name,month:per,event:m.event,plan:m.activity,resp:m.response||null});});});
+  // sheet tambahan website
+  const PE=[["Capex (US$ juta)","capex"],["Opex (US$ juta)","opex"],["Oil volume (MMBO)","oilVol"],["Gas volume (BSCF)","gasVol"],["Oil price (US$/bbl)","oilPrice"],["Gas price (US$/MMBTU)","gasPrice"],["NPV (US$ juta)","npv1"],["IRR (%)","irr"],["Payback / Disc. POT (tahun)","pot"],["HR / Disc. rate (%)","disc"]];
+  const pe=[],cf=[],sv=[],lg=[];
+  rows.filter(r=>r.mon).forEach(r=>{const M=r.mon;
+    PE.forEach(([l,k])=>{const a=M.econ[k]||[];const u=k==="npv1"?{v:M.npvUpd}:pickUpd(a);const bep=k==="oilPrice"?M.bepOil:k==="gasPrice"?M.bepGas:null;pe.push([id(r),r.name,{v:serial(per),st:TS.webD},l,a[0]??null,u.v??null,bep||null]);});
+    (M.cash||[]).forEach(c=>cf.push([id(r),r.name,{v:serial(per),st:TS.webD},c.y,c.plan,c.upd]));(M.sens||[]).forEach(x=>sv.push([id(r),r.name,{v:serial(per),st:TS.webD},x.l,...x.v]));
+    lgData(r,per).forEach(x=>lg.push([id(r),r.name,{v:serial(per),st:TS.webD},x.l,x.v,x.jenis||"",x.jenis?x.sifat:"",x.alasan||"",M.file]));});
+  const ct=[["Isi berkas","Sheet bertanda biru tua mengikuti berkas dasar tim (urutan kolom, baris judul, rumus, dan format sama) sehingga baris dapat langsung disalin ke berkas induk atau diunggah kembali ke website. Sheet berlabel abu-abu adalah tambahan dari website."],
+    ["ALERT",`Format sheet "ALERT Des26": blok triwulan sebelumnya (${MSHORT(addMonths(per,-3))}, terisi bila PDF MONEVA triwulan itu ikut diunggah) dan blok triwulan berjalan (${MSHORT(per)}); kolom Risk LIMIT, Delta NPV, durasi, Persentase, Zona Batas, dan Kondisi NPV berupa rumus seperti berkas dasar`],
+    ["LOSS GAIN",'Format sheet "LOSS GAIN Sept26": Potential/Actual Loss dan Gain per penyebab dari Scenario Analysis MONEVA, total dengan rumus SUM, NPV Update = NPV FID + seluruh total, serta rekap per zona (SUMIF)'],
+    [pl,"Format sheet bulanan Calculation EWS (judul baris 3–4, header baris 6–8, data mulai baris 9); kolom Early Warning berupa rumus"],
+    ["Akumulasi (EWS), Risk Movement, Trending PG, RMT, Risk Mitigation, Master Project","Format Database Dashboard; Project ID memakai rumus INDEX/MATCH ke sheet Master Project seperti berkas dasar"],
+    ["Periode",pl],["Tanggal acuan (Today)",todayV],["Sumber","PDF MONEVA (Detail Upstream) dan berkas Risk Register (RR)"],
+    ["Sel kuning muda","Belum dapat diisi otomatis; mohon dilengkapi tim (misalnya Status Project, Risk Mitigation Priority, Earned Value, Actual Cost, Progres Fisik, Response mitigasi)"],
+    ["Satuan","ALERT, EWS, LOSS GAIN dalam juta USD; Trending PG dan RMT dalam ribu USD mengikuti Database Dashboard"],
+    ["NPV Update","NPV 1 Update 1 pada MONEVA; tanpa MONEVA, NPV Current pada RR ÷ 1.000"]];
+  const sheets=[tAlert(per,rows,todayV),tLossGain(per,rows),tEwsMonth(per,ewl),tAkumulasi(ak,wm),tRiskMovement(rm,wm),tTrendingPG(tp,wm),tRMT(rmt,wm),tRiskMitigation(mi,wm)];
+  if(wm) sheets.push(tMaster());
+  sheets.push(tWeb("Project Economic",["Project ID","Project","Month","Parameter","FID","Update","BEP"],pe,[11,46,11,28,12,12,10]),
+    tWeb("Loss & Gain (rincian)",["Project ID","Project","Month","Penyebab","Nilai (juta USD)","Jenis","Sifat","Alasan","Sumber"],lg,[11,46,11,14,14,8,11,40,50]),
+    tWeb("Cashflow MONEVA",["Project ID","Project","Month","Tahun","Plan (US$ juta)","Update (US$ juta)"],cf,[11,46,11,8,16,16]),
+    tWeb("Sensitivity MONEVA",["Project ID","Project","Month","Parameter","60%","80%","100%","120%","140%"],sv,[11,46,11,14,10,10,10,10,10]),
+    tWeb("Catatan Isi Otomatis",["Bagian","Keterangan"],ct,[40,120]));
+  sheets.slice(0,wm?9:8).forEach(s=>s.tab=s.tab||"00246B");
+  saveBlob(buildXlsx(sheets),`Isi_Otomatis_ALERT_EWS_Dashboard_${pl.replace(" ","_")}${S.demo?"_DUMMY":""}.xlsx`);
+}
+
+/* ===================== EKSPOR: Unduh Data ===================== */
 function exportXlsx(){
-  const ks=monthKeys().slice().reverse(), sel=$("monthSel").value;
-  const D=k=>({v:serial(k),s:2}), Pp=v=>v==null?null:{v,s:3}, N=v=>v==null?null:{v,s:4};
-  const ak=[["Project ID","Regional","Zona","Project","Month","NPV US (Plan)","NPV US (Actual)","NPV Warning","Cost Warning","Schedule Warning","FID Risk Rating","Current Risk Rating","Time","NPV Trend","Schedule Trend","Catatan Penyesuaian"]];
-  for(const k of ks) for(const r of rowsOf(k)){
-    const mp=masterOf(r.name), p=findRow(prevKey(k),r.name);
-    const tr=(a,b,up,down,same,d=2)=>{if(a==null||b==null)return null;const q=v=>Math.round(v*10**d+1e-9);return q(a)>q(b)?up:q(a)<q(b)?down:same;};
-    const ec=effCur(r), pc=effCur(p).v;
-    ak.push([mp?mp.id:null,mp?mp.regional:r.regional,mp?mp.zona:null,r.name,D(k),N(r.npvF),N(r.npvA),Pp(r.npvW),N(r.costW),Pp(r.schW),r.inh,ec.v,
-      p?tr(ec.v,pc,"Risk Naik","Risk Turun","Risk Tetap"):null,p?tr(r.npvW,p.npvW,"NPV Naik","NPV Turun","NPV Tetap",4):null,p?tr(r.schW,p.schW,"Schedule Naik","Schedule Turun","Schedule Tetap",4):null,ec.adj?`Disesuaikan dari ${fr(r.cur)}: ${ec.reason}`:null]);
-  }
-  const rm=[["Project ID","Regional","Zona","Proyek","Month","BUSSINESS SCENARIO","TECHNICAL","MANAGEMENT","COMMERCIAL","EXTERNAL","HSSE","RISK RATING"]];
-  for(const rr of S.rr){ if(!rr.target) continue; const mp=masterOf(rr.target); const reg=(findRow(rr.month,rr.target)||{}).regional;
-    rm.push([mp?mp.id:null,mp?mp.regional:reg,mp?mp.zona:null,rr.target,rr.month?D(rr.month):null,...CAT_KEYS.map(([c])=>rr.cats[c]?r2(rr.cats[c].score):null),r2(rr.total)]); }
-  const ew=[["No","Proyek","NPV Plan","NPV Actual","NPV Warning","Warning NPV","Cost Warning","Warning Cost","Schedule Warning","Warning Schedule","Current Risk","Warning Risk","Inherent","Level Inherent","Level Current"]];
-  const yn=(b,r,k)=>{if(IND==="warna"){const c=idxCol(r,k);return c?IDXLAB[c]:"Belum ada data";}return b==null?"Data kurang":b?"YA (!)":"Tidak";};
-  rowsOf(sel).forEach((r,i)=>{const c=effCur(r).v; ew.push([i+1,r.name,N(r.npvF),N(r.npvA),Pp(r.npvW),yn(r.f.npv,r,"npv"),N(r.costW),yn(r.f.cost,r,"cost"),Pp(r.schW),yn(r.f.sch,r,"sch"),c,yn(riskFlag(r),r,"risk"),r.inh,(level(r.inh)||{}).t,(level(c)||{}).t]);});
-  const is=[["Tingkat","Bulan","Proyek","Keterangan"]];
-  for(const i of buildIssues()) is.push([{bad:"Perlu dicek",warn:"Periksa",info:"Info"}[i.lv],i.month?monthLabel(i.month):"",i.proj,i.msg]);
-  const pe=[["Proyek","Bulan","Jenis Usulan Investasi","BTR (000 USD)","Risk Event","Kategori","Jenis Dampak","Nilai Dampak (000 USD)","Impact","Impact (input manual)","Probability","RPN","Level"]],
-        pa=[["Proyek","Bulan","Current Risk EWS","Hasil Penilaian","Current Risk Dilaporkan","Alasan"]],
-        pm=[["Proyek","Bulan","Risk Event","Opsi","Rencana / Aktivitas Mitigasi","PIC","Target","Status","Response"]];
+  const ks=monthKeys().slice().reverse(), sel=$("monthSel").value, wm=S.master.length>0;
+  const ak=[];for(const k of ks) for(const r of rowsOf(k)) ak.push(akRow(k,r,effCur(r).v));
+  const rm=S.rr.filter(rr=>rr.target).map(rr=>{const mp=masterOf(rr.target);return {id:mp?mp.id:null,regional:mp?mp.regional:(findRow(rr.month,rr.target)||{}).regional,zona:mp?mp.zona:null,name:mp?mp.name:rr.target,month:rr.month,cats:Object.fromEntries(CAT_KEYS.map(([c])=>[c,rr.cats[c]?rr.cats[c].score:null])),total:rr.total};});
+  const tp=rrTrend().map(x=>{const mp=masterOf(x.name),e=findRow(x.month,x.name),nf=e&&e.npvF!=null?e.npvF*1000:null;return {id:mp?mp.id:x.id,regional:mp?mp.regional:(e||{}).regional,zona:mp?mp.zona:null,name:mp?mp.name:x.name,month:x.month,npvF:nf,ireF:null,rreF:null,rmtF:nf!=null?nf*0.05:null,pot:nf!=null&&x.npvC!=null?x.npvC-nf:null,act:null,npvC:x.npvC,reC:x.reC,rreP:x.rreP,rmtC:x.rmtC};});
+  const ew=rowsOf(sel).map((r,i)=>{const ec=effCur(r);return {no:r.no||i+1,regional:r.regional,name:r.name,npvF:r.npvF,npvA:r.npvA,evF:r.evF,evA:r.evA,acF:r.acF,acR:r.acR,acA:r.acA,pgF:r.pgF,pgA:r.pgA,inh:r.inh,cur:ec.v,note1:r.note1||null,note2:[r.note2,ec.adj?`Current Risk disesuaikan dari ${fr(r.cur)}: ${ec.reason}`:null].filter(Boolean).join("; ")||null};});
+  const li=S.lossIn.map(l=>{const mp=masterOf(l.proj);return {id:mp?mp.id:null,regional:mp?mp.regional:null,zona:mp?mp.zona:null,name:l.proj,desc:l.desc,date:l.date,event:l.event,cat:l.cat,raw:l.raw,val:l.val,ll:l.ll,rem:l.rem};});
+  const is=[];for(const i of buildIssues()) is.push([{bad:"Perlu dicek",warn:"Periksa",info:"Info"}[i.lv],i.month?monthLabel(i.month):"",i.proj,i.msg]);
+  const pe=[],pa=[],pm=[];
   for(const [key,e] of Object.entries(S.pp).sort()){const [p,k]=key.split("||"), c=ppCalc(e), row=findRow(k,p);
     c.evs.forEach(x=>pe.push([p,k,e.jenis,e.btr,x.event,CAT_LABEL[x.cat],x.type,x.value,x.Ieff,x.I||null,x.P,x.rpn,x.lvl?LVNAME[x.lvl]:null]));
     if(e.adj&&(e.adj.val!=null&&e.adj.val!==""||clean(e.adj.reason))) pa.push([p,k,row?row.cur:null,c.valid?r2(c.total):null,e.adj.val!=null&&e.adj.val!==""?+e.adj.val:null,e.adj.reason||""]);
     e.mit.forEach(m=>pm.push([p,k,m.event,m.option,m.activity,m.pic,m.target,m.status,m.response||""]));}
-  const tp=[["Project ID","Regional","Zona","Project","Month","NPV Current","RE Current","RRE Prognosed","RMT CURRENT","Sumber"]];
-  for(const x of rrTrend()){const mp=masterOf(x.name); tp.push([mp?mp.id:null,mp?mp.regional:null,mp?mp.zona:null,x.name,D(x.month),N(x.npvC),N(x.reC),N(x.rreP),N(x.rmtC),x.file]);}
-  const li=[["Project ID","Regional","Zona","Project Name","Loss Event Description","Date of Event/ Reporting","Risk Event","Impact Category","Loss Event Value (USD/BOEPD/Hari/NOA)","Loss Event Value (MMUSD)","Lesson Learn","Remarks"]];
-  for(const l of S.lossIn){const mp=masterOf(l.proj); const d=l.date?l.date.split("-").map(Number):null;
-    li.push([mp?mp.id:"(belum ada ID)",mp?mp.regional:null,mp?mp.zona:null,l.proj,l.desc,d?{v:(Date.UTC(d[0],d[1]-1,d[2])-Date.UTC(1899,11,30))/86400000,s:5}:null,l.event,l.cat,l.raw,l.val,l.ll,l.rem]);}
-  const blob=buildXlsx([
-    {name:"Akumulasi (EWS)",rows:ak,widths:[11,13,12,46,11,13,13,12,12,14,13,15,12,12,15]},
-    {name:"Risk Movement",rows:rm,widths:[11,13,12,46,11,18,12,13,13,11,8,12]},
-    {name:`Early Warning ${monthLabel(sel)}`.slice(0,31),rows:ew,widths:[5,46,11,11,12,12,12,12,15,15,12,12,10,18,18]},
-    {name:"Peringatan Data",rows:is,widths:[12,16,46,90]},
-    {name:"PP Risk Event",rows:pe,widths:[40,10,24,14,46,18,13,16,9,14,11,7,18]},
-    {name:"PP Penyesuaian",rows:pa,widths:[40,10,16,15,22,70]},
-    {name:"PP Mitigasi",rows:pm,widths:[40,10,40,16,70,18,10,12,60]},
-    {name:"Trending PG (dari RR)",rows:tp,widths:[11,13,12,46,11,14,14,15,14,50]},
-    {name:"Loss Event (input)",rows:li,widths:[13,13,12,46,60,14,40,14,22,14,50,30]}]);
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download=`Database_Dashboard_EWS_${monthLabel(sel).replace(" ","_")}${S.demo?"_DUMMY":""}.xlsx`; document.body.appendChild(a); a.click();
-  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+  const sheets=[];
+  if(sel) sheets.push(tEwsMonth(sel,ew));
+  sheets.push(tAkumulasi(ak,wm),tRiskMovement(rm,wm),tTrendingPG(tp,wm),tLossEvent(li,wm,"Loss Event (input)"));
+  if(wm) sheets.push(tMaster());
+  sheets.forEach(s=>s.tab="00246B");
+  sheets.push(tWeb("PP Risk Event",["Proyek","Bulan","Jenis Usulan Investasi","BTR (000 USD)","Risk Event","Kategori","Jenis Dampak","Nilai Dampak (000 USD)","Impact","Impact (input manual)","Probability","RPN","Level"],pe,[40,10,24,14,46,18,13,16,9,14,11,7,18]),
+    tWeb("PP Penyesuaian",["Proyek","Bulan","Current Risk EWS","Hasil Penilaian","Current Risk Dilaporkan","Alasan"],pa,[40,10,16,15,22,70]),
+    tWeb("PP Mitigasi",["Proyek","Bulan","Risk Event","Opsi","Rencana / Aktivitas Mitigasi","PIC","Target","Status","Response"],pm,[40,10,40,16,70,18,10,12,60]),
+    tWeb("Peringatan Data",["Tingkat","Bulan","Proyek","Keterangan"],is,[12,16,46,90]));
+  saveBlob(buildXlsx(sheets),`Database_Dashboard_EWS_${sel?monthLabel(sel).replace(" ","_"):"data"}${S.demo?"_DUMMY":""}.xlsx`);
 }
 
 
@@ -2170,7 +2369,7 @@ function sumHTML(forPage){
 /* ---------- penjelasan interaktif (tombol i) ---------- */
 const INFO={
   upload:`Unggah berkas <b>Calculation EWS</b>, <b>Risk Register (RR)</b> setiap proyek, <b>Database Dashboard</b> (sumber Power BI), dan <b>PDF MONEVA</b> (“Detail Upstream”). Berkas dapat diseret ke area unggah atau dipilih secara manual, beberapa sekaligus. Setiap unggahan tersimpan otomatis sebagai sesi pada daftar Riwayat di sebelah kiri.`,
-  auto:`Website membaca PDF MONEVA dan berkas RR, menghitung kolom turunan (Risk Limit, Delta NPV, durasi, dan lainnya), lalu menyusun isian <b>ALERT</b>, <b>EWS</b>, serta sheet <b>Database Dashboard</b> dengan susunan kolom yang sama seperti format tim.<ul><li>Pilih periode dan tanggal acuan.</li><li>Periksa pratinjau; kolom berwarna kuning belum dapat diisi otomatis.</li><li>Klik <b>Unduh Hasil Isi Otomatis</b>.</li></ul>`,
+  auto:`Website membaca PDF MONEVA dan berkas RR, menghitung kolom turunan (Risk Limit, Delta NPV, durasi, dan lainnya), lalu menyusun isian <b>ALERT</b>, <b>EWS</b>, serta sheet <b>Database Dashboard</b> dengan susunan kolom yang sama seperti format tim.<ul><li>Pilih periode dan tanggal acuan.</li><li>Periksa pratinjau; kolom berwarna kuning belum dapat diisi otomatis.</li><li>Klik <b>Unduh Hasil Isi Otomatis</b>.</li></ul>Berkas hasil unduhan mengikuti berkas dasar tim: sheet <b>ALERT</b> (format ALERT Des26), <b>LOSS GAIN</b> (format LOSS GAIN Sept26), sheet bulanan <b>Calculation EWS</b>, dan sheet <b>Database Dashboard</b> (Akumulasi, Risk Movement, Trending PG, RMT, Risk Mitigation, Master Project), lengkap dengan rumus seperti aslinya.`,
   ews:`Tabel Early Warning per proyek untuk periode terpilih.<ul><li><b>Klik baris proyek</b> untuk membuka halaman proyek (Loss &amp; Gain, grafik MONEVA, mitigasi).</li><li>Klik kotak indikator pada ringkasan di atas untuk menyaring proyek yang memiliki peringatan tersebut.</li><li>Buka “Keterangan warna dan rating” di bawah tabel untuk kriteria warna.</li></ul>`,
   drill:`Penelusuran bertingkat: <b>Zona → Proyek → Kategori Risiko → Risk Event</b>. Klik salah satu elemen untuk masuk ke tingkat berikutnya, lalu gunakan jalur navigasi atau tombol “Naik Satu Tingkat” untuk kembali. Pilihan zona dan proyek di sini turut memfilter seluruh tampilan.`,
   pp:`Bagian ini diisi tim berdasarkan <b>penilaian profesional</b>; perhitungan dan analisis dilakukan otomatis.<ul><li><b>1 · Risk Event</b>: ambil dari berkas RR atau tambah manual, isi Impact dan Probability.</li><li><b>2 · Skor &amp; Analisis</b>: skor per kategori dan catatan otomatis.</li><li><b>3 · Penyesuaian Rating</b>: tentukan Current Risk Rating yang dilaporkan beserta alasannya.</li><li><b>4 · Mitigasi</b>: rencana, response, PIC, target, dan status.</li></ul>Proyek dan periode mengikuti filter di bagian atas. Isian tersimpan di peramban ini; gunakan <b>Unduh Data</b> untuk menyimpan atau membagikan.`,
@@ -2182,7 +2381,7 @@ const INFO={
   pot:`Potential Loss/Gain = <b>NPV Current − NPV FID</b> (sheet Trending PG). Negatif berarti potensi kerugian yang belum terjadi; positif berarti potensi keuntungan.<ul><li>* dihitung karena kolom pada Database belum terisi.</li><li>† diambil dari PDF MONEVA yang lebih baru daripada Database.</li><li>Status membandingkan potensi kerugian dengan Risk Limit proyek.</li></ul>`,
   gantt:`Perbandingan rentang waktu proyek berdasarkan FID dengan status pada pelaporan terakhir (sheet Trending Prioritas (Timeline)), bukan data real-time. Garis merah putus-putus menandai periode terpilih. Klik nama proyek untuk memfilter.`,
   issues:`Daftar temuan otomatis, misalnya data yang tidak konsisten, kolom yang belum terisi, atau risk event level tinggi tanpa mitigasi. Merah = perlu diperbaiki, kuning = perlu diperiksa, biru = informasi.`,
-  export:`Berkas memuat sheet <b>Akumulasi (EWS)</b> dan <b>Risk Movement</b> dengan susunan kolom Database Dashboard, sheet Early Warning dan Pemeriksaan Data, isian Penilaian Profesional (PP Risk Event, PP Penyesuaian, PP Mitigasi), <b>Trending PG (dari RR)</b>, serta <b>Loss Event (input)</b>.`};
+  export:`Sheet bertab biru tua mengikuti berkas dasar tim (nama sheet, baris judul, urutan kolom, rumus, dan format sama):<ul><li><b>&lt;Bulan Tahun&gt;</b> — format sheet bulanan Calculation EWS, kolom Early Warning berupa rumus.</li><li><b>Akumulasi (EWS), Risk Movement, Trending PG, Loss Event (input), Master Project</b> — format Database Dashboard; Project ID memakai rumus INDEX/MATCH.</li></ul>Sheet bertab abu-abu (PP Risk Event, PP Penyesuaian, PP Mitigasi, Peringatan Data) adalah isian khusus website. Saat diunggah kembali, data digabung dengan Database yang sudah ada (tidak menimpa).`};
 function closePop(){const p=$("pop"); if(p){p.classList.add("hidden");p._btn&&p._btn.classList.remove("on");p._btn=null;}}
 document.addEventListener("click",e=>{
   const b=e.target.closest&&e.target.closest(".ib");
@@ -2261,6 +2460,7 @@ const GUIDE=[
     "<b>Mengapa ada kolom kuning pada Isi Otomatis?</b> Datanya tidak tersedia di RR maupun MONEVA, sehingga perlu dilengkapi tim secara manual.",
     "<b>Berkas tidak dikenali?</b> Pastikan nama sheet sesuai template (misalnya Score RR pada RR, atau sheet bulanan pada Calculation EWS) dan PDF MONEVA berupa laporan “Detail Upstream”. Keterangan muncul pada daftar berkas dan di Pemeriksaan Data.",
     "<b>RR tidak terpasang ke proyek yang benar?</b> Cantumkan Project ID pada nama berkas, atau pilih proyek secara manual pada bagian Risk Movement → Skor dari berkas RR; pilihan akan diingat untuk berkas berikutnya.",
+    "<b>Apakah berkas hasil unduhan bisa dipakai ulang?</b> Bisa. Sheet bertab biru tua memiliki nama, baris judul, urutan kolom, rumus, dan format yang sama dengan berkas dasar (Calculation EWS, Database Dashboard, ALERT, LOSS GAIN), sehingga barisnya dapat langsung disalin ke berkas induk. Berkas juga dapat diunggah kembali ke website; datanya digabung dengan Database yang sudah diunggah, bukan menimpa.",
     "<b>Bagaimana menyimpan atau membagikan isian?</b> Gunakan <b>Unduh Data</b> (isian penilaian dan Loss Event) atau <b>Unduh Hasil Isi Otomatis</b>, lalu kirimkan berkas Excel-nya. Berkas Unduh Data dapat diunggah kembali untuk melanjutkan.",
     "<b>Data hilang setelah ganti perangkat?</b> Riwayat tersimpan di peramban perangkat masing-masing. Pindahkan pekerjaan melalui berkas hasil Unduh Data.",
     "<b>Bagaimana mencetak atau menjadikan PDF?</b> Gunakan menu Cetak pada peramban (Ctrl + P); menu samping dan filter tidak ikut tercetak."]},
