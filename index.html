@@ -2067,8 +2067,10 @@ const ROUTES={
   istilah:["Daftar Istilah","Istilah dari sheet Index pada Database Dashboard"]};
 let ROUTE="unggah";
 function hasData(){return monthKeys().length>0||S.rr.length>0||!!S.db||S.lossIn.length>0||S.moneva.length>0;}
-function curRoute(){const h=(location.hash||"").replace(/^#\/?/,"");return ROUTES[h]?h:null;}
-function go(r){if(location.hash!=="#/"+r) location.hash="#/"+r; else applyRoute();}
+let WANT=null;
+function hashRoute(){let h=""; try{h=(location.hash||"").replace(/^#\/?/,"");}catch(e){} return ROUTES[h]?h:null;}
+function curRoute(){return WANT||hashRoute();}
+function go(r){WANT=r; try{if(hashRoute()!==r) history.pushState(null,"","#/"+r);}catch(e){} applyRoute();}
 function chartProj(){const ps=allProjects(); if(S.focus){const t=ps.find(x=>sameProj(x,S.focus)); if(t) return t;}
   if(S.lastProj&&ps.includes(S.lastProj)) return S.lastProj; const vis=ps.filter(p=>inZona(p)); return vis[0]||ps[0]||"";}
 function applyRoute(){
@@ -2085,7 +2087,9 @@ function applyRoute(){
   if(has) refreshCross(); else renderFilterBar();
   window.scrollTo(0,0);
 }
-window.addEventListener("hashchange",applyRoute);
+window.addEventListener("hashchange",()=>{WANT=hashRoute(); applyRoute();});
+window.addEventListener("popstate",()=>{const h=hashRoute(); if(h&&h!==ROUTE){WANT=h; applyRoute();}});
+document.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest('a[href^="#/"]'); if(!a) return; e.preventDefault(); go(a.getAttribute("href").slice(2));});
 
 /* ---------- filter global: Proyek ---------- */
 function renderProjSel(){
