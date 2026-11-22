@@ -1265,14 +1265,18 @@ function dbTrendIssues(){
 /* ---------- RENDER: Trending PG charts ---------- */
 function renderTrendPG(){
   const box=$("trendPG"); if(!box) return;
-  if(!S.db||!S.db.trend.length){$("chartRE").innerHTML=`<p class="empty">Unggah berkas <b>Database Dashboard</b> untuk menampilkan Risk Exposure dan Risk Limit (sheet Trending PG).</p>`;box.innerHTML="";return;}
-  const p=chartProj(), id=dbIdOf(p); const rows=S.db.trend.filter(t=>t.id===id);
-  const rr=rrTrend().filter(x=>x.id===id);
+  const p=chartProj(), id=p?dbIdOf(p):null, hasDB=!!(S.db&&S.db.trend.length);
+  const rows=hasDB&&id?S.db.trend.filter(t=>t.id===id):[];
+  const rr=p?rrTrend().filter(x=>(id&&x.id===id)||sameProj(x.name,p)):[];
+  // Risk Limit FID dari PDF MONEVA (5% × NPV FID, ribu USD) bila Database belum ada
+  const mon=p?S.moneva.filter(M=>M.period&&M.npvFid!=null&&sameProj(monTarget(M),p)):[];
   const keys=[...new Set([...rows.map(r=>r.month),...rr.map(r=>r.month)])].sort();
-  if(!keys.length){$("chartRE").innerHTML=`<p class="empty">Tidak terdapat data Trending PG untuk proyek ini${id?"":" (nama proyek belum sesuai dengan Master Project)"}.</p>`;box.innerHTML="";return;}
-  const at=k=>keys.map(m=>{const r=rows.find(x=>x.month===m); const q=rr.find(x=>x.month===m); return r&&r[k]!=null?r[k]:(q&&q[k]!=null?q[k]:null);});
-  box.innerHTML=`<p class="note">Sumber: sheet Trending PG di Database${rr.length?"; periode yang belum tercantum pada Database diisi dari berkas RR (NPV, Σ IRE, Σ RRE, BTR = 5% NPV)":""}. Risk Limit (RMT) = 5% × NPV.</p>`;
-  lineChart($("chartRE"),[{name:"RE Current",vals:at("reC"),color:"#f29d38"},{name:"IRE FID",vals:at("ireF"),color:"#c9a26b",dash:true},{name:"RRE Prognosed",vals:at("rreP"),color:"#d93025"},{name:"RRE FID",vals:at("rreF"),color:"#e8a09a",dash:true},{name:"Risk Limit Current",vals:at("rmtC"),color:"#00246b",bold:true},{name:"Risk Limit FID",vals:at("rmtF"),color:"#8a94a6",dash:true}],{keys,aria:"Risk Exposure dan Risk Limit",dec:0});
+  if(!keys.length){
+    $("chartRE").innerHTML=`<p class="empty">${!p?"Pilih proyek pada filter atas untuk menampilkan Risk Exposure dan Risk Limit.":hasDB&&!id?"Tidak terdapat data Trending PG untuk proyek ini (nama proyek belum sesuai dengan Master Project).":`Risk Exposure dibaca dari berkas <b>RR</b> proyek ini (Σ IRE, Σ RRE, BTR). Unggah RR <b>${esc(p)}</b>${hasDB?"":", atau Database Dashboard untuk riwayat bulan sebelumnya"}.`}</p>`;box.innerHTML="";return;}
+  const fidRmt=m=>{const M=mon.filter(x=>x.period<=m).sort((a,b)=>b.period.localeCompare(a.period))[0]||mon[0]; return M?M.npvFid*50:null;};
+  const at=k=>keys.map(m=>{const r=rows.find(x=>x.month===m); const q=rr.find(x=>x.month===m); const v=r&&r[k]!=null?r[k]:(q&&q[k]!=null?q[k]:null); return v==null&&k==="rmtF"?fidRmt(m):v;});
+  box.innerHTML=`<p class="note">${hasDB?"Sumber: sheet Trending PG di Database"+(rr.length?"; periode yang belum tercantum pada Database diisi dari berkas RR (NPV, Σ IRE, Σ RRE, BTR = 5% NPV)":""):"Sumber: berkas RR (RE Current = Σ IRE, RRE Prognosed = Σ RRE, Risk Limit Current = BTR = 5% NPV)"+(mon.length?"; Risk Limit FID = 5% × NPV FID dari PDF MONEVA":"")+". Unggah Database Dashboard untuk riwayat bulan sebelumnya dan nilai FID (IRE FID, RRE FID)"}. Risk Limit (RMT) = 5% × NPV.</p>`;
+  lineChart($("chartRE"),[{name:"RE Current",vals:at("reC"),color:"#f29d38"},{name:"IRE FID",vals:at("ireF"),color:"#c9a26b",dash:true},{name:"RRE Prognosed",vals:at("rreP"),color:"#d93025"},{name:"RRE FID",vals:at("rreF"),color:"#e8a09a",dash:true},{name:"Risk Limit Current",vals:at("rmtC"),color:"#00246b",bold:true},{name:"Risk Limit FID",vals:at("rmtF"),color:"#8a94a6",dash:true}].filter(x=>x.vals.some(v=>v!=null)),{keys,aria:"Risk Exposure dan Risk Limit",dec:0});
 }
 
 /* ---------- RENDER: Risk Movement monthly ---------- */
@@ -1290,7 +1294,7 @@ function renderMovementLine(){
   const ser=CAT_KEYS.map(([c])=>({name:CAT_LABEL[c],color:CATCOL[c],vals:keys.map(m=>{const r=pick(m);return r&&r.cats[c]!=null?r.cats[c]:null;})}));
   ser.push({name:"Risk Rating (Current)",color:"#111",vals:keys.map(m=>{const r=pick(m);if(r&&r.total!=null)return r.total;const e=findRow(m,p);return e?effCur(e).v:null;}),bold:true});
   ser.push({name:"Inherent (FID)",color:"#8a94a6",vals:keys.map(m=>{const e=findRow(m,p);return e&&e.inh!=null?e.inh:null;}),dash:true});
-  box.innerHTML=`<div class="chartbox"><h3>Risk Movement — ${esc(p)}</h3><div id="rmChart"></div><p class="note">Sumber: sheet Risk Movement di Database${extra.length?`; bulan ${extra.map(x=>`${monthLabel(x.month)} dari ${x.src}`).join(", ")}`:""}. <b>Tips:</b> klik nama garis pada legenda untuk menyembunyikan atau menampilkannya.</p></div>`;
+  box.innerHTML=`<div class="chartbox"><h3>Risk Movement — ${esc(p)}</h3><div id="rmChart"></div><p class="note">Sumber: ${S.db?"sheet Risk Movement di Database":"berkas RR (unggah Database Dashboard untuk riwayat bulan sebelumnya)"}${extra.length?`; bulan ${extra.map(x=>`${monthLabel(x.month)} dari ${x.src}`).join(", ")}`:""}. <b>Tips:</b> klik nama garis pada legenda untuk menyembunyikan atau menampilkannya.</p></div>`;
   lineChart($("rmChart"),ser,{keys,min:1,max:5,ticks:[1,1.8,2.6,3.4,4.2,5],dec:1,aria:"Risk movement",W:1100,H:300,bands:[[1,1.8,LVCOL.L],[1.8,2.6,LVCOL.LM],[2.6,3.4,LVCOL.M],[3.4,4.2,LVCOL.MH],[4.2,5,LVCOL.High]]});
 }
 
@@ -1961,10 +1965,11 @@ function potFor(id,k,name){
 }
 function renderPotential(){
   const box=$("potTable"); if(!box) return; const k=$("monthSel").value;
-  if(!S.db||!S.db.trend.length){box.innerHTML=`<p class="empty">Unggah berkas Database Dashboard (sheet Trending PG) untuk menampilkan Potential Loss/Gain.</p>`;return;}
-  const names=[...new Set([...(k?rowsOf(k).map(r=>r.name):[]),...S.master.map(m=>m.name)])].filter(n=>inZona(n)&&passCross(n));
-  const seen=new Set(); const rows=names.map(n=>{const id=dbIdOf(n);if(!id||seen.has(id))return null;seen.add(id);const mp=masterOf(n);const v=potFor(id,k,n);return v&&v.pot!=null?{n:mp?mp.name:n,...v}:null;}).filter(Boolean).sort((a,b)=>a.pot-b.pot);
-  if(!rows.length){box.innerHTML=`<p class="empty">Tidak terdapat data Potential Loss/Gain untuk filter ini.</p>`;return;}
+  const hasDB=!!(S.db&&S.db.trend.length);
+  if(!hasDB&&!S.moneva.length){box.innerHTML=`<p class="empty">Potential Loss/Gain dihitung dari <b>PDF MONEVA</b> (NPV Update − NPV FID) atau sheet Trending PG pada <b>Database Dashboard</b>. Unggah salah satunya.</p>`;return;}
+  const names=[...new Set([...(k?rowsOf(k).map(r=>r.name):[]),...S.master.map(m=>m.name),...S.moneva.map(M=>monTarget(M)).filter(Boolean)])].filter(n=>inZona(n)&&passCross(n));
+  const seen=new Set(); const rows=names.map(n=>{const id=dbIdOf(n), key=id||("n:"+String(n).toLowerCase()); if(seen.has(key))return null;seen.add(key);const mp=masterOf(n);const v=potFor(id,k,n);return v&&v.pot!=null?{n:mp?mp.name:n,...v}:null;}).filter(Boolean).sort((a,b)=>a.pot-b.pot);
+  if(!rows.length){box.innerHTML=`<p class="empty">Tidak terdapat data Potential Loss/Gain untuk filter ini${hasDB?"":". Tanpa Database Dashboard, nilai diambil dari PDF MONEVA; pastikan PDF proyek yang dipilih sudah diunggah"}.</p>`;return;}
   const J=v=>v==null?"—":fmt(v/1000);
   const hasMon=n=>S.moneva.some(M=>sameProj(monTarget(M),n));
   box.innerHTML=`<table class="ew"><thead><tr><th>Proyek</th><th>Data per</th><th>NPV FID (US$ juta)</th><th>NPV Current (US$ juta)</th><th>Potential Loss / Gain (US$ juta)</th><th>Actual Loss / Gain (US$ juta)</th><th>Risk Limit (US$ juta)</th><th>Status</th><th>Rincian per penyebab</th></tr></thead><tbody>${rows.map(r=>{
