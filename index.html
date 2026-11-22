@@ -716,15 +716,17 @@ async function addFiles(list,opt={}){
   if(!S.demo&&!opt.fromHistory) await histSave(saved);
 }
 function autoMapRR(){
-  const names=allProjects(), mem=mapLoad();
+  const real=new Set();for(const k of monthKeys()) if(S.months[k].src!=="auto") for(const r of S.months[k].rows) real.add(r.name);
+  const names=[...new Set([...real,...S.master.map(m=>m.name),...S.moneva.map(monTarget)].filter(Boolean))], mem=mapLoad();
   for(const rr of S.rr){
-    if(!rr.month||!S.months[rr.month]) rr.month=latestMonth();
+    if(!rr.month){const lm=monthKeys().filter(k=>S.months[k].src!=="auto"); rr.month=lm[lm.length-1]||null;}
     if(rr.target&&names.includes(rr.target)&&rr.how) continue;
     const mp=idInFile(rr.file);
     if(mp){const t=names.includes(mp.name)?mp.name:bestMatch(mp.name,names,0.5); if(t){rr.target=t;rr.how=`otomatis berdasarkan Project ID ${mp.id} pada nama berkas`;rr.guess=false;continue;}}
     const key=rrKey(rr); if(mem[key]&&names.includes(mem[key])){rr.target=mem[key];rr.how="otomatis berdasarkan pemasangan sebelumnya";rr.guess=false;continue;}
     const fn=rr.file.replace(/\.xlsx?$/i,"").replace(/^[0-9a-f]{8}-/i,"").replace(/[_-]+/g," ").replace(/cut\s*off.*$/i,"");
     rr.target=bestMatch(rr.rrName,names)||bestMatch(fn,names); rr.how=rr.target?"berdasarkan kemiripan nama; mohon diverifikasi":null; rr.guess=!!rr.target;
+    if(!rr.target&&rr.rrName){rr.target=clean(rr.rrName); rr.how="memakai nama proyek pada berkas RR (belum ada daftar proyek dari EWS, Master Project, atau MONEVA)"; rr.guess=false;}
   }
 }
 const $=id=>document.getElementById(id);
@@ -812,7 +814,7 @@ function renderMonthSel(){
 }
 function renderTable(){
   const k=$("monthSel").value, base=rowsOf(k).filter(r=>inZona(r.name)), rows=base.filter(r=>!S.flag||flagOfRow(r,S.flag)), show=$("showNums").checked, pk=prevKey(k);
-  $("ewSrc").innerHTML=S.months[k]&&S.months[k].src==="db"?`<div class="srcnote">Periode ini ditampilkan dari sheet <b>Akumulasi (EWS)</b> pada Database karena berkas Calculation EWS untuk periode ini belum diunggah; nilai peringatan tidak dihitung ulang.</div>`:"";
+  $("ewSrc").innerHTML=S.months[k]&&S.months[k].src==="auto"?`<div class="srcnote">Periode ini dihitung dari <b>RR dan PDF MONEVA</b> (sama seperti Isi Otomatis) karena berkas Calculation EWS untuk periode ini belum diunggah. Indikator Cost dan Schedule berwarna hitam karena Earned Value, Actual Cost, dan Progres Fisik tidak tersedia di RR maupun MONEVA.</div>`:S.months[k]&&S.months[k].src==="db"?`<div class="srcnote">Periode ini ditampilkan dari sheet <b>Akumulasi (EWS)</b> pada Database karena berkas Calculation EWS untuk periode ini belum diunggah; nilai peringatan tidak dihitung ulang.</div>`:"";
   const cnt={npv:0,cost:0,sch:0,risk:0}; base.forEach(r=>{if(r.f.npv)cnt.npv++;if(r.f.cost)cnt.cost++;if(r.f.sch)cnt.sch++;if(riskFlag(r))cnt.risk++;});
   renderSummary();
   const head=`<thead><tr><th rowspan="2">No</th><th rowspan="2">Proyek</th><th rowspan="2">NPV US$ Mn<br>(Plan)</th><th rowspan="2">NPV US$ Mn<br>(Actual)</th><th colspan="4">Early Warning</th><th colspan="2">Risk Rating Status</th></tr>
@@ -889,8 +891,18 @@ function renderIssues(){
   const ni=list.filter(i=>i.lv!=="info").length, nv=$("navIss"); if(nv){nv.textContent=ni; nv.classList.toggle("hidden",!ni);}
   $("issues").innerHTML=list.length?list.map(i=>`<div class="issue ${i.lv==="bad"?"bad":i.lv==="info"?"info":""}"><b>${esc(i.proj||"Umum")}</b>${i.month?` · ${monthLabel(i.month)}`:""} — ${esc(i.msg)}</div>`).join(""):`<p class="empty">Tidak terdapat temuan.</p>`;
 }
+/* EWS dari Isi Otomatis: bulan yang hanya punya RR/MONEVA tetap tampil di Dashboard */
+function synthAuto(){
+  for(const k of Object.keys(S.months)) if(S.months[k].src==="auto") delete S.months[k];
+  const pers=new Set([...S.rr.filter(r=>r.target&&r.month).map(r=>r.month),...S.moneva.filter(M=>M.period).map(M=>M.period)]);
+  for(const k of [...pers].sort()){ if(S.months[k]) continue;
+    const rows=autoRows(k).map((a,i)=>{const row={month:k,sheet:"Isi Otomatis",file:"RR + PDF MONEVA",no:i+1,regional:a.regional,name:a.name,issues:[],src:"auto",
+      npvF:a.npvFid,npvA:a.npvUpd,npvW:a.npvVs,evF:null,evA:null,acF:null,acR:null,acA:null,costW:null,pgF:null,pgA:null,schW:null,inh:a.inh!=null?a.inh:null,cur:a.cur!=null?r2(a.cur):null};
+      row.f=ewsFlags(row); return row;});
+    if(rows.length) S.months[k]={key:k,sheet:"Isi Otomatis",rows,file:"Isi Otomatis (RR + PDF MONEVA)",src:"auto"};}
+}
 function renderAll(full=true){
-  renderFiles(); renderHistResume(); $("demoBadge").classList.toggle("hidden",!S.demo);
+  synthAuto(); renderFiles(); renderHistResume(); $("demoBadge").classList.toggle("hidden",!S.demo);
   const has=monthKeys().length>0||S.rr.length>0||!!S.db||S.lossIn.length>0||S.moneva.length>0; $("results").classList.toggle("hidden",!has); document.body.classList.toggle("hasdata",has); $("emptyCard").classList.toggle("hidden",has); $("goDash").classList.toggle("hidden",!has); if(!has){renderFilterBar(); return;}
   if(full){renderMonthSel(); renderProjSel(); renderZonaSel();}
   renderAuto(); renderProjPage(); renderFilterBar(); renderDrill(); renderTable(); renderPP(); renderCharts(); renderTrendPG(); renderMovementLine(); renderRR(); renderMitLoss(); renderGantt(); renderIndex(); renderIssues(); if($("lossFormBox").open) renderLossForm();
@@ -1223,7 +1235,7 @@ async function parseDB(wb,fileName){
         npvF:g("npvF"),npvA:g("npvA"),npvW:g("npvW"),costW:g("costW"),schW:g("schW"),inh:g("inh"),cur:g("cur"),evA:null,acA:null,pgA:null,pgF:null};
       row.f=ewsFlags(row);
       (byM[d.key]=byM[d.key]||[]).push(row);}
-    for(const [k,rows] of Object.entries(byM)) if(!S.months[k]||S.months[k].src==="db"){rows.forEach((r,i)=>r.no=i+1); S.months[k]={key:k,sheet:"Akumulasi (EWS)",rows,file:fileName,src:"db"}; D.akum++;}}
+    for(const [k,rows] of Object.entries(byM)) if(!S.months[k]||S.months[k].src==="db"||S.months[k].src==="auto"){rows.forEach((r,i)=>r.no=i+1); S.months[k]={key:k,sheet:"Akumulasi (EWS)",rows,file:fileName,src:"db"}; D.akum++;}}
   D.issues=issues; return D;
 }
 function mergeDB(a,b){
@@ -1934,6 +1946,8 @@ function renderProjPage(){
 
 
 /* ===================== POTENTIAL LOSS / GAIN (Trending PG) ===================== */
+function potOrCalc(r,k){const id=dbIdOf(r.name), v=id?potFor(id,k,r.name):null; if(v&&v.pot!=null) return v;
+  return r.npvF!=null&&r.npvA!=null?{pot:(r.npvA-r.npvF)*1000,act:0,rmt:r.npvF*50,calc:true}:null;}
 function potFor(id,k,name){
   const mon=name?S.moneva.filter(M=>M.period&&(!k||M.period<=k)&&M.npvFid!=null&&M.npvUpd!=null&&sameProj(monTarget(M),name)).sort((a,b)=>b.period.localeCompare(a.period))[0]:null;
   const tr0=S.db?S.db.trend.filter(t=>t.id===id&&(!k||t.month<=k)).sort((a,b)=>b.month.localeCompare(a.month))[0]:null;
@@ -2339,7 +2353,7 @@ function sumHTML(forPage){
   const foc=S.focus?base.find(r=>sameProj(r.name,S.focus))||rowsOf(k).find(r=>sameProj(r.name,S.focus)):null;
   const lvChip=(v)=>{const l=level(v);return l?`<span class="chipl" style="background:${LVC(l.k)};color:${LVT(l.k)}">${l.t} ${fr(v)}</span>`:"—";};
   if(foc){
-    const r=foc, ec=effCur(r), id=dbIdOf(r.name), pv=potFor(id,k,r.name);
+    const r=foc, ec=effCur(r), pv=potOrCalc(r,k);
     const ind=(key,lab,val)=>`<div class="kpi mini"><span class="l">${indCell(r,key,key==="risk"?riskFlag(r):r.f[key],lab+": "+val)} ${lab}</span><span class="v" style="font-size:14.5px">${val}</span></div>`;
     const loss=pv&&pv.pot!=null?pv.pot<0:false;
     return `<div class="sc"><span class="l">NPV FID → Actual</span><span class="v">${J(r.npvF)} <span class="arrow">→</span> ${J(r.npvA)}</span><span class="s">US$ juta · ${pct(r.npvW)} terhadap FID</span></div>
@@ -2356,7 +2370,7 @@ function sumHTML(forPage){
   const flagCell=f=>`<div class="kpi mini ${cnt[f]?"on":""} ${S.flag===f?"act":""}" data-flag="${f}" title="Klik untuk menyaring proyek dengan peringatan ${lab[f]} (klik lagi untuk membatalkan)"><span class="l"><i class="dot sm ${dotOf(f)}"></i>${lab[f]}</span><span class="v">${cnt[f]} <small>proyek</small></span></div>`;
   let sF=0,sA=0,nF=0; base.forEach(r=>{if(r.npvF!=null&&r.npvA!=null){sF+=r.npvF;sA+=r.npvA;nF++;}});
   let pot=0,nPot=0,over=0; const seen=new Set();
-  base.forEach(r=>{const id=dbIdOf(r.name); if(!id||seen.has(id)) return; seen.add(id); const v=potFor(id,k,r.name); if(v&&v.pot!=null){pot+=v.pot;nPot++; if(v.pot<0&&v.rmt!=null&&-v.pot>v.rmt) over++;}});
+  base.forEach(r=>{const key=dbIdOf(r.name)||r.name; if(seen.has(key)) return; seen.add(key); const v=potOrCalc(r,k); if(v&&v.pot!=null){pot+=v.pot;nPot++; if(v.pot<0&&v.rmt!=null&&-v.pot>v.rmt) over++;}});
   const lv={}; base.forEach(r=>{const l=level(effCur(r).v); if(l) lv[l.k]=(lv[l.k]||0)+1;});
   const tot=Object.values(lv).reduce((a,b)=>a+b,0);
   const bar=tot?`<div class="lvbar" title="${LVORD.map(([kk,t])=>lv[kk]?`${t}: ${lv[kk]}`:"").filter(Boolean).join(" · ")}">${LVORD.slice().reverse().map(([kk])=>lv[kk]?`<i style="width:${lv[kk]/tot*100}%;background:${LVC(kk)}"></i>`:"").join("")}</div>`:"";
@@ -2417,14 +2431,14 @@ document.addEventListener("click",e=>{
 const GUIDE=[
   {ic:"🧩",t:"Berkas yang dibutuhkan setiap fitur",n:8,html:`<table class="need"><thead><tr><th>Fitur</th><th>RR</th><th>PDF MONEVA</th><th>Calculation EWS</th><th>Database Dashboard</th></tr></thead><tbody>
     <tr><td><b>Isi Otomatis</b> (ALERT, EWS, sheet Dashboard)</td><td class="y">wajib</td><td class="y">wajib</td><td>—</td><td>—</td></tr>
-    <tr><td><b>Tabel Early Warning</b> dan panel ringkasan</td><td>—</td><td>—</td><td class="y">wajib</td><td class="o">melengkapi</td></tr>
-    <tr><td><b>Halaman Proyek</b>: Loss &amp; Gain, waterfall, Cashflow, Sensitivity</td><td>—</td><td class="y">wajib</td><td class="o">untuk membuka dari EWS</td><td>—</td></tr>
+    <tr><td><b>Tabel Early Warning</b> dan panel ringkasan</td><td class="y">cukup</td><td class="y">cukup</td><td class="o">melengkapi Cost dan Schedule</td><td class="o">riwayat bulan lalu</td></tr>
+    <tr><td><b>Halaman Proyek</b>: Loss &amp; Gain, waterfall, Cashflow, Sensitivity</td><td>—</td><td class="y">wajib</td><td>—</td><td>—</td></tr>
     <tr><td><b>Penilaian Profesional</b></td><td class="y">disarankan</td><td>—</td><td class="o">pembanding rating</td><td>—</td></tr>
     <tr><td><b>Tren NPV dan Risk Exposure</b></td><td class="o">bulan terbaru</td><td>—</td><td>—</td><td class="y">riwayat (Trending PG)</td></tr>
     <tr><td><b>Risk Movement</b></td><td class="o">bulan terbaru</td><td>—</td><td>—</td><td class="y">riwayat</td></tr>
     <tr><td><b>Mitigasi, Loss Event, Potential Loss, Timeline</b></td><td>—</td><td class="o">potential terbaru</td><td>—</td><td class="y">wajib</td></tr>
     <tr><td><b>Telusur Risiko</b> (drill-down)</td><td class="o">risk event</td><td>—</td><td class="y">wajib</td><td class="o">kategori</td></tr></tbody></table>
-    <p class="note" style="margin:8px 0 0">Ringkasnya: <b>RR + PDF MONEVA</b> sudah cukup untuk menyusun isian ALERT, EWS, dan Dashboard melalui Isi Otomatis. Tampilan Dashboard (tabel EWS dan grafik riwayat) masih memerlukan <b>Calculation EWS</b> dan <b>Database Dashboard</b>.</p>`},
+    <p class="note" style="margin:8px 0 0">Ringkasnya: <b>RR + PDF MONEVA</b> sudah cukup untuk Isi Otomatis (ALERT, EWS, Dashboard) sekaligus tampilan Dashboard di website untuk periode itu. <b>Calculation EWS</b> melengkapi indikator Cost dan Schedule, dan <b>Database Dashboard</b> menambahkan riwayat bulan-bulan sebelumnya.</p>`},
   {ic:"📄",t:"Berkas yang diunggah",it:[
     "<b>Calculation EWS</b> (bulanan): satu sheet per bulan; dasar tabel Early Warning System.",
     "<b>Risk Register (RR)</b> setiap proyek: sheet Score RR, FormRRProject, dan Risk Treatment; dipakai untuk Risk Movement, Penilaian Profesional, dan Isi Otomatis. Cantumkan Project ID pada nama berkas (contoh: P002_RR_Cut_off_Okt_2026.xlsx) agar terpasang otomatis.",
@@ -2457,7 +2471,7 @@ const GUIDE=[
     "Risk Limit (RMT) = 5% × NPV · Potential Loss/Gain = NPV Current − NPV FID",
     "Loss &amp; Gain MONEVA: 9 penyebab (Oil/Gas Volume, Capex, Opex, Schedule, Oil/Gas Price, Insentif, Others); negatif = Loss, positif = Gain; totalnya = NPV Update − NPV FID."]},
   {ic:"❓",t:"Pertanyaan yang sering muncul",it:[
-    "<b>Apakah cukup mengunggah RR dan PDF MONEVA?</b> Cukup untuk <b>Isi Otomatis</b> (ALERT, EWS, sheet Dashboard). Tabel EWS dan grafik riwayat pada Dashboard memerlukan Calculation EWS dan Database Dashboard.",
+    "<b>Apakah cukup mengunggah RR dan PDF MONEVA?</b> Cukup. Isi Otomatis menyusun ALERT, EWS, dan sheet Dashboard, dan Dashboard di website langsung terisi untuk periode itu. Indikator Cost dan Schedule tampil hitam karena Earned Value, Actual Cost, dan Progres Fisik tidak ada di RR maupun MONEVA; unggah Calculation EWS untuk melengkapinya, dan Database Dashboard untuk riwayat bulan sebelumnya.",
     "<b>Mengapa ada kolom kuning pada Isi Otomatis?</b> Datanya tidak tersedia di RR maupun MONEVA, sehingga perlu dilengkapi tim secara manual.",
     "<b>Berkas tidak dikenali?</b> Pastikan nama sheet sesuai template (misalnya Score RR pada RR, atau sheet bulanan pada Calculation EWS) dan PDF MONEVA berupa laporan “Detail Upstream”. Keterangan muncul pada daftar berkas dan di Pemeriksaan Data.",
     "<b>RR tidak terpasang ke proyek yang benar?</b> Cantumkan Project ID pada nama berkas, atau pilih proyek secara manual pada bagian Risk Movement → Skor dari berkas RR; pilihan akan diingat untuk berkas berikutnya.",
