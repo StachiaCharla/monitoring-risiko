@@ -40,7 +40,7 @@ table{border-collapse:collapse;width:100%}
 .ew td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600}
 .ew td.ic{text-align:center;width:74px}
 .dot{display:inline-block;width:18px;height:18px;border-radius:50%;vertical-align:middle;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}.dot.sm{width:11px;height:11px;margin-right:6px;vertical-align:-1px}
-.d-g{background:#2e9e44}.d-o{background:#f39200}.d-r{background:#d7262e}.d-na{background:#1f1f1f}
+.dot.est{box-shadow:none;outline:2px dashed #0b2a6f;outline-offset:2px;opacity:.85}.estm{color:#0b2a6f;font-weight:700;margin-left:2px}.d-g{background:#2e9e44}.d-o{background:#f39200}.d-r{background:#d7262e}.d-na{background:#1f1f1f}
 .ew td.rk{text-align:center;font-weight:600;font-size:12.5px;width:170px}
 .ew tr:hover td{background:#f7f9fc}
 .ew td.rk.lv-High{background:var(--hi);color:#fff}.ew td.rk.lv-MH{background:var(--mh)}.ew td.rk.lv-M{background:var(--mo)}.ew td.rk.lv-LM{background:var(--lm)}.ew td.rk.lv-L{background:var(--lo);color:#fff}
@@ -789,15 +789,16 @@ const IDXLAB={g:"Hijau",o:"Oranye",r:"Merah"};
 function ewsFlags(row){const old={npv:()=>row.npvW!=null?row.npvW<-0.05:null,cost:()=>row.costW!=null?row.costW<0:null,sch:()=>row.schW!=null?row.schW<-0.05:null,risk:()=>row.cur!=null?r2(row.cur)>=3.41:null};
   const o={};for(const k of ["npv","cost","sch","risk"])Object.defineProperty(o,k,{enumerable:true,get(){if(IND==="warna"){const c=idxCol(row,k);return c==null?null:c!=="g";}return old[k]();}});return o;}
 function indCell(r,k,on,tip){
-  if(IND!=="warna") return tri(on,tip);
-  const c=idxCol(r,k);
-  return `<span class="dot d-${c||"na"}" role="img" aria-label="${c?IDXLAB[c]:"Belum ada data"}" title="${esc(tip)} — ${c?IDXLAB[c]:"Belum ada data"}"></span>`;
+  if(IND!=="warna") return tri(on,(r.est&&r.est[k])||tip)+(r.est&&r.est[k]?`<sup class="estm" title="Estimasi dari PDF MONEVA">≈</sup>`:"");
+  const c=idxCol(r,k), est=r.est&&r.est[k];
+  return `<span class="dot d-${c||"na"}${est?" est":""}" role="img" aria-label="${c?IDXLAB[c]:"Belum ada data"}${est?" (estimasi)":""}" title="${esc(est||tip)} — ${c?IDXLAB[c]:"Belum ada data"}${est?" (estimasi)":""}"></span>`;
 }
 const IDX_CRIT=`<span><b>Indikator Early Warning (Index EWS):</b></span>
 <span><i class="dot d-g sm"></i>Hijau: NPV turun ≤ 5% · Actual Cost ≤ Earned Value · progres tertinggal ≤ 5% · Current Risk 1,00–2,60</span>
 <span><i class="dot d-o sm"></i>Oranye: NPV turun 5%–50% · progres tertinggal 5%–25% · Current Risk 2,61–4,20</span>
 <span><i class="dot d-r sm"></i>Merah: NPV turun &gt; 50% · Actual Cost &gt; Earned Value · progres tertinggal &gt; 25% · Current Risk 4,21–5,00</span>
-<span><i class="dot d-na sm"></i>Hitam: belum ada data</span>`;
+<span><i class="dot d-na sm"></i>Hitam: belum ada data</span>
+<span><i class="dot d-o sm est"></i>Bergaris putus-putus: estimasi Cost/Schedule dari PDF MONEVA karena Calculation EWS belum diunggah</span>`;
 const PPT_CRIT=`<span>Kriteria tanda peringatan (<b>!</b>): NPV Actual kurang dari 95% NPV FID · Actual Cost melebihi Earned Value · keterlambatan progres fisik lebih dari 5% · Current Risk Rating ≥ 3,41 (Moderate to High)</span>`;
 
 function tri(on,tip){
@@ -815,7 +816,7 @@ function renderMonthSel(){
 }
 function renderTable(){
   const k=$("monthSel").value, base=rowsOf(k).filter(r=>inZona(r.name)), rows=base.filter(r=>!S.flag||flagOfRow(r,S.flag)), show=$("showNums").checked, pk=prevKey(k);
-  $("ewSrc").innerHTML=S.months[k]&&S.months[k].src==="auto"?`<div class="srcnote">Periode ini dihitung dari <b>RR dan PDF MONEVA</b> (sama seperti Isi Otomatis) karena berkas Calculation EWS untuk periode ini belum diunggah. Indikator Cost dan Schedule berwarna hitam karena Earned Value, Actual Cost, dan Progres Fisik tidak tersedia di RR maupun MONEVA.</div>`:S.months[k]&&S.months[k].src==="db"?`<div class="srcnote">Periode ini ditampilkan dari sheet <b>Akumulasi (EWS)</b> pada Database karena berkas Calculation EWS untuk periode ini belum diunggah; nilai peringatan tidak dihitung ulang.</div>`:"";
+  $("ewSrc").innerHTML=S.months[k]&&S.months[k].src==="auto"?`<div class="srcnote">Periode ini dihitung dari <b>RR dan PDF MONEVA</b> (sama seperti Isi Otomatis) karena berkas Calculation EWS untuk periode ini belum diunggah. Earned Value, Actual Cost, dan Progres Fisik tidak tersedia di RR maupun MONEVA, sehingga indikator <b>Cost dan Schedule</b> berupa <b>estimasi dari PDF MONEVA</b> (titik bergaris putus-putus): Cost = Capex FID − Capex Update; Schedule = progres scope dibandingkan waktu berjalan terhadap jadwal FID. Tanpa PDF MONEVA, keduanya hitam. Unggah Calculation EWS untuk nilai resmi.</div>`:S.months[k]&&S.months[k].src==="db"?`<div class="srcnote">Periode ini ditampilkan dari sheet <b>Akumulasi (EWS)</b> pada Database karena berkas Calculation EWS untuk periode ini belum diunggah; nilai peringatan tidak dihitung ulang.</div>`:"";
   const cnt={npv:0,cost:0,sch:0,risk:0}; base.forEach(r=>{if(r.f.npv)cnt.npv++;if(r.f.cost)cnt.cost++;if(r.f.sch)cnt.sch++;if(riskFlag(r))cnt.risk++;});
   renderSummary();
   const head=`<thead><tr><th rowspan="2">No</th><th rowspan="2">Proyek</th><th rowspan="2">NPV US$ Mn<br>(Plan)</th><th rowspan="2">NPV US$ Mn<br>(Actual)</th><th colspan="4">Early Warning</th><th colspan="2">Risk Rating Status</th></tr>
@@ -893,12 +894,23 @@ function renderIssues(){
   $("issues").innerHTML=list.length?list.map(i=>`<div class="issue ${i.lv==="bad"?"bad":i.lv==="info"?"info":""}"><b>${esc(i.proj||"Umum")}</b>${i.month?` · ${monthLabel(i.month)}`:""} — ${esc(i.msg)}</div>`).join(""):`<p class="empty">Tidak terdapat temuan.</p>`;
 }
 /* EWS dari Isi Otomatis: bulan yang hanya punya RR/MONEVA tetap tampil di Dashboard */
+/* Estimasi Cost dan Schedule dari PDF MONEVA bila Calculation EWS belum ada (hanya tampilan; tidak ditulis ke kolom EV/AC/Progres berkas unduhan) */
+function estMon(M,k){
+  if(!M) return null; const o={};
+  const cx=M.econ&&M.econ.capex; const cP=cx?cx[0]:null, cU=cx?cx[1]:null;
+  if(cP>0&&cU>0){o.costW=cP-cU; o.costTip=`Estimasi dari PDF MONEVA (bukan rumus EWS resmi): Capex FID ${fmt(cP)} − Capex Update ${fmt(cU)} = ${fmt(o.costW)} US$ juta. Nilai resmi memakai Earned Value − Actual Cost dari Calculation EWS`;}
+  const sc=M.scope||{}; let pl=0,up=0; for(const x of Object.values(sc)) if(x&&x.plan>0&&x.upd!=null){pl+=x.plan;up+=Math.min(x.upd,x.plan);}
+  const dPlan=mDiff(M.start,M.finishPlan), dNow=mDiff(M.start,k);
+  if(pl>0&&dPlan>0&&dNow!=null&&dNow>0){const pa=up/pl, pp=Math.min(1,dNow/dPlan); o.schW=(pa-pp)/pp;
+    o.schTip=`Estimasi dari PDF MONEVA (bukan rumus EWS resmi): progres scope ${fmt(pa*100)}% (Σ Update ÷ Σ Plan Drilling, Workover, Facility) dibandingkan waktu berjalan ${fmt(pp*100)}% dari jadwal FID (${dNow} dari ${dPlan} bulan) = ${pct(o.schW)}. Nilai resmi memakai Progres Fisik dari Calculation EWS`;}
+  return o.costW!=null||o.schW!=null?o:null;}
 function synthAuto(){
   for(const k of Object.keys(S.months)) if(S.months[k].src==="auto") delete S.months[k];
   const pers=new Set([...S.rr.filter(r=>r.target&&r.month).map(r=>r.month),...S.moneva.filter(M=>M.period).map(M=>M.period)]);
   for(const k of [...pers].sort()){ if(S.months[k]) continue;
     const rows=autoRows(k).map((a,i)=>{const row={month:k,sheet:"Isi Otomatis",file:"RR + PDF MONEVA",no:i+1,regional:a.regional,name:a.name,issues:[],src:"auto",
       npvF:a.npvFid,npvA:a.npvUpd,npvW:a.npvVs,evF:null,evA:null,acF:null,acR:null,acA:null,costW:null,pgF:null,pgA:null,schW:null,inh:a.inh!=null?a.inh:null,cur:a.cur!=null?r2(a.cur):null};
+      const e=estMon(a.mon,k); if(e){row.est={}; if(e.costW!=null){row.costW=e.costW;row.est.cost=e.costTip;} if(e.schW!=null){row.schW=e.schW;row.est.sch=e.schTip;}}
       row.f=ewsFlags(row); return row;});
     if(rows.length) S.months[k]={key:k,sheet:"Isi Otomatis",rows,file:"Isi Otomatis (RR + PDF MONEVA)",src:"auto"};}
 }
