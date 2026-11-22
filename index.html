@@ -2322,7 +2322,7 @@ function exportAuto(part){
   const T=sh=>{sh.tab="00246B";return sh;}, sheets=[];
   if(part==="all"||part==="alert") sheets.push(T(tAlert(per,rows,todayV)),T(tLossGain(per,rows)));
   if(part==="all"||part==="ews") sheets.push(T(tEwsMonth(per,ewl)));
-  if(part==="all"||part==="db"){sheets.push(T(tAkumulasi(ak,wm)),T(tRiskMovement(rm,wm)),T(tTrendingPG(tp,wm)),T(tRMT(rmt,wm)),T(tRiskMitigation(mi,wm))); if(wm) sheets.push(T(tMaster()));}
+  if(part==="all"||part==="db"){sheets.push(T(tAkumulasi(ak,wm)),T(tRiskMovement(rm,wm)),T(tTrendingPG(tp,wm)),T(tRMT(rmt,wm)),T(tRiskMitigation(mi,wm))); if(S.lossIn.length){const li=S.lossIn.filter(l=>!l.date||String(l.date).slice(0,7)<=per).map(l=>{const mp=masterOf(l.proj);return {id:mp?mp.id:null,regional:mp?mp.regional:null,zona:mp?mp.zona:null,name:l.proj,desc:l.desc,date:l.date,event:l.event,cat:l.cat,raw:l.raw,val:l.val,ll:l.ll,rem:l.rem};}); if(li.length) sheets.push(T(tLossEvent(li,wm,"Loss Event")));} if(wm) sheets.push(T(tMaster()));}
   if(part==="all") sheets.push(tWeb("Project Economic",["Project ID","Project","Month","Parameter","FID","Update","BEP"],pe,[11,46,11,28,12,12,10]),
     tWeb("Loss & Gain (rincian)",["Project ID","Project","Month","Penyebab","Nilai (juta USD)","Jenis","Sifat","Alasan","Sumber"],lg,[11,46,11,14,14,8,11,40,50]),
     tWeb("Cashflow MONEVA",["Project ID","Project","Month","Tahun","Plan (US$ juta)","Update (US$ juta)"],cf,[11,46,11,8,16,16]),
