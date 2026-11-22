@@ -1261,9 +1261,10 @@ function mergeDB(a,b){
   return o;
 }
 const dbIdOf=name=>{const m=masterOf(name);return m?m.id:null;};
-const zonaOf=name=>{const m=masterOf(name);return m?m.zona:null;};
+const zonaOf=name=>{const m=masterOf(name);if(m&&m.zona)return m.zona;const M=S.moneva.find(M=>M.zona&&sameProj(monTarget(M),name));return M?zonaLbl(M.zona):null;};
+const zonaLbl=z=>{z=clean(z);return /^zona\b/i.test(z)||z.length>4?z:"Zona "+z;};
 const inZona=name=>!S.zona||zonaOf(name)===S.zona;
-function zonaList(){return [...new Set(S.master.map(m=>m.zona).filter(Boolean))].sort();}
+function zonaList(){return [...new Set([...S.master.map(m=>m.zona),...S.moneva.filter(M=>!masterOf(monTarget(M))&&M.zona).map(M=>zonaLbl(M.zona))].filter(Boolean))].sort();}
 
 /* ---------- RR → Trending PG current ---------- */
 function rrTrend(){return S.rr.filter(r=>r.target&&r.month&&(r.npv!=null||r.ire!=null||r.rre!=null)).map(r=>({name:r.target,id:dbIdOf(r.target),month:r.month,npvC:r.npv,reC:r.ire,rreP:r.rre,rmtC:r.btr,file:r.file}));}
@@ -1316,10 +1317,11 @@ function renderMitLoss(){ renderPotential();
   const ok=name=>inZona(name)&&(S.focus?sameProj(name,S.focus):(!only||name===p||sim(name,p)>=0.9))&&flaggedNow(name);
   const mitDb=S.db?S.db.mitig.filter(m=>m.month===k&&ok(m.name)):[];
   const mitPP=[]; for(const [key,e] of Object.entries(S.pp)){const [pp,mk]=key.split("||"); if(mk!==k||!ok(pp)) continue; e.mit.forEach(m=>mitPP.push({name:pp,event:m.event,plan:m.activity,resp:[m.response,m.status&&`Status: ${m.status}`,m.pic&&`PIC: ${m.pic}`,m.target&&`Target: ${m.target}`].filter(Boolean).join(" · "),src:"Penilaian"}));}
-  const mit=[...mitDb.map(m=>({...m,src:"Database"})),...mitPP];
+  const mitRR=[]; for(const r of S.rr){ if(!r.target||r.month!==k||!ok(r.target)) continue; if(mitDb.some(m=>sameProj(m.name,r.target))||mitPP.some(m=>sameProj(m.name,r.target))) continue; (r.mitig||[]).forEach(m=>mitRR.push({name:r.target,event:m.event,plan:m.activity,resp:m.option?`Opsi: ${m.option}`:"",src:"RR"}));}
+  const mit=[...mitDb.map(m=>({...m,src:"Database"})),...mitPP,...mitRR];
   const cell=s=>esc(s||"").replace(/\s(?=\d+\.\s)/g,"<br>");
   $("mitTable").innerHTML=mit.length?`<table class="ew lt"><thead><tr><th>Proyek</th><th>Risk Event / Issue</th><th>Mitigation Plan</th><th>Response</th><th>Sumber</th></tr></thead><tbody>${mit.map(m=>`<tr><td class="pl" data-proj="${esc(m.name)}">${esc(m.name)}</td><td>${esc(m.event)}</td><td>${cell(m.plan)}</td><td>${cell(m.resp)}</td><td><span class="tag ${m.src==="Penilaian"?"mp":""}">${m.src}</span></td></tr>`).join("")}</tbody></table>`
-    :`<p class="empty">Tidak terdapat data mitigasi untuk ${monthLabel(k)}${S.db?"":" (unggah berkas Database Dashboard atau lengkapi Penilaian Profesional)"}.</p>`;
+    :`<p class="empty">Tidak terdapat data mitigasi untuk ${monthLabel(k)}${S.db?"":" (mitigasi dibaca dari sheet Risk Treatment pada berkas RR periode ini, atau dari Penilaian Profesional)"}.</p>`;
   const yr=$("lossYear").value;
   const lossIn=S.lossIn.map((l,i)=>({name:l.proj,date:(d=>d?{...d,text:false}:null)(dateAny(l.date)),desc:l.desc,event:l.event,cat:l.cat,raw:l.raw,val:l.val,ll:l.ll,rem:l.rem,src:"Input",idx:i}));
   const loss=[...(S.db?S.db.loss.map(l=>({...l,src:"Database"})):[]),...lossIn].filter(l=>ok(l.name)&&(!yr||(l.date&&String(l.date.y)===yr)));
@@ -1327,17 +1329,22 @@ function renderMitLoss(){ renderPotential();
   const ys=$("lossYear"), cur=ys.value; ys.innerHTML=`<option value="">Semua tahun</option>`+years.map(y=>`<option ${String(y)===cur?"selected":""}>${y}</option>`).join("");
   const tot=loss.reduce((a,l)=>a+(l.val||0),0);
   $("lossTable").innerHTML=loss.length?`<p class="note" style="margin:0 0 6px">${loss.length} loss event · total nilai tercatat ${fmt(tot,0)} (kolom "Loss Event Value (MMUSD)")</p><table class="ew lt"><thead><tr><th>Tanggal</th><th>Proyek</th><th>Risk Event</th><th>Deskripsi Loss Event</th><th>Nilai (MMUSD)</th><th>Nilai (teks)</th><th>Lesson Learned</th><th>Sumber</th></tr></thead><tbody>${loss.slice().sort((a,b)=>((b.date&&b.date.key)||"").localeCompare((a.date&&a.date.key)||"")).map(l=>`<tr><td style="white-space:nowrap">${fmtDate(l.date)}${l.date&&l.date.text?' <span class="nok" title="Tanggal diketik sebagai teks">*</span>':""}</td><td class="pl" data-proj="${esc(l.name)}">${esc(l.name)}</td><td>${esc(l.event)}</td><td>${esc(l.desc)}</td><td class="num">${l.val!=null?fmt(l.val,0):"—"}</td><td>${esc(l.raw)}</td><td>${cell(l.ll)}</td><td>${l.src==="Input"?`<span class="tag mp">Input</span><br><button class="btn xs" data-li="${l.idx}" data-op="edit" style="margin-top:4px;font-size:12px">Ubah</button> <button class="btn xs" data-li="${l.idx}" data-op="del" style="margin-top:4px;font-size:12px">Hapus</button>`:`<span class="tag">Database</span>`}</td></tr>`).join("")}</tbody></table>`
-    :`<p class="empty">${S.db||S.lossIn.length?"Tidak terdapat loss event untuk filter ini.":"Belum terdapat Loss Event. Unggah berkas Database Dashboard atau tambahkan melalui formulir di bawah."}</p>`;
+    :`<p class="empty">${S.db||S.lossIn.length?"Tidak terdapat loss event untuk filter ini.":"Belum terdapat Loss Event. Loss Event tidak tercantum di RR maupun PDF MONEVA, jadi tambahkan melalui formulir di bawah; unggah Database Dashboard bila ingin memakai riwayat Loss Event tim."}</p>`;
 }
 
 /* ---------- RENDER: Gantt timeline ---------- */
 function renderGantt(){
   const box=$("gantt"); if(!box) return;
-  if(!S.db||!S.db.timeline.length){box.innerHTML=`<p class="empty">Unggah berkas <b>Database Dashboard</b> untuk menampilkan timeline FID dan Actual (sheet Trending Prioritas (Timeline)).</p>`;return;}
-  const items=S.db.timeline.filter(t=>t.start&&t.end&&(!S.zona||t.zona===S.zona||zonaOf(t.name)===S.zona)&&flaggedNow(t.name));
+  const ym=k=>{if(!k)return null;const [y,m]=String(k).split("-").map(Number);return y?{y,m:m||1}:null;};
+  const dbT=S.db?S.db.timeline:[], latest={};
+  for(const M of S.moneva){const n=monTarget(M); if(!n||!M.start)continue; if(dbT.some(t=>sameProj(t.name,n)))continue; if(!latest[n]||(M.period||"")>(latest[n].period||""))latest[n]=M;}
+  const monT=Object.entries(latest).flatMap(([n,M])=>{const id="mon:"+n.toLowerCase(), z=zonaOf(n); return [M.finishPlan&&{id,name:n,zona:z,tipe:"FID",start:ym(M.start),end:ym(M.finishPlan),src:"mon"},M.finishUpd&&{id,name:n,zona:z,tipe:"Actual",start:ym(M.start),end:ym(M.finishUpd),src:"mon"}].filter(Boolean);});
+  const all=[...dbT,...monT];
+  if(!all.length){box.innerHTML=`<p class="empty">Timeline dibaca dari <b>PDF MONEVA</b> (Project Start, Finish Plan, Finish Update) atau sheet Trending Prioritas (Timeline) pada Database Dashboard. Unggah PDF MONEVA proyek untuk menampilkannya.</p>`;return;}
+  const items=all.filter(t=>t.start&&t.end&&(!S.zona||t.zona===S.zona||zonaOf(t.name)===S.zona)&&flaggedNow(t.name));
   const ids=[...new Set(items.filter(t=>!(S.page&&S.focus)||sameProj(t.name,S.focus)).map(t=>t.id))];
   if(!ids.length){box.innerHTML=`<p class="empty">${S.page?"Tidak terdapat data timeline untuk proyek ini.":"Tidak terdapat proyek untuk zona ini."}</p>`;return;}
-  const y0=Math.min(...items.map(t=>t.start.y)), y1=Math.max(...items.map(t=>t.end.y))+1;
+  const y0=Math.min(...items.map(t=>t.start.y)), y1=Math.max(...items.map(t=>t.end.y))+1, mm=d=>d.y*12+(d.m||1)-1, ml=d=>`${MSHORT?MSHORT(`${d.y}-${String(d.m||1).padStart(2,"0")}`):d.y}`;
   const W=1180,L=330,R=20,T=28,RH=34; const H=T+ids.length*RH+30;
   const x=d=>L+(W-L-R)*((d.y+(d.m-1)/12)-y0)/(y1-y0);
   let g=""; for(let y=y0;y<=y1;y++){const xx=L+(W-L-R)*(y-y0)/(y1-y0); g+=`<line x1="${xx}" x2="${xx}" y1="${T-6}" y2="${H-24}" stroke="#e3e7ee"/><text x="${xx}" y="${T-10}" font-size="11" text-anchor="middle" fill="#667">${y}</text>`;}
@@ -1345,25 +1352,51 @@ function renderGantt(){
   ids.forEach((id,i)=>{const yy=T+i*RH; const f=items.find(t=>t.id===id&&/fid/i.test(t.tipe)), a=items.find(t=>t.id===id&&/actual/i.test(t.tipe)); const nm=(f||a).name;
     const dim=S.focus&&!sameProj(nm,S.focus); g+=`<g class="grow" data-proj="${esc(nm)}" opacity="${dim?0.3:1}"><rect x="0" y="${yy}" width="${W}" height="${RH}" fill="${S.focus&&!dim?"#e3eefc":"transparent"}"/>`;
     g+=`<text x="${L-10}" y="${yy+19}" font-size="12" text-anchor="end" fill="#223">${esc(nm.length>46?nm.slice(0,44)+"…":nm)}<title>${esc(nm)}</title></text>`;
-    if(f) g+=`<rect x="${x(f.start)}" y="${yy+5}" width="${Math.max(2,x(f.end)-x(f.start))}" height="10" rx="3" fill="#b8c1cf"><title>FID: ${f.start.y} – ${f.end.y}</title></rect>`;
-    if(a){const late=f&&(a.end.y+(a.end.m-1)/12)>(f.end.y+(f.end.m-1)/12); g+=`<rect x="${x(a.start)}" y="${yy+17}" width="${Math.max(2,x(a.end)-x(a.start))}" height="10" rx="3" fill="${late?"#d93025":"#00246b"}"><title>Actual: ${a.start.y} – ${a.end.y}${late?` (lebih lambat ${a.end.y-f.end.y} tahun daripada FID)`:""}</title></rect>`;}
+    if(f) g+=`<rect x="${x(f.start)}" y="${yy+5}" width="${Math.max(2,x(f.end)-x(f.start))}" height="10" rx="3" fill="#b8c1cf"><title>FID: ${ml(f.start)} – ${ml(f.end)}</title></rect>`;
+    if(a){const late=f&&mm(a.end)>mm(f.end), dl=f?mm(a.end)-mm(f.end):0; g+=`<rect x="${x(a.start)}" y="${yy+17}" width="${Math.max(2,x(a.end)-x(a.start))}" height="10" rx="3" fill="${late?"#d93025":"#00246b"}"><title>Actual: ${ml(a.start)} – ${ml(a.end)}${late?` (lebih lambat ${dl} bulan daripada FID)`:""}</title></rect>`;}
     g+=`</g>`;
   });
   box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Timeline FID vs Actual">${g}</svg>
-    <div class="legend"><span><i class="sw" style="background:#b8c1cf"></i>FID</span><span><i class="sw" style="background:#00246b"></i>Pelaporan terakhir</span><span><i class="sw" style="background:#d93025"></i>Pelaporan terakhir selesai lebih lambat daripada FID</span></div>`;
+    <div class="legend"><span><i class="sw" style="background:#b8c1cf"></i>FID</span><span><i class="sw" style="background:#00246b"></i>Pelaporan terakhir</span><span><i class="sw" style="background:#d93025"></i>Pelaporan terakhir selesai lebih lambat daripada FID</span></div>${monT.length?`<p class="note">${dbT.length?"Proyek yang belum tercantum pada Database diambil dari":"Sumber:"} PDF MONEVA (FID = Project Start sampai Finish Plan; pelaporan terakhir = Project Start sampai Finish Update).</p>`:""}`;
 }
 
 /* ---------- RENDER: Index ---------- */
+const GLOSS=[
+ {k:"NPV (Net Present Value)",v:"Nilai keekonomian proyek: selisih nilai kini arus kas masuk dan keluar selama umur proyek. Satuan di EWS, ALERT, dan MONEVA: juta USD; di RR dan Trending PG: ribu USD."},
+ {k:"NPV FID / NPV Plan",v:"NPV pada saat Final Investment Decision (keputusan investasi), menjadi acuan awal proyek."},
+ {k:"NPV Update / NPV Actual / NPV Current",v:"NPV hasil perhitungan ulang terbaru (kolom Update pada PDF MONEVA)."},
+ {k:"FID (Final Investment Decision)",v:"Keputusan akhir untuk melaksanakan investasi proyek; nilai pada saat FID menjadi pembanding kinerja."},
+ {k:"Early Warning System (EWS)",v:"Peringatan dini bulanan per proyek dengan empat indikator: NPV, Cost, Schedule, dan Current Risk Rating."},
+ {k:"Earned Value (EV)",v:"Nilai pekerjaan yang sudah diselesaikan. Pada Calculation EWS: EV ACT = Progres Fisik Actual × Capex FID."},
+ {k:"Actual Cost (AC)",v:"Biaya yang sudah dikeluarkan sampai periode laporan. Cost aman bila Actual Cost tidak melebihi Earned Value."},
+ {k:"Progres Fisik",v:"Persentase penyelesaian pekerjaan fisik proyek, rencana (FID) dibandingkan realisasi (ACT)."},
+ {k:"Capex dan Opex",v:"Capex: biaya investasi (pengeboran, fasilitas). Opex: biaya operasi selama produksi."},
+ {k:"Risk Register (RR)",v:"Daftar risk event proyek beserta penilaian dampak, probabilitas, skor kategori, eksposur, dan rencana mitigasi."},
+ {k:"Inherent Risk",v:"Tingkat risiko sebelum dilakukan perlakuan risiko (risk treatment); pada EWS dibaca dari FID."},
+ {k:"Current Risk Rating",v:"Tingkat risiko terkini: jumlah skor enam kategori risiko pada RR dikali bobot sesuai jenis proyek, skala 1 sampai 5."},
+ {k:"IRE (Inherent Risk Exposure)",v:"Eksposur risiko sebelum mitigasi: dampak finansial dikali probabilitas, dalam ribu USD."},
+ {k:"RRE (Residual Risk Exposure)",v:"Eksposur risiko setelah mitigasi, dalam ribu USD."},
+ {k:"Risk Limit / RMT / BTR",v:"Batas toleransi kerugian proyek, sebesar 5% × NPV. Potential Loss yang melewati batas ini perlu perhatian khusus."},
+ {k:"Potential Loss / Gain",v:"Kerugian atau keuntungan NPV yang belum terjadi: NPV Update − NPV FID. Negatif berarti potensi rugi."},
+ {k:"Actual Loss",v:"Nilai kerugian yang sudah benar-benar terjadi akibat suatu Loss Event."},
+ {k:"Loss Event",v:"Kejadian risiko yang menimbulkan kerugian, kerusakan, atau kehilangan kesempatan; terdiri dari Actual Loss dan Potential Loss."},
+ {k:"Key Risk Indicator (KRI)",v:"Indikator yang memberi peringatan dini mengenai paparan risiko sebelum risiko terjadi."},
+ {k:"MONEVA",v:"Monitoring dan Evaluasi proyek. PDF \"Detail Upstream\" berisi progres scope, jadwal, keekonomian, Loss & Gain, Cashflow, dan Sensitivity."},
+ {k:"ALERT",v:"Laporan monitoring kinerja proyek per triwulan: sisa progres fisik, analisis, NPV, Risk Limit, durasi, dan status proyek."},
+ {k:"Payback Period (POT)",v:"Lama waktu sampai arus kas kumulatif kembali ke nol (modal kembali)."},
+ {k:"IRR (Internal Rate of Return)",v:"Tingkat pengembalian yang membuat NPV bernilai nol."},
+ {k:"Sensitivity",v:"Perubahan NPV bila satu parameter (harga, volume, Capex, Opex) bergeser, biasanya 60% sampai 140% dari nilai dasar."}
+];
 function renderIndex(){
   const box=$("indexBox"); if(!box) return;
-  if(!S.db||!S.db.index.length){box.innerHTML=`<p class="empty">Unggah berkas Database Dashboard untuk menampilkan daftar istilah (sheet Index).</p>`;return;}
+  const src=S.db&&S.db.index.length?S.db.index:GLOSS;
   const q=($("idxQ").value||"").toLowerCase();
-  const list=S.db.index.filter(x=>!q||x.k.toLowerCase().includes(q)||x.v.toLowerCase().includes(q));
-  box.innerHTML=list.map(x=>`<details class="idx"><summary>${esc(x.k)}</summary><div>${esc(x.v).replace(/\s•\s/g,"<br>• ")}</div></details>`).join("")||`<p class="empty">Istilah tidak ditemukan.</p>`;
+  const list=src.filter(x=>!q||x.k.toLowerCase().includes(q)||x.v.toLowerCase().includes(q));
+  box.innerHTML=(src===GLOSS?`<p class="note">Daftar istilah bawaan website. Unggah Database Dashboard untuk memakai daftar dari sheet Index milik tim.</p>`:"")+list.map(x=>`<details class="idx"><summary>${esc(x.k)}</summary><div>${esc(x.v).replace(/\s•\s/g,"<br>• ")}</div></details>`).join("")||`<p class="empty">Istilah tidak ditemukan.</p>`;
 }
 function renderZonaSel(){
   const z=zonaList(), sel=$("zonaSel"); sel.innerHTML=`<option value="">Semua zona</option>`+z.map(x=>`<option ${x===S.zona?"selected":""}>${esc(x)}</option>`).join("");
-  sel.disabled=!z.length; sel.title=z.length?"":"Unggah berkas Database Dashboard untuk menggunakan filter zona";
+  sel.disabled=!z.length; sel.title=z.length?"":"Zona dibaca dari PDF MONEVA atau Master Project pada Database Dashboard";
 }
 
 /* ===================== v0.4: RR mapping memory, risk-event options, loss input ===================== */
@@ -2332,7 +2365,7 @@ const ROUTES={
   unggah:["Unggah & Panduan","Unggah berkas laporan serta panduan cara mengisi dan membaca"],
   periksa:["Pemeriksaan Data","Temuan yang perlu diverifikasi sebelum laporan disampaikan"],
   unduh:["Unduh Data","Simpan isian dan hasil perhitungan dalam satu berkas Excel"],
-  istilah:["Daftar Istilah","Istilah dari sheet Index pada Database Dashboard"]};
+  istilah:["Daftar Istilah","Istilah bawaan website, atau dari sheet Index bila Database Dashboard diunggah"]};
 let ROUTE="unggah";
 function hasData(){return monthKeys().length>0||S.rr.length>0||!!S.db||S.lossIn.length>0||S.moneva.length>0;}
 let WANT=null;
@@ -2406,7 +2439,7 @@ function sumHTML(forPage){
 
 /* ---------- penjelasan interaktif (tombol i) ---------- */
 const INFO={
-  upload:`Unggah berkas <b>Calculation EWS</b>, <b>Risk Register (RR)</b> setiap proyek, <b>Database Dashboard</b> (sumber Power BI), dan <b>PDF MONEVA</b> (“Detail Upstream”). Berkas dapat diseret ke area unggah atau dipilih secara manual, beberapa sekaligus. Setiap unggahan tersimpan otomatis sebagai sesi pada daftar Riwayat di sebelah kiri.`,
+  upload:`Cukup unggah <b>Risk Register (RR)</b> dan <b>PDF MONEVA</b> (“Detail Upstream”) setiap proyek untuk periode yang sama. <b>Calculation EWS</b> dan <b>Database Dashboard</b> bersifat opsional: melengkapi Cost &amp; Schedule resmi serta riwayat bulan sebelumnya. Berkas dapat diseret ke area unggah atau dipilih secara manual, beberapa sekaligus. Setiap unggahan tersimpan otomatis sebagai sesi pada daftar Riwayat di sebelah kiri.`,
   auto:`Website membaca PDF MONEVA dan berkas RR, menghitung kolom turunan (Risk Limit, Delta NPV, durasi, dan lainnya), lalu menyusun isian <b>ALERT</b>, <b>EWS</b>, serta sheet <b>Database Dashboard</b> dengan susunan kolom yang sama seperti format tim.<ul><li>Pilih periode dan tanggal acuan.</li><li>Periksa pratinjau; kolom berwarna kuning belum dapat diisi otomatis.</li><li>Klik <b>Unduh Gabungan</b> untuk satu berkas berisi semuanya, atau <b>ALERT</b>, <b>EWS</b>, <b>Dashboard</b> untuk berkas terpisah yang bisa diubah sendiri-sendiri.</li></ul>Berkas hasil unduhan mengikuti berkas dasar tim: sheet <b>ALERT</b> (format ALERT Des26), <b>LOSS GAIN</b> (format LOSS GAIN Sept26), sheet bulanan <b>Calculation EWS</b>, dan sheet <b>Database Dashboard</b> (Akumulasi, Risk Movement, Trending PG, RMT, Risk Mitigation, Master Project), lengkap dengan rumus seperti aslinya.`,
   ews:`Tabel Early Warning per proyek untuk periode terpilih.<ul><li><b>Klik baris proyek</b> untuk membuka halaman proyek (Loss &amp; Gain, grafik MONEVA, mitigasi).</li><li>Klik kotak indikator pada ringkasan di atas untuk menyaring proyek yang memiliki peringatan tersebut.</li><li>Buka “Keterangan warna dan rating” di bawah tabel untuk kriteria warna.</li></ul>`,
   drill:`Penelusuran bertingkat: <b>Zona → Proyek → Kategori Risiko → Risk Event</b>. Klik salah satu elemen untuk masuk ke tingkat berikutnya, lalu gunakan jalur navigasi atau tombol “Naik Satu Tingkat” untuk kembali. Pilihan zona dan proyek di sini turut memfilter seluruh tampilan.`,
