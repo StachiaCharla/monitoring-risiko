@@ -1809,7 +1809,8 @@ function autoRows(per){
   const byP={};
   for(const M of S.moneva){ if(per&&M.period!==per) continue; const p=monTarget(M); (byP[p]=byP[p]||{name:p}).mon=M; }
   for(const r of S.rr){ if(!r.target||(per&&r.month&&r.month!==per)) continue; (byP[r.target]=byP[r.target]||{name:r.target}).rr=r; }
-  const ews=per?rowsOf(per):[];
+  const ews=per&&S.months[per]&&S.months[per].src!=="auto"?rowsOf(per):[]; // baris "auto" (hasil website) bukan sumber EWS
+  const prevInh=n=>{for(const k of monthKeys().filter(m=>!per||m<per).sort().reverse()){const M=S.months[k]; if(!M||M.src==="auto")continue; const x=M.rows.find(r=>sameProj(r.name,n)&&r.inh!=null); if(x)return x.inh;} return null;};
   return Object.values(byP).sort((a,b)=>a.name.localeCompare(b.name)).map((x,i)=>{
     const M=x.mon, R=x.rr, mp=masterOf(x.name), er=ews.find(r=>sameProj(r.name,x.name)), u=AUTO.inp&&AUTO.inp[x.name+"||"+per]||{};
     const o={no:i+1,name:x.name,mon:M,rr:R,mp,ews:er,inp:u,notes:[]};
@@ -1829,7 +1830,7 @@ function autoRows(per){
     if(M&&o.rrNpv!=null&&o.npvUpd!=null&&Math.abs(o.rrNpv-o.npvUpd)>0.05) o.notes.push(`NPV pada RR (${fmt(o.rrNpv)} juta USD) berbeda dengan NPV Update MONEVA (${fmt(o.npvUpd)} juta USD)`);
     if(!M&&R) o.notes.push("NPV Update diambil dari RR (NPV Current ÷ 1.000, dari ribu USD ke juta USD)");
     if(!mp&&S.master.length) o.notes.push("Belum cocok dengan Master Project (Project ID kosong)");
-    o.inh=er?er.inh:null;
+    o.inh=er&&er.inh!=null?er.inh:prevInh(x.name); if(!er&&o.inh!=null) o.notes.push("Risk Rating Inherent diambil dari EWS bulan sebelumnya");
     return o;
   });
 }
@@ -2258,7 +2259,7 @@ function exportAuto(part){
   const todayV=$("autoToday").value||new Date().toISOString().slice(0,10);
   const id=r=>r.mp?r.mp.id:null, K=v=>v==null?null:v*1000;
   // EWS bulanan (format Calculation EWS)
-  const ewl=rows.map((r,i)=>{const e=r.ews||{};return {no:i+1,regional:r.regional,name:r.name,npvF:r.npvFid,npvA:r.npvUpd,evF:e.evF,evA:e.evA,acF:e.acF,acR:e.acR,acA:e.acA,pgF:e.pgF,pgA:e.pgA,inh:r.inh,cur:r.cur!=null?r2(r.cur):null,note1:null,note2:[r.ews?"":"Earned Value, Actual Cost, dan Progres belum tersedia (sel kuning)",...r.notes].filter(Boolean).join("; ")||null};});
+  const ewl=rows.map((r,i)=>{const e=r.ews||{};return {no:i+1,regional:r.regional,name:r.name,npvF:r.npvFid,npvA:r.npvUpd,evF:e.evF!=null?e.evF:(r.mon&&r.mon.econ&&r.mon.econ.capex&&r.mon.econ.capex[0]>0?r.mon.econ.capex[0]:null),evA:e.evA,acF:e.acF,acR:e.acR,acA:e.acA,pgF:e.pgF,pgA:e.pgA,inh:r.inh,cur:r.cur!=null?r2(r.cur):null,note1:null,note2:[r.ews?"":`${r.mon?"Earned Value FID = Capex FID dari PDF MONEVA. ":""}Progres Fisik FID & ACT (SIIP) dan Actual Cost ACT (Monthly Slide) belum tersedia (sel kuning)`,...r.notes].filter(Boolean).join("; ")||null};});
   // Database Dashboard
   const ak=rows.map(r=>{const e=r.ews;const x={npvF:r.npvFid,npvA:r.npvUpd,npvW:r.npvVs,costW:e?e.costW:null,schW:e?e.schW:null,inh:r.inh,name:r.name,regional:r.regional};return akRow(per,x,r.cur!=null?r2(r.cur):null);});
   const rm=rows.filter(r=>r.rr).map(r=>({id:id(r),regional:r.regional,zona:r.zona,name:r.name,month:per,cats:Object.fromEntries(CAT_KEYS.map(([c])=>[c,r.cats[c]?r.cats[c].score:null])),total:r.cur}));
