@@ -221,9 +221,9 @@ details.keyd{margin-top:10px}details.keyd>summary{cursor:pointer;font-size:12.5p
 .sc{flex:1 1 150px;padding:12px 16px;border-right:1px solid #e6ecf5;min-width:140px;display:flex;flex-direction:column;gap:2px;justify-content:center}
 .sc:last-child{border-right:none}
 .sc .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:var(--muted)}
-.sc .v{font-size:20px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1.2;white-space:nowrap}
+.sc .v{font-size:17px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1.2;white-space:nowrap}
 .sc .l,.kpi.mini .l,.kpi.mini .v{white-space:nowrap}.sc.scp{flex:0 0 110px;min-width:110px}.sc.rr2{gap:4px}.sc.rr2 .s{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.sc.ind{flex:2.4 1 340px}.sc.rr2{min-width:235px}
+.sc.ind{flex:2.4 1 340px}.sc.npv{flex:1.3 1 200px;min-width:max-content}.sc.ind{min-width:max-content;column-gap:14px}.sc.npv{padding-right:22px}.sc.npv .v{font-size:16px}.sc .v .arrow{font-size:.8em;margin:0 2px}.sc.rr2{min-width:235px}
 .sc .v small{font-size:12px;font-weight:600;color:var(--muted)}
 .sc .s{font-size:11.5px;color:var(--muted)}
 .sc.ind{flex:2 1 300px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px 10px}
@@ -2623,7 +2623,7 @@ function sumHTML(forPage){
     const r=foc, ec=effCur(r), pv=potOrCalc(r,k);
     const ind=(key,lab,val)=>`<div class="kpi mini"><span class="l">${indCell(r,key,key==="risk"?riskFlag(r):r.f[key],lab+": "+val)} ${lab}</span><span class="v" style="font-size:14.5px">${val}</span></div>`;
     const loss=pv&&pv.pot!=null?pv.pot<0:false;
-    return `<div class="sc"><span class="l">NPV FID → Actual</span><span class="v">${J(r.npvF)} <span class="arrow">→</span> ${J(r.npvA)}</span><span class="s">US$ juta · ${pct(r.npvW)} terhadap FID</span></div>
+    return `<div class="sc npv"><span class="l">NPV FID → Actual</span><span class="v">${J(r.npvF)} <span class="arrow">→</span> ${J(r.npvA)}</span><span class="s">US$ juta · ${pct(r.npvW)} terhadap FID</span></div>
       <div class="sc ind">${ind("npv","NPV",pct(r.npvW))}${ind("cost","Cost",`EV−AC ${J(r.costW)}`)}${ind("sch","Schedule",pct(r.schW))}${ind("risk","Risk",fr(ec.v))}</div>
       <div class="sc"><span class="l">Potential Loss / Gain</span><span class="v" style="color:${pv&&pv.pot!=null?(loss?"#c51e28":"#1a7f37"):"inherit"}">${pv&&pv.pot!=null?fmt(pv.pot/1000):"—"}</span><span class="s">US$ juta · Actual ${pv?fmt((pv.act||0)/1000):"—"} · Limit ${pv&&pv.rmt!=null?fmt(pv.rmt/1000):"—"}</span></div>
       <div class="sc rr2"><span class="l">Risk Rating</span><span class="s">Inherent ${lvChip(r.inh)}</span><span class="s">Current ${lvChip(ec.v)}</span></div>`;
@@ -2642,7 +2642,7 @@ function sumHTML(forPage){
   const tot=Object.values(lv).reduce((a,b)=>a+b,0);
   const bar=tot?`<div class="lvbar" title="${LVORD.map(([kk,t])=>lv[kk]?`${t}: ${lv[kk]}`:"").filter(Boolean).join(" · ")}">${LVORD.slice().reverse().map(([kk])=>lv[kk]?`<i style="width:${lv[kk]/tot*100}%;background:${LVC(kk)}"></i>`:"").join("")}</div>`:"";
   return `<div class="kpi mini sc scp" data-flag="" title="Klik untuk menampilkan semua proyek" style="cursor:pointer"><span class="l">Proyek${S.zona?" · "+esc(S.zona):""}</span><span class="v">${base.length}</span><span class="s">${S.months[k]?monthLabel(k):"—"}</span></div>
-    <div class="sc"><span class="l">Σ NPV FID → Actual</span><span class="v">${nF?fmt(sF):"—"} <span class="arrow">→</span> ${nF?fmt(sA):"—"}</span><span class="s">US$ juta${nF&&sF?" · "+pct((sA-sF)/Math.abs(sF))+" terhadap FID":""}</span></div>
+    <div class="sc npv"><span class="l">Σ NPV FID → Actual</span><span class="v">${nF?fmt(sF):"—"} <span class="arrow">→</span> ${nF?fmt(sA):"—"}</span><span class="s">US$ juta${nF&&sF?" · "+pct((sA-sF)/Math.abs(sF))+" terhadap FID":""}</span></div>
     <div class="sc ind">${flagCell("npv")}${flagCell("cost")}${flagCell("sch")}${flagCell("risk")}</div>
     <div class="sc"><span class="l">Σ Potential Loss / Gain</span><span class="v" style="color:${nPot?(pot<0?"#c51e28":"#1a7f37"):"inherit"}">${nPot?fmt(pot/1000):"—"}</span><span class="s">${nPot?`US$ juta · ${over} proyek melebihi Risk Limit`:"unggah Database Dashboard"}</span></div>
     <div class="sc"><span class="l">Current Risk Rating</span>${bar||`<span class="v">—</span>`}<span class="s">${LVORD.filter(([kk])=>lv[kk]).map(([kk,t])=>`${lv[kk]} ${t}`).join(" · ")}</span></div>`;
