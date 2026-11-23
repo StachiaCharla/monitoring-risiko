@@ -324,6 +324,7 @@ body:not(.authed) .app{display:none}
 .lg-field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(2,85,193,.15);background:#fff}
 .lg-eyeb{position:absolute;right:6px;border:none;background:none;padding:6px;border-radius:8px;cursor:pointer;color:#8a96ad;display:flex}.lg-eyeb svg{width:18px;height:18px}.lg-eyeb.on,.lg-eyeb:hover{color:var(--accent)}
 .lg-rem{display:flex;align-items:center;gap:8px;margin:14px 0 4px;font-size:13px;color:var(--muted);cursor:pointer}
+.lg-caps{margin-top:8px;font-size:12.5px;color:#9a6200;background:#fff6e0;border:1px solid #f5d48a;border-radius:8px;padding:5px 9px}.lg-caps.hidden{display:none}.lg-ver{display:block;margin-top:2px;color:#a3adbf}.lg-foot{flex-wrap:wrap}
 .lg-err{min-height:20px;color:#c51e28;font-size:13px;margin:6px 0 4px}
 .lg-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:11px;padding:12px;font:inherit;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(90deg,var(--navy),var(--accent));cursor:pointer;box-shadow:0 6px 16px rgba(2,85,193,.28)}
 .lg-btn svg{width:18px;height:18px;transition:transform .15s}.lg-btn:hover svg{transform:translateX(3px)}.lg-btn:disabled{opacity:.7;cursor:wait}
@@ -2686,12 +2687,13 @@ function showLogin(err){
     <label class="lg-lbl" for="lgUser">Username</label><div class="lg-field">${LG_IC.user}<input id="lgUser" name="username" autocomplete="username" placeholder="Username" autocapitalize="none" spellcheck="false" required></div>
     <label class="lg-lbl" for="lgPw">Password</label><div class="lg-field">${LG_IC.lock}<input id="lgPw" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required><button type="button" class="lg-eyeb" id="lgEye" title="Tampilkan password" aria-label="Tampilkan password">${LG_IC.eye}</button></div>
     <label class="lg-rem"><input type="checkbox" id="lgRemember"> Ingat saya di perangkat ini</label>
-    <div class="lg-err" id="lgErr" role="alert">${esc(err||"")}</div>
+    <div class="lg-caps hidden" id="lgCaps">⚠ Caps Lock sedang aktif</div><div class="lg-err" id="lgErr" role="alert">${esc(err||"")}</div>
     <button class="lg-btn" type="submit" id="lgBtn"><span>Masuk</span>${LG_IC.arrow}</button>
     ${MR_USERS.length?"":`<div class="lg-err">Daftar akun belum tersedia.</div>`}
-    <div class="lg-foot"><span class="lg-dots"><i></i><i></i><i></i></span> Penggunaan internal · data laporan hanya diolah di peramban ini</div></form></div>`;
+    <div class="lg-foot"><span class="lg-dots"><i></i><i></i><i></i></span> Penggunaan internal · data laporan hanya diolah di peramban ini<span class="lg-ver">Versi akun: 23 Nov 2026 (2)</span></div></form></div>`;
   el.classList.remove("hidden");
   $("lgEye").onclick=()=>{ const p=$("lgPw"); p.type=p.type==="password"?"text":"password"; $("lgEye").classList.toggle("on",p.type==="text"); p.focus(); };
+  const capsChk=e=>{ if(e.getModifierState) $("lgCaps").classList.toggle("hidden",!e.getModifierState("CapsLock")); }; $("lgPw").addEventListener("keyup",capsChk); $("lgPw").addEventListener("keydown",capsChk); $("lgUser").addEventListener("keyup",capsChk);
   $("loginForm").onsubmit=async e=>{ e.preventDefault(); const er=$("lgErr"), btn=$("lgBtn");
     const u=$("lgUser").value.trim(), p=$("lgPw").value;
     if(!u||!p){ er.textContent="Isi username dan password terlebih dahulu."; return; }
