@@ -1427,7 +1427,7 @@ const GLOSS=[
  {k:"IRE (Inherent Risk Exposure)",v:"Eksposur risiko sebelum mitigasi: dampak finansial dikali probabilitas, dalam ribu USD."},
  {k:"RRE (Residual Risk Exposure)",v:"Eksposur risiko setelah mitigasi, dalam ribu USD."},
  {k:"Risk Limit / BTR (Batas Toleransi Risiko)",v:"Nilai batas toleransi risiko yang dimiliki setiap risk owner. Untuk proyek prioritas dihitung 5% × NPV; Potential Loss yang melewati batas ini perlu perhatian khusus."},
- {k:"RMT",v:"Pada sheet Trending PG milik tim, kolom RMT FID dan RMT Current berisi Risk Limit proyek (5% × NPV). Pada TKI Penyusunan dan Monitoring All Risk & Top Risk, RMT berarti Risk Materiality Threshold, yaitu ambang batas skala dampak yang ditetapkan 50% dari Risk Limit."},
+ {k:"RMT",v:"Di Database Dashboard tim (sheet Trending PG dan RMT), RMT berarti Risk Limit proyek = 5% × NPV (dikonfirmasi tim). Jangan tertukar dengan Risk Materiality Threshold di TKI All Risk & Top Risk, yang dipakai untuk risiko ongoing business."},
  {k:"SIIP (Sistem Informasi Investasi Pertamina)",v:"Aplikasi portal monitoring proyek investasi Pertamina yang diisi setiap bulan. Pada Calculation EWS menjadi sumber Progres Fisik (FID dan ACT) serta Actual Cost FID dan RKAP."},
  {k:"ERMS / Sistem Informasi Manajemen Risiko",v:"Aplikasi untuk mencatat Risk Register, realisasi Risk Treatment, Loss Event, dan Risk Tracking."},
  {k:"Potential Loss / Gain",v:"Kerugian atau keuntungan NPV yang belum terjadi: NPV Update − NPV FID. Negatif berarti potensi rugi."},
@@ -1893,7 +1893,8 @@ function autoPeriods(){const s=new Set();S.moneva.forEach(m=>m.period&&s.add(m.p
 function autoRows(per){
   const today=$("autoToday")&&$("autoToday").value?$("autoToday").value.slice(0,7):new Date().toISOString().slice(0,7);
   const byP={};
-  for(const M of S.moneva){ if(per&&M.period!==per) continue; const p=monTarget(M); (byP[p]=byP[p]||{name:p}).mon=M; }
+  // MONEVA terbit per triwulan: untuk bulan di antaranya dipakai PDF terbaru yang periodenya tidak melewati bulan laporan (seperti EWS tim)
+  for(const M of S.moneva){ if(per&&M.period&&M.period>per) continue; const p=monTarget(M); const cur=byP[p]&&byP[p].mon; if(cur&&(cur.period||"")>=(M.period||"")) continue; (byP[p]=byP[p]||{name:p}).mon=M; }
   for(const r of S.rr){ if(!r.target||(per&&r.month&&r.month!==per)) continue; (byP[r.target]=byP[r.target]||{name:r.target}).rr=r; }
   const ews=per&&S.months[per]&&S.months[per].src!=="auto"?rowsOf(per):[]; // baris "auto" (hasil website) bukan sumber EWS
   const prevInh=n=>{for(const k of monthKeys().filter(m=>!per||m<per).sort().reverse()){const M=S.months[k]; if(!M||M.src==="auto")continue; const x=M.rows.find(r=>sameProj(r.name,n)&&r.inh!=null); if(x)return x.inh;} return null;};
@@ -1910,7 +1911,7 @@ function autoRows(per){
       o.durPlan=mDiff(M.start,M.finishPlan);o.durAct=mDiff(M.start,M.finishUpd);o.deltaFin=o.durPlan!=null&&o.durAct!=null?o.durPlan-o.durAct:null;o.prog=mDiff(M.start,today);o.pct=o.prog!=null&&o.durAct?o.prog/o.durAct:null;
       const irr=pickUpd(M.econ.irr),disc=pickUpd(M.econ.disc),pot=pickUpd(M.econ.pot);o.irr=irr;o.disc=disc;o.pot=pot;
       [["IRR",irr],["Disc. rate",disc],["Disc. POT",pot]].forEach(([l,v])=>{if(v.u&&v.u>1)o.notes.push(`${l} Update 1 kosong/0; memakai Update ${v.u}`);});
-      M.warn.forEach(w=>o.notes.push(w));}
+      M.warn.forEach(w=>o.notes.push(w)); if(per&&M.period&&M.period!==per) o.notes.push(`Data MONEVA dari laporan ${monthLabel(M.period)} (MONEVA terbaru sebelum periode ini; MONEVA diperbarui per triwulan)`);}
     else o.notes.push("Tidak ada PDF MONEVA untuk periode ini; kolom kinerja proyek perlu diisi manual");
     if(R){o.cur=R.total;o.cats=R.cats;}else o.notes.push("Tidak ada berkas RR untuk periode ini; Current Risk Rating dan Risk Movement belum terisi");
     if(M&&o.rrNpv!=null&&o.npvUpd!=null&&Math.abs(o.rrNpv-o.npvUpd)>0.05) o.notes.push(`NPV pada RR (${fmt(o.rrNpv)} juta USD) berbeda dengan NPV Update MONEVA (${fmt(o.npvUpd)} juta USD)`);
