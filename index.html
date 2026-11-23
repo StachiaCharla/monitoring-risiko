@@ -732,7 +732,12 @@ async function addFiles(list,opt={}){
     const entry={name:file.name,kind:"unk",info:""};
     try{
       if(/\.pdf$/i.test(file.name)){ const buf=await file.arrayBuffer(), keep=buf.slice(0);
-        const M=parseMoneva(await PDFX.text(buf),file.name);
+        const txt=await PDFX.text(buf);
+        if(clean(txt).replace(/\s+/g,"").length<80){
+          const u8=new Uint8Array(keep), head=new TextDecoder("latin1").decode(u8.slice(Math.max(0,u8.length-200000)));
+          const msPrint=/Microsoft:\s*Print To PDF/i.test(head);
+          throw new Error(`PDF ini tidak berisi teks yang bisa dibaca${msPrint?' (dibuat dengan printer "Microsoft Print to PDF", yang mengubah tulisan menjadi gambar)':" (isinya berupa gambar/scan)"}. Cetak ulang dari web MONEVA: Ctrl + P → pada Destination/Tujuan pilih "Save as PDF" atau "Simpan sebagai PDF", bukan "Microsoft Print to PDF"`);}
+        const M=parseMoneva(txt,file.name);
         if(!M.judul||M.npvFid==null) throw new Error("PDF belum dikenali sebagai laporan MONEVA (Detail Upstream)");
         S.moneva=S.moneva.filter(x=>x.file!==file.name); S.moneva.push(M); entry.kind="moneva"; entry.kinds=["moneva"];
         entry.info=`MONEVA · ${M.judul} · ${M.periodText||"periode tidak terbaca"} · NPV FID ${fmt(M.npvFid)} → Update ${fmt(M.npvUpd)}${M.warn.length?` · ${M.warn.length} catatan`:""}`;
