@@ -351,7 +351,7 @@ table.need td:first-child{text-align:left}table.need .y{color:#1a7f37;font-weigh
       <strong>Seret berkas Excel (.xlsx) atau PDF MONEVA ke area ini</strong><br>
       <span class="note">atau klik untuk memilih berkas · dapat mengunggah beberapa berkas sekaligus</span>
       <div class="ftypes"><span class="tag">Calculation EWS</span><span class="tag rr">Risk Register (RR)</span><span class="tag">Database Dashboard</span><span class="tag mp">PDF MONEVA</span><span class="tag unk">Hasil Unduh Data</span></div>
-      <input id="fileInput" type="file" accept=".xlsx,.xlsm,.pdf" multiple class="hidden">
+      <input id="fileInput" type="file" accept=".xlsx,.xlsm,.pdf,.pptx" multiple class="hidden">
     </div>
     <div class="row" style="margin-top:12px">
       <button class="btn" id="demoBtn">Muat Data Contoh (Dummy)</button>
@@ -673,6 +673,50 @@ async function parseRR(wb,fileName){
   return {file:fileName,rrName:proj,cats,total:sum,fileTotal,issues,month:mo?mo.key:null,target:null};
 }
 
+/* ---------- Monthly Slide (PPT "Monitoring Project Risk Tahap Eksekusi") ---------- */
+// Membaca Progress Fisik (Plan/Actual) dan Progress Biaya (Plan/Actual, MMUSD) per proyek: sumber kolom Progres Fisik & Actual Cost di Calculation EWS.
+async function parseSlides(buf,fileName){
+  const z=await unzip(buf), P=new DOMParser(), out={file:fileName,month:null,items:[]};
+  const slideNames=[]; for(let i=1;i<=400;i++){const n=`ppt/slides/slide${i}.xml`; if(z.has(n)) slideNames.push([i,n]);}
+  if(!slideNames.length) throw new Error("berkas PowerPoint tidak berisi slide");
+  const firstNum=t=>{const m=String(t||"").replace(/\s+/g," ").match(/-?\d+(?:[.,]\d+)?/); return m?parseFloat(m[0].replace(",",".")):null;};
+  const monthOf=t=>{const m=String(t||"").match(/status[\s_:-]*(?:bulan[\s_]*)?([A-Za-z]{3,})[\s_.-]*(\d{4})/i); if(!m) return null; const mo=BULAN[m[1].toLowerCase().slice(0,3)]; return mo?`${m[2]}-${String(mo).padStart(2,"0")}`:null;};
+  out.month=monthOf(fileName.replace(/^[0-9a-f]{8}-/i,""));
+  for(const [no,n] of slideNames){
+    const x=P.parseFromString(await z.read(n),"application/xml");
+    const paras=tags(x,"sp").flatMap(sp=>tags(sp,"p")).map(p=>tags(p,"t").map(t=>t.textContent).join("").replace(/\s+/g," ").trim()).filter(Boolean);
+    if(!out.month){for(const t of paras){const k=monthOf(t); if(k){out.month=k;break;}}}
+    const rowsT=tags(x,"tr").map(tr=>tags(tr,"tc").map(tc=>tags(tc,"t").map(t=>t.textContent).join("").replace(/\s+/g," ").trim()));
+    const fis=rowsT.find(r=>/^progress\s+fisik/i.test(r[0]||"")), bia=rowsT.find(r=>/^progress\s+biaya/i.test(r[0]||"")), cap=rowsT.find(r=>/^capex\b/i.test(r[0]||""));
+    if(!fis&&!bia) continue;
+    let title=paras.filter(t=>/^proyek\b/i.test(t)&&t.length<=140&&!/^proyek\s+(ini|tersebut|akan|telah|sudah|masih)\b/i.test(t)).sort((a,b)=>a.length-b.length)[0]||"";
+    title=title.replace(/^proyek\s+/i,"").replace(/[-–]\s*status\b.*$/i,"").replace(/\s+regional\s+\d.*$/i,"").trim();
+    if(!title) continue;
+    if(title===title.toUpperCase()) title=title.split(" ").map(w=>w.length<=3||/\d/.test(w)?w:w[0]+w.slice(1).toLowerCase()).join(" ");
+    const it={title,slide:no,pgF:fis?firstNum(fis[1]):null,pgA:fis?firstNum(fis[2]):null,acF:bia?firstNum(bia[1]):null,acA:bia?firstNum(bia[2]):null,capF:cap?firstNum(cap[1]):null,itd:fis&&/itd/i.test(fis[0])?fis[0]:null};
+    if(!out.items.some(o=>norm(o.title)===norm(it.title))) out.items.push(it);
+  }
+  return out;
+}
+function slideFor(name,per){
+  const cands=[...new Set([name,...allProjects(),...S.master.map(m=>m.name),...S.moneva.map(monTarget),...S.rr.map(r=>r.target)].filter(Boolean))];
+  let best=null,bs=0;
+  for(const sd of S.slides){ if(per&&sd.month&&sd.month!==per) continue;
+    for(const it of sd.items){ const v=sim(it.title,name); if(v<0.5||v<=bs) continue;
+      // proyek lain yang lebih mirip dengan judul slide ini? lewati
+      if(cands.some(c=>c!==name&&!sameProj(c,name)&&sim(it.title,c)>v)) continue;
+      best={...it,file:sd.file,month:sd.month}; bs=v; } }
+  return best;
+}
+/* Nilai Earned Value / Actual Cost / Progres untuk satu baris Isi Otomatis: EWS tim bila ada, selain itu Monthly Slide */
+function evFrom(er,sl,M){
+  if(er&&(er.pgA!=null||er.acA!=null)) return {src:"ews",evF:er.evF,evA:er.evA,acF:er.acF,acR:er.acR,acA:er.acA,pgF:er.pgF,pgA:er.pgA,costW:er.costW,schW:er.schW};
+  const capF=M&&M.econ&&M.econ.capex&&M.econ.capex[0]>0?M.econ.capex[0]:(sl&&sl.capF>0?sl.capF:(er&&er.evF!=null?er.evF:null));
+  if(!sl) return {src:null,evF:capF,evA:null,acF:null,acR:null,acA:null,pgF:null,pgA:null,costW:null,schW:null};
+  const evA=capF!=null&&sl.pgA!=null?sl.pgA*capF/100:null;
+  return {src:"slide",file:sl.file,evF:capF,evA,acF:sl.acF,acR:null,acA:sl.acA,pgF:sl.pgF,pgA:sl.pgA,costW:evA!=null&&sl.acA!=null?evA-sl.acA:null,schW:sl.pgF?(sl.pgA-sl.pgF)/sl.pgF:null};
+}
+
 /* ---------- Master Project ---------- */
 async function parseMaster(wb){
   const m=await wb.cells(wb.sheet("Master Project")); const h=findCell(m,v=>v==="project id",10); if(!h) return [];
@@ -681,7 +725,7 @@ async function parseMaster(wb){
 }
 
 /* ===================== STATE ===================== */
-const S={files:[],months:{},rr:[],master:[],demo:false,pp:{},db:null,zona:"",lossIn:[],focus:null,flag:null,moneva:[]};
+const S={files:[],months:{},rr:[],master:[],demo:false,pp:{},db:null,zona:"",lossIn:[],focus:null,flag:null,moneva:[],slides:[]};
 async function addFiles(list,opt={}){
   $("busy").classList.remove("hidden"); const saved=[];
   for(const file of list){
@@ -693,7 +737,12 @@ async function addFiles(list,opt={}){
         S.moneva=S.moneva.filter(x=>x.file!==file.name); S.moneva.push(M); entry.kind="moneva"; entry.kinds=["moneva"];
         entry.info=`MONEVA · ${M.judul} · ${M.periodText||"periode tidak terbaca"} · NPV FID ${fmt(M.npvFid)} → Update ${fmt(M.npvUpd)}${M.warn.length?` · ${M.warn.length} catatan`:""}`;
         saved.push({name:file.name,buf:keep,size:keep.byteLength}); S.files=S.files.filter(f=>f.name!==file.name); S.files.push(entry); continue; }
-      if(!/\.(xlsx|xlsm)$/i.test(file.name)) throw new Error("hanya berkas .xlsx/.xlsm (Excel) dan .pdf (MONEVA) yang didukung");
+      if(/\.pptx$/i.test(file.name)){ const buf=await file.arrayBuffer(), keep=buf.slice(0); const sd=await parseSlides(buf,file.name);
+        if(!sd.items.length) throw new Error("PowerPoint ini bukan format Monthly Slide \"Monitoring Project Risk Tahap Eksekusi\" (tidak ada tabel Progress Fisik / Progress Biaya per proyek), sehingga tidak dipakai");
+        S.slides=S.slides.filter(x=>x.file!==file.name); S.slides.push(sd); entry.kind="slide"; entry.kinds=["slide"];
+        entry.info=`Monthly Slide · ${sd.month?monthLabel(sd.month):"periode tidak terbaca"} · Progres Fisik & Actual Cost untuk ${sd.items.length} proyek`;
+        saved.push({name:file.name,buf:keep,size:keep.byteLength}); S.files=S.files.filter(f=>f.name!==file.name); S.files.push(entry); continue; }
+      if(!/\.(xlsx|xlsm)$/i.test(file.name)) throw new Error("hanya berkas .xlsx/.xlsm (Excel), .pdf (MONEVA), dan .pptx (Monthly Slide) yang didukung");
       const buf=await file.arrayBuffer(), keep=buf.slice(0); const wb=await readWorkbook(buf);
       const names=wb.sheets.map(s=>s.name.trim().toLowerCase()); const kinds=[];
       if(names.includes("score rr")){const rr=await parseRR(wb,file.name); Object.assign(rr,await parseRRDetail(wb)); S.rr=S.rr.filter(x=>x.file!==file.name); S.rr.push(rr); kinds.push("rr"); entry.info=`RR · ${rr.rrName||"tanpa nama proyek"} · skor ${fr(rr.total)} · ${rr.events.length} risk event · ${rr.mitig.length} mitigasi`;}
@@ -718,7 +767,7 @@ async function addFiles(list,opt={}){
 }
 function autoMapRR(){
   const real=new Set();for(const k of monthKeys()) if(S.months[k].src!=="auto") for(const r of S.months[k].rows) real.add(r.name);
-  const names=[...new Set([...real,...S.master.map(m=>m.name),...S.moneva.map(monTarget)].filter(Boolean))], mem=mapLoad();
+  const names=[...new Set([...real,...S.master.map(m=>m.name),...S.moneva.map(monTarget),...S.slides.flatMap(sd=>sd.items.map(i=>i.title))].filter(Boolean))], mem=mapLoad();
   for(const rr of S.rr){
     if(!rr.month){const lm=monthKeys().filter(k=>S.months[k].src!=="auto"); rr.month=lm[lm.length-1]||null;}
     if(rr.target&&names.includes(rr.target)&&rr.how) continue;
@@ -807,7 +856,7 @@ function tri(on,tip){
             :`<svg width="26" height="22" viewBox="0 0 26 22" role="img" aria-label="Aman"><title>${esc(tip)}</title><path d="M13 2 L24.5 20 H1.5 Z" fill="none" stroke="#333" stroke-width="1"/></svg>`;
 }
 function renderFiles(){
-  $("fileList").innerHTML=S.files.map(f=>`<div class="file">${(f.kinds&&f.kinds.length?f.kinds:["unk"]).map(k=>`<span class="tag ${k==="rr"?"rr":k==="mp"||k==="pp"||k==="db"||k==="moneva"?"mp":k==="unk"?"unk":""}">${{ews:"EWS",rr:"RR",mp:"MASTER",pp:"PENILAIAN",db:"DATABASE",moneva:"MONEVA",unk:"?"}[k]}</span>`).join("")}<span><b>${esc(f.name)}</b><br><span class="note">${esc(f.info)}</span></span></div>`).join("");
+  $("fileList").innerHTML=S.files.map(f=>`<div class="file">${(f.kinds&&f.kinds.length?f.kinds:["unk"]).map(k=>`<span class="tag ${k==="rr"?"rr":k==="mp"||k==="pp"||k==="db"||k==="moneva"||k==="slide"?"mp":k==="unk"?"unk":""}">${{ews:"EWS",rr:"RR",mp:"MASTER",pp:"PENILAIAN",db:"DATABASE",moneva:"MONEVA",slide:"SLIDE",unk:"?"}[k]}</span>`).join("")}<span><b>${esc(f.name)}</b><br><span class="note">${esc(f.info)}</span></span></div>`).join("");
 }
 function renderMonthSel(){
   const ks=monthKeys(); const cur=$("monthSel").value;
@@ -910,7 +959,8 @@ function synthAuto(){
   for(const k of [...pers].sort()){ if(S.months[k]) continue;
     const rows=autoRows(k).map((a,i)=>{const row={month:k,sheet:"Isi Otomatis",file:"RR + PDF MONEVA",no:i+1,regional:a.regional,name:a.name,issues:[],src:"auto",
       npvF:a.npvFid,npvA:a.npvUpd,npvW:a.npvVs,evF:null,evA:null,acF:null,acR:null,acA:null,costW:null,pgF:null,pgA:null,schW:null,inh:a.inh!=null?a.inh:null,cur:a.cur!=null?r2(a.cur):null};
-      const e=estMon(a.mon,k); if(e){row.est={}; if(e.costW!=null){row.costW=e.costW;row.est.cost=e.costTip;} if(e.schW!=null){row.schW=e.schW;row.est.sch=e.schTip;}}
+      if(a.ev&&a.ev.src==="slide"){Object.assign(row,{evF:a.ev.evF,evA:a.ev.evA,acF:a.ev.acF,acA:a.ev.acA,pgF:a.ev.pgF,pgA:a.ev.pgA,costW:a.ev.costW,schW:a.ev.schW});}
+      const e=row.pgA!=null||row.acA!=null?null:estMon(a.mon,k); if(e){row.est={}; if(e.costW!=null){row.costW=e.costW;row.est.cost=e.costTip;} if(e.schW!=null){row.schW=e.schW;row.est.sch=e.schTip;}}
       row.f=ewsFlags(row); return row;});
     if(rows.length) S.months[k]={key:k,sheet:"Isi Otomatis",rows,file:"Isi Otomatis (RR + PDF MONEVA)",src:"auto"};}
 }
@@ -1598,7 +1648,7 @@ async function histSave(added){
     await hPut(s); S.sessionId=s.id; histMsg(""); await renderHist();
   }catch(e){ const q=e&&(e.name==="QuotaExceededError"||/quota/i.test(e.message||"")); histMsg(q?"Riwayat tidak dapat disimpan karena kapasitas penyimpanan peramban penuh. Hapus beberapa sesi lama, lalu unggah kembali.":"Riwayat tidak dapat disimpan: "+(e&&e.message||e)); renderHistResume(); }
 }
-function resetSession(){ S.page=false; S.moneva=[]; S.files=[];S.months={};S.rr=[];S.master=[];S.db=null;S.zona="";S.focus=null;S.flag=null;S.drillCat=null;S.demo=false;S.sessionId=null; if($("zonaSel")) $("zonaSel").value=""; }
+function resetSession(){ S.page=false; S.moneva=[]; S.slides=[]; S.files=[];S.months={};S.rr=[];S.master=[];S.db=null;S.zona="";S.focus=null;S.flag=null;S.drillCat=null;S.demo=false;S.sessionId=null; if($("zonaSel")) $("zonaSel").value=""; }
 function newSession(){ resetSession(); renderAll(); renderFilterBar(); renderHist(); closeHist(); go("unggah"); }
 async function histOpen(id){
   try{ const s=await hGet(id); if(!s){histMsg("Sesi tidak ditemukan.");await renderHist();return;}
@@ -1867,6 +1917,8 @@ function autoRows(per){
     if(!M&&R) o.notes.push("NPV Update diambil dari RR (NPV Current ÷ 1.000, dari ribu USD ke juta USD)");
     if(!mp&&S.master.length) o.notes.push("Belum cocok dengan Master Project (Project ID kosong)");
     o.inh=er&&er.inh!=null?er.inh:prevInh(x.name); if(!er&&o.inh!=null) o.notes.push("Risk Rating Inherent diambil dari EWS bulan sebelumnya");
+    o.slide=er?null:slideFor(x.name,per); o.ev=evFrom(er,o.slide,M);
+    if(o.ev.src==="slide") o.notes.push(`Progres Fisik dan Actual Cost dari Monthly Slide (slide ${o.slide.slide}${o.slide.itd?", "+o.slide.itd:""})`);
     return o;
   });
 }
@@ -2295,9 +2347,9 @@ function exportAuto(part){
   const todayV=$("autoToday").value||new Date().toISOString().slice(0,10);
   const id=r=>r.mp?r.mp.id:null, K=v=>v==null?null:v*1000;
   // EWS bulanan (format Calculation EWS)
-  const ewl=rows.map((r,i)=>{const e=r.ews||{};return {no:i+1,regional:r.regional,name:r.name,npvF:r.npvFid,npvA:r.npvUpd,evF:e.evF!=null?e.evF:(r.mon&&r.mon.econ&&r.mon.econ.capex&&r.mon.econ.capex[0]>0?r.mon.econ.capex[0]:null),evA:e.evA,acF:e.acF,acR:e.acR,acA:e.acA,pgF:e.pgF,pgA:e.pgA,inh:r.inh,cur:r.cur!=null?r2(r.cur):null,note1:null,note2:[r.ews?"":`${r.mon?"Earned Value FID = Capex FID dari PDF MONEVA. ":""}Progres Fisik FID & ACT (SIIP) dan Actual Cost ACT (Monthly Slide) belum tersedia (sel kuning)`,...r.notes].filter(Boolean).join("; ")||null};});
+  const ewl=rows.map((r,i)=>{const e=r.ev||{};return {no:i+1,regional:r.regional,name:r.name,npvF:r.npvFid,npvA:r.npvUpd,evF:e.evF,evA:e.evA,acF:e.acF,acR:e.acR,acA:e.acA,pgF:e.pgF,pgA:e.pgA,inh:r.inh,cur:r.cur!=null?r2(r.cur):null,note1:null,note2:[r.ews?"":`${r.mon?"Earned Value FID = Capex FID dari PDF MONEVA. ":""}${e.src==="slide"?"Progres Fisik dan Actual Cost dari Monthly Slide; Actual Cost RKAP (SIIP) belum tersedia (sel kuning)":"Progres Fisik (SIIP) dan Actual Cost (Monthly Slide) belum tersedia (sel kuning); unggah Monthly Slide untuk mengisinya"}`,...r.notes].filter(Boolean).join("; ")||null};});
   // Database Dashboard
-  const ak=rows.map(r=>{const e=r.ews;const x={npvF:r.npvFid,npvA:r.npvUpd,npvW:r.npvVs,costW:e?e.costW:null,schW:e?e.schW:null,inh:r.inh,name:r.name,regional:r.regional};return akRow(per,x,r.cur!=null?r2(r.cur):null);});
+  const ak=rows.map(r=>{const e=r.ews;const x={npvF:r.npvFid,npvA:r.npvUpd,npvW:r.npvVs,costW:r.ev?r.ev.costW:(e?e.costW:null),schW:r.ev?r.ev.schW:(e?e.schW:null),inh:r.inh,name:r.name,regional:r.regional};return akRow(per,x,r.cur!=null?r2(r.cur):null);});
   const rm=rows.filter(r=>r.rr).map(r=>({id:id(r),regional:r.regional,zona:r.zona,name:r.name,month:per,cats:Object.fromEntries(CAT_KEYS.map(([c])=>[c,r.cats[c]?r.cats[c].score:null])),total:r.cur}));
   const tp=rows.map(r=>{const R=r.rr,t=r.mon?lgTotals(lgData(r,per)):null;return {id:id(r),regional:r.regional,zona:r.zona,name:r.name,month:per,npvF:K(r.npvFid),ireF:null,rreF:null,rmtF:K(r.riskLimit),pot:t?K(t.pl+t.pg):(r.npvFid!=null&&r.npvUpd!=null?K(r.npvUpd-r.npvFid):null),act:t?K(t.al+t.ag):null,npvC:R&&R.npv!=null?R.npv:K(r.npvUpd),reC:R?R.ire:null,rreP:R?R.rre:null,rmtC:R?R.btr:null};});
   const rmt=rows.map(r=>{const R=r.rr;return {id:id(r),regional:r.regional,zona:r.zona,name:r.name,month:per,rmtP:K(r.riskLimit),rreP:null,creP:null,rmtC:R?R.btr:null,rreC:R?R.rre:null,creC:null};});
@@ -2442,7 +2494,7 @@ function sumHTML(forPage){
 
 /* ---------- penjelasan interaktif (tombol i) ---------- */
 const INFO={
-  upload:`Cukup unggah <b>Risk Register (RR)</b> dan <b>PDF MONEVA</b> (“Detail Upstream”) setiap proyek untuk periode yang sama. <b>Calculation EWS</b> dan <b>Database Dashboard</b> bersifat opsional: melengkapi Cost &amp; Schedule resmi serta riwayat bulan sebelumnya. Berkas dapat diseret ke area unggah atau dipilih secara manual, beberapa sekaligus. Setiap unggahan tersimpan otomatis sebagai sesi pada daftar Riwayat di sebelah kiri.`,
+  upload:`Cukup unggah <b>Risk Register (RR)</b> dan <b>PDF MONEVA</b> (“Detail Upstream”) setiap proyek untuk periode yang sama. Opsional: <b>Monthly Slide</b> (.pptx “Monitoring Project Risk Tahap Eksekusi”) untuk Progres Fisik &amp; Actual Cost sehingga Cost &amp; Schedule terisi angka resmi, serta <b>Calculation EWS</b> dan <b>Database Dashboard</b> untuk riwayat bulan sebelumnya. Berkas dapat diseret ke area unggah atau dipilih secara manual, beberapa sekaligus. Setiap unggahan tersimpan otomatis sebagai sesi pada daftar Riwayat di sebelah kiri.`,
   auto:`Website membaca PDF MONEVA dan berkas RR, menghitung kolom turunan (Risk Limit, Delta NPV, durasi, dan lainnya), lalu menyusun isian <b>ALERT</b>, <b>EWS</b>, serta sheet <b>Database Dashboard</b> dengan susunan kolom yang sama seperti format tim.<ul><li>Pilih periode dan tanggal acuan.</li><li>Periksa pratinjau; kolom berwarna kuning belum dapat diisi otomatis.</li><li>Klik <b>Unduh Gabungan</b> untuk satu berkas berisi semuanya, atau <b>ALERT</b>, <b>EWS</b>, <b>Dashboard</b> untuk berkas terpisah yang bisa diubah sendiri-sendiri.</li></ul>Berkas hasil unduhan mengikuti berkas dasar tim: sheet <b>ALERT</b> (format ALERT Des26), <b>LOSS GAIN</b> (format LOSS GAIN Sept26), sheet bulanan <b>Calculation EWS</b>, dan sheet <b>Database Dashboard</b> (Akumulasi, Risk Movement, Trending PG, RMT, Risk Mitigation, Master Project), lengkap dengan rumus seperti aslinya.`,
   ews:`Tabel Early Warning per proyek untuk periode terpilih.<ul><li><b>Klik baris proyek</b> untuk membuka halaman proyek (Loss &amp; Gain, grafik MONEVA, mitigasi).</li><li>Klik kotak indikator pada ringkasan di atas untuk menyaring proyek yang memiliki peringatan tersebut.</li><li>Buka “Keterangan warna dan rating” di bawah tabel untuk kriteria warna.</li></ul>`,
   drill:`Penelusuran bertingkat: <b>Zona → Proyek → Kategori Risiko → Risk Event</b>. Klik salah satu elemen untuk masuk ke tingkat berikutnya, lalu gunakan jalur navigasi atau tombol “Naik Satu Tingkat” untuk kembali. Pilihan zona dan proyek di sini turut memfilter seluruh tampilan.`,
