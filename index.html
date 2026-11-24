@@ -344,6 +344,64 @@ body.r-viewer input[data-lg]::placeholder{color:transparent}
 .ulogout{border:1px solid rgba(255,255,255,.25);background:none;color:#dbe6fb;border-radius:8px;padding:4px 9px;font:inherit;font-size:12px;cursor:pointer}.ulogout:hover{background:rgba(255,255,255,.12);color:#fff}
 #nav .hidden{display:none!important}
 body.r-viewer #ppCard,body.r-viewer #lossFormBox,body.r-viewer .rmOnly{display:none!important}
+/* ===== ORM ===== */
+.stream{display:flex;gap:4px;margin:0 14px 10px;padding:4px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+.stream button{flex:1;border:none;background:none;color:#c9d6ee;font:inherit;font-size:12px;font-weight:700;padding:7px 4px;border-radius:7px;cursor:pointer;line-height:1.2}
+.stream button small{display:block;font-weight:500;font-size:10.5px;opacity:.8}
+.stream button.on{background:#fff;color:var(--navy)}
+body.s-orm #nav [data-stream=prm],body.s-prm #nav [data-stream=orm],body.s-orm #histNew,body.s-orm #histList,body.s-orm #histMsg,body.s-orm .side>.ng{display:none!important}
+body[data-route=orm] .gf,body[data-route=ormdata] .gf,body[data-route=orm] .fbar,body[data-route=ormdata] .fbar{display:none!important}
+body[data-route=orm] section[data-pg~=orm],body[data-route=ormdata] section[data-pg~=ormdata]{display:block}
+#ormDashCard{background:none;border:none;padding:0}
+.obanner{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 22px;border-radius:14px;color:#fff;margin-bottom:14px;background:radial-gradient(600px 200px at 90% 0,rgba(26,163,217,.45),transparent 70%),linear-gradient(120deg,#00246b,#0a4fb3);border-bottom:4px solid var(--red)}
+.obt{font-size:22px;font-weight:800;letter-spacing:.01em}.obs{font-size:13px;font-weight:700;color:#cfe0ff;margin-top:2px}
+.obr{display:flex;gap:14px;align-items:center;flex-wrap:wrap}.obr label{display:flex;flex-direction:column;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#cfe0ff;gap:3px}
+.obr select{font:inherit;font-size:13px;padding:5px 8px;border-radius:7px;border:none}.obf{font-size:11.5px;color:#cfe0ff;max-width:340px;line-height:1.45;word-break:break-word}
+.owarn{background:#fff6e0;border:1px solid #f5d48a;color:#7a5200;border-radius:10px;padding:9px 12px;font-size:13px;margin-bottom:12px}
+.okpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:14px}
+.okpi{background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:11px 14px}
+.okpi.bad{border-left-color:var(--red)}.okt{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.okv{font-size:22px;font-weight:800;color:var(--navy);margin:3px 0 1px}.okpi.bad .okv{color:#c51e28}.oks{font-size:12px;color:var(--muted)}
+.ogrid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px;margin-bottom:14px}@media(max-width:1100px){.ogrid{grid-template-columns:1fr}}
+.opan{background:#fff;border:1px solid var(--line);border-radius:12px;padding:0 0 12px;overflow:hidden}.opan.wide{margin-bottom:14px}.opan>*:not(.oph):not(.osub){margin-left:14px;margin-right:14px}
+.oph{background:#5f6b7a;color:#fff;font-weight:800;font-size:14.5px;letter-spacing:.02em;padding:10px 14px;margin-bottom:10px}
+.osub{font-weight:800;font-size:12.5px;text-align:center;color:#fff;padding:5px;margin:10px 14px 0;border-radius:6px 6px 0 0;background:#0f8b8d}.osub.k{background:#8ab43a}.osub.rt{background:#5b4bd6}.osub.ew{background:#e64553}
+.otw{overflow-x:auto}.otab{width:100%;border-collapse:collapse;font-size:12.5px}.otab th{background:#1f5fae;font-size:11.5px;padding:6px;border:1px solid #fff;text-align:center}.otab th.l{text-align:left}
+.otab td{border:1px solid #e3e9f2;padding:5px 7px;background:#fff}.otab td.l{text-align:left}.otab td.c{text-align:center}.otab td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.otab td.olv{text-align:center;font-weight:800;min-width:44px}.otab td.olv.none{color:#9aa6b8;font-weight:400}.otab tr:nth-child(even) td:not(.olv){background:#f7f9fc}
+.otab.det td.l small{color:var(--muted);margin-left:4px}.otab tr.dev td{font-style:italic;color:#7a5200}.otab tr.tot td{font-weight:800;background:#eef4ff!important}.otab.kv td:first-child{width:34px;text-align:center;font-weight:700;color:var(--muted)}
+.oauto{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:700;color:#0a4fb3;background:#e8f0fd;border-radius:999px;padding:1px 7px;vertical-align:1px}
+.oews{font-size:15px;font-weight:800}.oews.up{color:#f08a24}.oews.ok{color:#33415c}
+.neg{color:#c51e28}.pos{color:#2e7d32}
+.odw{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-top:8px}.odonut{width:150px;height:150px}.olg{display:flex;flex-direction:column;gap:6px;font-size:13px}.olg i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.oh3{font-size:14px;color:var(--navy);margin:14px 0 6px}
+.ohw{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;overflow-x:auto}
+.ohm{display:grid;grid-template-columns:24px auto;grid-template-rows:auto auto;flex:1 1 560px;max-width:760px}
+.ohm-y{grid-row:1;grid-column:1;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;font-weight:800;color:var(--navy);letter-spacing:.12em;font-size:13px}
+.ohm-g{grid-row:1;grid-column:2;display:grid;grid-template-columns:118px repeat(5,minmax(70px,1fr));gap:3px}
+.ohm-x{grid-row:2;grid-column:2;text-align:center;font-weight:800;color:var(--navy);letter-spacing:.12em;font-size:13px;padding-top:4px;padding-left:118px}
+.ohm-pl,.ohm-dl{display:flex;flex-direction:column;justify-content:center;font-size:11px;line-height:1.25;color:var(--ink);padding:4px}
+.ohm-pl b,.ohm-dl b{font-size:13px;color:var(--navy)}.ohm-pl small,.ohm-dl small{color:var(--muted);font-style:italic}.ohm-dl{text-align:center;align-items:center}
+.ohm-c{position:relative;min-height:74px;border-radius:6px;padding:4px;display:flex;flex-direction:column;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.ohm-n{position:absolute;inset:0;display:grid;place-items:center;font-size:30px;font-weight:800;opacity:.28;pointer-events:none}
+.ohm-ch{position:relative;display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start}
+.ohch{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 4px;border-radius:11px;font-size:11.5px;font-weight:800;background:#0b2b66;color:#fff;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.ohch.k{background:#fff;color:#0b2b66;border-color:#0b2b66}
+.ohm-side{flex:0 1 230px;min-width:200px}.ohm-tg{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.ohm-tg button{font:inherit;font-size:13px;font-weight:700;padding:8px 10px;border-radius:8px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;text-align:left}
+.ohm-tg button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.olgt{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.olgi{display:flex;align-items:center;gap:7px;font-size:12.5px;margin-bottom:4px}.olgi i{width:26px;height:14px;border-radius:3px;display:inline-block}.olgi b{flex:1;font-weight:600}.olgi span{color:var(--muted)}
+.otr{width:100%;max-width:760px;height:auto}
+.oempty{background:#fff;border:1px dashed #b6c2d4;border-radius:14px;padding:30px;text-align:center}
+.odrop{border:2px dashed #b6c2d4;border-radius:14px;padding:26px 20px;text-align:center;background:linear-gradient(180deg,#fbfcff,#f2f6fc);cursor:pointer;margin-top:10px}.odrop.over{border-color:var(--accent);background:#eaf2fe}
+.omsgs{margin-top:10px;display:flex;flex-direction:column;gap:5px}.omsg{font-size:13px;border-radius:8px;padding:7px 10px;background:#eef7ee;color:#1f5b24;border:1px solid #cfe7d0}.omsg.warn{background:#fff6e0;color:#7a5200;border-color:#f5d48a}.omsg.bad{background:#fdecee;color:#9b1c25;border-color:#f6c5cb}
+.oguide{background:#f6f9fe;border:1px solid #dfe8f6;border-radius:10px;padding:10px 14px;margin-top:12px;font-size:13px}.oguide ul{margin:6px 0 0;padding-left:18px}.oguide li{margin-bottom:3px}
+.oparg{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 10px}.oparg label{display:flex;flex-direction:column;font-size:11.5px;font-weight:700;color:var(--muted);gap:3px}
+.oparg input,.otab.par input,.otab.par select{font:inherit;font-size:12.5px;padding:5px 6px;border:1px solid var(--line);border-radius:6px;background:#fff;max-width:100%}
+.oparg input{width:140px}.otab.par td{padding:3px 4px}.otab.par input:disabled,.otab.par select:disabled,.oparg input:disabled{background:#f3f5f9;color:var(--ink)}
+.otab.par td.osel select{width:118px}.btn.sm{padding:3px 9px;font-size:12px}.btn.cf{border-color:var(--red);color:var(--red)}
+.badge.demo{background:#ffd166;color:#5a4300}
 </style>
 </head>
 <body data-route="unggah">
@@ -353,19 +411,24 @@ body.r-viewer #ppCard,body.r-viewer #lossFormBox,body.r-viewer .rmOnly{display:n
 <aside id="histDrawer" class="side" aria-label="Navigasi dan riwayat">
   <div class="brand">
     <div class="bm" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m8 13 2.5 2.5L16 10"/></svg></div>
-    <div class="bt">Monitoring Risiko<small>Proyek Prioritas · v0.5</small></div>
+    <div class="bt">Monitoring Risiko<small>PRM &amp; ORM · v0.6</small></div>
     <button id="histClose" class="sclose" aria-label="Tutup menu">×</button>
   </div>
+  <div class="stream" id="streamSw" role="tablist" aria-label="Pilih kategori"><button data-stream-go="prm" role="tab">PRM<small>Proyek Prioritas</small></button><button data-stream-go="orm" role="tab">ORM<small>Ongoing Business</small></button></div>
   <button id="histNew" class="newbtn"><span>＋</span> Sesi Baru</button>
   <nav class="nav" id="nav">
-    <div class="ng">Laporan</div>
-    <a href="#/dashboard" data-route="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard</span></a>
-    <a href="#/otomatis" data-route="otomatis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span>Isi Otomatis</span></a>
-    <a href="#/penilaian" data-route="penilaian"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg><span>Penilaian Profesional</span></a>
-    <div class="ng">Data</div>
-    <a href="#/unggah" data-route="unggah"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 0-4 4m4-4 4 4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><span>Unggah &amp; Panduan</span></a>
-    <a href="#/periksa" data-route="periksa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8v3m0 3h.01"/></svg><span>Pemeriksaan Data</span><span class="ncount hidden" id="navIss"></span></a>
-    <a href="#/unduh" data-route="unduh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><span>Unduh Data</span></a>
+    <div class="ng" data-stream="orm">ORM · Ongoing Business</div>
+    <a href="#/orm" data-route="orm" data-stream="orm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Dashboard ORM</span></a>
+    <a href="#/ormdata" data-route="ormdata" data-stream="orm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 0-4 4m4-4 4 4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><span>Unggah &amp; Parameter</span></a>
+    <div class="ng" data-stream="orm">Bantuan</div>
+    <div class="ng" data-stream="prm">Laporan</div>
+    <a href="#/dashboard" data-route="dashboard" data-stream="prm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard</span></a>
+    <a href="#/otomatis" data-route="otomatis" data-stream="prm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span>Isi Otomatis</span></a>
+    <a href="#/penilaian" data-route="penilaian" data-stream="prm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg><span>Penilaian Profesional</span></a>
+    <div class="ng" data-stream="prm">Data</div>
+    <a href="#/unggah" data-route="unggah" data-stream="prm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 0-4 4m4-4 4 4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><span>Unggah &amp; Panduan</span></a>
+    <a href="#/periksa" data-route="periksa" data-stream="prm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8v3m0 3h.01"/></svg><span>Pemeriksaan Data</span><span class="ncount hidden" id="navIss"></span></a>
+    <a href="#/unduh" data-route="unduh" data-stream="prm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><span>Unduh Data</span></a>
     <a href="#/istilah" data-route="istilah"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5M9 7h7M9 11h5"/></svg><span>Daftar Istilah</span></a>
   </nav>
   <div class="ng">Riwayat</div>
@@ -391,6 +454,8 @@ body.r-viewer #ppCard,body.r-viewer #lossFormBox,body.r-viewer .rmOnly{display:n
 <div id="pop" class="pop hidden" role="dialog"></div>
 <div id="gZoom" class="gzoom hidden" role="dialog" aria-label="Gambar panduan diperbesar"></div>
 <main>
+  <section class="card" id="ormDataCard" data-pg="ormdata"><h2>Unggah Berkas ORM · Ongoing Business</h2><p class="note" style="margin:4px 0 0">Kategori <b>ORM</b> terpisah dari PRM (Proyek Prioritas). Setiap bulan cukup unggah <b>Monitoring Lifting</b> dan <b>Rekonsiliasi Produksi</b>; current risk, heatmap, dan dashboard dihitung otomatis sesuai TKO/TKI dan kertas kerja tim.</p><div id="ormDataBody"></div></section>
+  <section class="card" id="ormDashCard" data-pg="orm"><div id="ormDashBody"></div></section>
   <section class="card" id="uploadCard" data-pg="unggah">
     <h2>Unggah Berkas <button class="ib" data-info="upload" aria-label="Penjelasan">i</button></h2>
     <div id="drop" tabindex="0" role="button" aria-label="Pilih atau seret berkas Excel atau PDF">
@@ -581,6 +646,7 @@ async function readWorkbook(buf){
         else if(t==="b") v=ve?ve.textContent==="1":null;
         else v=(ve&&ve.textContent!=="")?Number(ve.textContent):null;
         if(v===null||v==="") continue;
+        if(c.getElementsByTagNameNS("*","f").length) (m.fx||(m.fx=new Set())).add(ref);
         m.set(ref,v); const rc=splitRef(ref); if(rc.r>maxR) maxR=rc.r; if(rc.c>maxC) maxC=rc.c;
       }
       m.maxR=maxR; m.maxC=maxC; sh._c=m; return m;
@@ -1490,7 +1556,14 @@ const GLOSS=[
  {k:"ALERT",v:"Laporan monitoring kinerja proyek per triwulan: sisa progres fisik, analisis, NPV, Risk Limit, durasi, dan status proyek."},
  {k:"Payback Period (POT)",v:"Lama waktu sampai arus kas kumulatif kembali ke nol (modal kembali)."},
  {k:"IRR (Internal Rate of Return)",v:"Tingkat pengembalian yang membuat NPV bernilai nol."},
- {k:"Sensitivity",v:"Perubahan NPV bila satu parameter (harga, volume, Capex, Opex) bergeser, biasanya 60% sampai 140% dari nilai dasar."}
+ {k:"Sensitivity",v:"Perubahan NPV bila satu parameter (harga, volume, Capex, Opex) bergeser, biasanya 60% sampai 140% dari nilai dasar."},
+ {k:"PRM / ORM",v:"PRM = Project Risk Management (Proyek Prioritas). ORM = risiko Ongoing Business (operasional rutin berdasarkan RKAP tahun berjalan), mis. produksi dan lifting migas."},
+ {k:"IRE / RRE / CRE",v:"Inherent / Residual / Current Risk Exposure = nilai dampak kuantitatif × nilai tengah indeks probabilitas (10%, 30%, 50%, 70%, 90%). Satuan ribu USD (TKI C12-004)."},
+ {k:"CIV (Current Impact Value)",v:"Nilai dampak terkini. Untuk risiko produksi/lifting: (A + A×F) − (I×C), A = dampak inherent, C = inherent − residual, F = deviasi prognosa terhadap RKAP, I = % risk treatment selesai."},
+ {k:"Skala risiko / RPN",v:"Angka 1–25 pada Peta Risiko (Heatmap) BUMN 5×5 dari kombinasi skala dampak dan skala probabilitas. 1–5 Low, 6–11 Low to Moderate, 12–15 Moderate, 16–19 Moderate to High, 20–25 High."},
+ {k:"RMT (ORM)",v:"Risk Materiality Threshold ORM = 50% × Risk Limit (TKI C12-004 Lampiran 1). Skala dampak kuantitatif: <20% RMT = 1, 20–40% = 2, 40–60% = 3, 60–80% = 4, >80% = 5."},
+ {k:"MBOEPD / MBOPD / MMSCFD",v:"Ribu barel setara minyak per hari / ribu barel minyak per hari / juta kaki kubik gas per hari. Gas dikonversi ke BOE dengan faktor 0,1726."},
+ {k:"RKAP / Prognosa (lifting & produksi)",v:"RKAP = target tahunan; Prognosa = perkiraan capaian akhir tahun. YTD = kumulatif sejak Januari sampai bulan laporan."}
 ];
 function renderIndex(){
   const box=$("indexBox"); if(!box) return;
@@ -2614,13 +2687,384 @@ function exportXlsx(){
 }
 
 
+/* ===================== ORM · ONGOING BUSINESS (Regional 1) ===================== */
+// Mengikuti TKI C12-004/PHE62000/2025 (Penyusunan & Monitoring All Risk / Top Risk) dan kertas kerja
+// "Perhitungan Dampak Current Risk" tim RM. Data hanya diolah dan disimpan di peramban ini.
+const ORM_KEY="mrp:orm:v1";
+const ORM_MX=[null,[null,1,5,10,15,20],[null,2,6,11,16,21],[null,3,8,13,18,23],[null,4,9,14,19,24],[null,7,12,17,22,25]]; // [prob][dampak] – Heatmap BUMN
+const ormRisk=(d,p)=>(d>=1&&d<=5&&p>=1&&p<=5)?ORM_MX[p][d]:null;
+const ORM_MID=[0,.1,.3,.5,.7,.9];
+function ormLv(s){ if(!s) return null;
+  if(s>=20) return {k:"H",t:"High",c:"#d93025",fg:"#fff"}; if(s>=16) return {k:"MH",t:"Moderate to High",c:"#f08a24",fg:"#fff"};
+  if(s>=12) return {k:"M",t:"Moderate",c:"#f7d84a",fg:"#3d3300"}; if(s>=6) return {k:"LM",t:"Low to Moderate",c:"#8bc34a",fg:"#1d3a07"};
+  return {k:"L",t:"Low",c:"#2e7d32",fg:"#fff"}; }
+const ORM_PL=["","Sangat Jarang Terjadi","Jarang Terjadi","Bisa Terjadi","Sangat Mungkin Terjadi","Hampir Pasti Terjadi"], ORM_PE=["","Rare","Unlikely","Moderate","Likely","Almost Certain"];
+const ORM_DL=["","Sangat Kecil","Kecil","Sedang","Besar","Sangat Besar"], ORM_DE=["","Insignificant","Minor","Moderate","Significant","Catastrophic"];
+const ORM_BLN=["","Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+const ormMonthLabel=k=>k?monthLabel(k):"—";
+function ormDefaults(){ return {example:true, rl:150000, rmtPct:0.5, conv:0.1726, icp:80, npm:0.25, risks:[
+  {no:1,type:"Kuantitatif",name:"Contoh: Tidak tercapainya target volume produksi migas",auto:"produksi",inh:{imp:80000,d:4,p:4},res:{imp:52000,d:3,p:3},cur:{imp:null,d:null,p:5},rt:{plan:120,done:90}},
+  {no:2,type:"Kuantitatif",name:"Contoh: Tidak tercapainya target volume lifting",auto:"lifting",inh:{imp:20000,d:1,p:4},res:{imp:4000,d:1,p:3},cur:{imp:null,d:null,p:4},rt:{plan:24,done:18}},
+  {no:3,type:"Kuantitatif",name:"Contoh: Tidak tercapainya target EBITDA",auto:null,inh:{imp:45000,d:3,p:3},res:{imp:20000,d:1,p:2},cur:{imp:15000,d:null,p:2},rt:{plan:8,done:6}},
+  {no:4,type:"Kualitatif",name:"Contoh: Tidak tercapainya target HSSE Excellent",auto:null,inh:{imp:null,d:5,p:4},res:{imp:null,d:3,p:2},cur:{imp:null,d:4,p:2},rt:{plan:40,done:30}},
+  {no:5,type:"Kualitatif",name:"Contoh: Penurunan kehandalan fasilitas produksi",auto:null,inh:{imp:null,d:5,p:3},res:{imp:null,d:3,p:2},cur:{imp:null,d:4,p:1},rt:{plan:20,done:15}}]}; }
+function ormLoad(){ try{ const v=JSON.parse(localStorage.getItem(ORM_KEY)||"null"); if(v&&v.params&&Array.isArray(v.params.risks)) return Object.assign({periods:{},cur:null},v); }catch(e){} return {params:ormDefaults(),periods:{},cur:null}; }
+let ORM=ormLoad(); let ORMV={demo:false,mode:"cur",msg:[],busy:false};
+function ormSave(){ try{ localStorage.setItem(ORM_KEY,JSON.stringify(ORM)); return true; }catch(e){ ormMsg("bad","Data ORM tidak dapat disimpan di peramban: "+(e&&e.message||e)); return false; } }
+function ormMsg(k,t){ ORMV.msg.push({k,t}); }
+const ORM_DEMO={key:"2026-10",days:304,demo:true,
+  lift:{file:"Contoh_Monitoring_Lifting.xlsx",rkapFY:185.0,prognFY:172.0,rkapYTD:184.0,realYTD:170.5,oilRkapYTD:120.0,oilRealYTD:109.0},
+  prod:{file:"Contoh_Rekonsiliasi_Produksi.xlsx",oil:{rkap:120.0,progn:111.0,ytdT:118.0,ytdA:108.0},gas:{rkap:400.0,progn:388.0,ytdT:405.0,ytdA:392.0}}};
+function ormView(){ if(ORMV.demo) return {params:ormDefaults(),periods:{[ORM_DEMO.key]:ORM_DEMO},cur:ORM_DEMO.key,demo:true};
+  const keys=Object.keys(ORM.periods).sort(); const cur=ORM.cur&&ORM.periods[ORM.cur]?ORM.cur:keys[keys.length-1]||null;
+  return {params:ORM.params,periods:ORM.periods,cur,demo:false}; }
+const ormDaysYTD=k=>{ const [y,m]=k.split("-").map(Number); let d=0; for(let i=1;i<=m;i++) d+=new Date(y,i,0).getDate(); return d; };
+function ormFileMonth(name){ const re=/(jan|feb|mar|apr|mei|may|jun|jul|agu|agt|aug|sep|okt|oct|nov|des|dec)[a-z]*[\s_\-.]*('?\d{4}|'?\d{2})(?!\d)/ig; let m,last=null;
+  while((m=re.exec(String(name||"")))) last=m; if(!last) return null; const mo=BULAN[last[1].toLowerCase().slice(0,3)]; let y=+last[2].replace("'","");
+  if(y<100) y+=2000; return mo&&y>2000&&y<2100?`${y}-${String(mo).padStart(2,"0")}`:null; }
+
+/* ---------- pembaca berkas ---------- */
+const ormNum=v=>typeof v==="number"&&isFinite(v)?v:(isStr(v)&&/^-?[\d.,]+$/.test(clean(v))?parseFloat(clean(v).replace(/,/g,"")):null);
+function ormRowCells(m,r){ const out=[]; for(let c=1;c<=(m.maxC||60);c++){ const v=G(m,c,r); if(v!=null) out.push({c,v}); } return out; }
+function ormFindAll(m,pred){ const out=[]; for(const [ref,v] of m){ if(isStr(v)&&pred(clean(v).toLowerCase())) out.push(splitRef(ref)); } return out.sort((a,b)=>a.r-b.r||a.c-b.c); }
+async function ormDetect(wb){
+  const names=wb.sheets.map(s=>s.name.trim().toLowerCase());
+  if(names.includes("dashboard")){ const m=await wb.cells(wb.sheet("Dashboard")); if(ormFindAll(m,s=>/^lift rkap fy$/.test(s)).length) return "lifting"; }
+  if(names.includes("oil")&&names.includes("gas")) return "produksi";
+  for(const sh of wb.sheets){ if(sh.state!=="visible") continue; const m=await wb.cells(sh); if(findCell(m,s=>s.includes("risk event top risk"),40)) return "kertas"; }
+  return null;
+}
+async function ormParseLifting(wb,fileName){
+  const m=await wb.cells(wb.sheet("Dashboard")); const warn=[];
+  const heads=ormFindAll(m,s=>/^lift rkap fy$/.test(s));
+  const colOf=(r,re)=>{ for(const {c,v} of ormRowCells(m,r)) if(isStr(v)&&re.test(clean(v).toLowerCase())) return c; return null; };
+  const block=h=>{ const r=h.r, boe=ormRowCells(m,r).some(({c,v})=>isStr(v)&&clean(v)==="BOE"&&c>=h.c-8);
+    const cols={rkapFY:h.c,rkapYTD:colOf(r,/^lift rkap ytd$/),realYTD:colOf(r,/^lift real ytd$/),prognFY:colOf(r,/^lift progn(osa)? fy$/),prodReal:colOf(r,/^prod real ytd$/),prodRkap:colOf(r,/^prod rkap fy$/)};
+    let dr=null; for(let k=r+1;k<=r+8&&!dr;k++) if(ormRowCells(m,k).some(({v})=>isStr(v)&&/^region(al)? 1$/i.test(clean(v)))) dr=k;
+    const g=c=>dr&&c?ormNum(G(m,c,dr)):null;
+    return {boe,row:dr,rkapFY:g(cols.rkapFY),rkapYTD:g(cols.rkapYTD),realYTD:g(cols.realYTD),prognFY:g(cols.prognFY),prodReal:g(cols.prodReal),prodRkap:g(cols.prodRkap)}; };
+  const blocks=heads.map(block); let migas=blocks.find(b=>b.boe&&b.row), oil=blocks.find(b=>!b.boe&&b.row);
+  if(!migas||migas.rkapFY==null){ const v=ormNum(G(m,22,143)), a=ormNum(G(m,27,143)); if(v!=null&&a!=null){ migas={rkapFY:v,prognFY:a,rkapYTD:ormNum(G(m,24,143)),realYTD:ormNum(G(m,26,143))}; warn.push("Baris BOE tidak dikenali dari judul kolom, dipakai sel V143/AA143 sesuai panduan."); } }
+  if(!migas||migas.rkapFY==null||migas.prognFY==null) throw new Error("angka Lift RKAP FY / Lift Prognosa FY (BOE, Region 1) tidak ditemukan di sheet Dashboard");
+  let key=null, days=null; const fc=ormFindAll(m,s=>s==="for chart")[0];
+  if(fc){ const cells=ormRowCells(m,fc.r).filter(x=>x.c>fc.c); const y=cells.find(x=>typeof x.v==="number"&&x.v>2000&&x.v<2100); const mo=cells.find(x=>typeof x.v==="number"&&x.v>=1&&x.v<=12&&(!y||x.c>y.c));
+    if(y&&mo) key=`${y.v}-${String(mo.v).padStart(2,"0")}`; }
+  const dl=ormFindAll(m,s=>s==="days")[0]; if(dl){ const v=ormNum(G(m,dl.c,dl.r+1)); if(v>0&&v<=366) days=v; }
+  if(!key) key=ormFileMonth(fileName); if(!key) warn.push("Periode tidak terbaca dari berkas lifting.");
+  return {kind:"lifting",key,days,warn,data:{file:fileName,rkapFY:migas.rkapFY,prognFY:migas.prognFY,rkapYTD:migas.rkapYTD,realYTD:migas.realYTD,
+    oilRkapYTD:oil?oil.rkapYTD:null,oilRealYTD:oil?oil.realYTD:null}};
+}
+async function ormParseProduksi(wb,fileName){
+  const warn=[]; const one=async nm=>{ const m=await wb.cells(wb.sheet(nm));
+    let row=null; for(let r=1;r<=(m.maxR||500)&&!row;r++){ if(/^regional ?1$/i.test(clean(G(m,2,r)))&&/^total$/i.test(clean(G(m,3,r)))) row=r; }
+    const hc=(re,maxR=6)=>{ let best=null; for(let r=1;r<=maxR;r++) for(const {c,v} of ormRowCells(m,r)) if(isStr(v)&&re.test(clean(v).toLowerCase())&&(!best||c<best)) best=c; return best; };
+    const cR=hc(/^rkap$/), cP=hc(/^prognosa$/), cY=hc(/^ytd$/);
+    if(!row){ row=332; warn.push(`Baris "Regional 1 – Total" di sheet ${nm} tidak ditemukan, dipakai baris 332 sesuai panduan.`); }
+    const g=c=>c?ormNum(G(m,c,row)):null;
+    const o={rkap:g(cR||4),progn:g(cP||5),ytdT:g(cY||10),ytdA:g((cY||10)+1)};
+    if(Object.values(o).some(v=>v==null)) throw new Error(`angka RKAP/Prognosa/YTD di sheet ${nm} baris ${row} tidak lengkap`);
+    return o; };
+  const oil=await one("Oil"), gas=await one("Gas");
+  oil.rkap/=1000; oil.progn/=1000; oil.ytdT/=1000; oil.ytdA/=1000; // BOPD -> MBOPD
+  const key=ormFileMonth(fileName); if(!key) warn.push("Periode tidak terbaca dari nama berkas produksi.");
+  return {kind:"produksi",key,warn,data:{file:fileName,oil,gas}};
+}
+async function ormParseKertas(wb,fileName){
+  let sh=null,m=null,hd=null; for(const s of wb.sheets){ if(s.state!=="visible") continue; const mm=await wb.cells(s); const h=findCell(mm,x=>x.includes("risk event top risk"),40); if(h&&findCell(mm,x=>x==="current",40)){ sh=s;m=mm;hd=h;break; } }
+  if(!m) throw new Error("tabel 'RISK EVENT TOP RISK' tidak ditemukan");
+  const r0=hd.r, sub=r0+1, fx=m.fx||new Set();
+  const grp=re=>{ const f=ormRowCells(m,r0).find(({v})=>isStr(v)&&re.test(clean(v).toLowerCase())); return f?f.c:null; };
+  const cI=grp(/^inherent$/), cR=grp(/^residual$/), cC=grp(/^current$/), cType=grp(/kuantitatif/), cName=hd.c, cNo=grp(/^no\.?$/)||1;
+  if(!cI||!cR||!cC) throw new Error("kolom INHERENT / RESIDUAL / CURRENT tidak lengkap");
+  const subCol=(start,re,span=6)=>{ for(let c=start;c<start+span;c++){ const v=G(m,c,sub); if(isStr(v)&&re.test(clean(v).toLowerCase())) return c; } return null; };
+  const cols=g=>({imp:subCol(g,/dampak kuantitatif|impact kuantitatif/),d:subCol(g,/^skala dampak/),p:subCol(g,/^skala probabilitas/)});
+  const I=cols(cI), R=cols(cR), C=cols(cC);
+  let cPlan=null,cReal=null; for(let r=r0;r<=r0+3;r++) for(const {c,v} of ormRowCells(m,r)){ if(isStr(v)&&/^plan$/i.test(clean(v))&&!cPlan) cPlan=c; if(isStr(v)&&/^realization$/i.test(clean(v))&&!cReal) cReal=c; }
+  const risks=[]; for(let r=r0+2;r<=r0+40;r++){ const no=ormNum(G(m,cNo,r)), name=clean(G(m,cName,r)); if(no==null||!name) continue;
+    const type=/kualitatif/i.test(clean(G(m,cType||2,r)))?"Kualitatif":"Kuantitatif"; const n=c=>c?ormNum(G(m,c,r)):null;
+    const nm=name.toLowerCase(), auto=type!=="Kuantitatif"||/ebitda|excl/.test(nm)?null:/volume lifting|target lifting/.test(nm)?"lifting":/volume produksi|target produksi/.test(nm)?"produksi":null;
+    const dRef=C.d?colL(C.d)+r:null, dOver=dRef&&!fx.has(dRef)?n(C.d):null;
+    risks.push({no,type,name,auto,inh:{imp:type==="Kuantitatif"?n(I.imp):null,d:n(I.d),p:n(I.p)},res:{imp:type==="Kuantitatif"?n(R.imp):null,d:n(R.d),p:n(R.p)},
+      cur:{imp:auto?null:(type==="Kuantitatif"?n(C.imp):null),d:type==="Kualitatif"?n(C.d):dOver,p:n(C.p)},rt:{plan:n(cPlan)||0,done:n(cReal)||0}}); }
+  if(!risks.length) throw new Error("baris risk event tidak terbaca");
+  const lab=re=>{ const f=ormFindAll(m,s=>re.test(s))[0]; if(!f) return null; for(let c=f.c+1;c<=f.c+3;c++){ const v=ormNum(G(m,c,f.r)); if(v!=null) return v; } return null; };
+  const rl=lab(/^risk limit$/), rmt=lab(/^rmt$/), conv=lab(/^konversi$/);
+  let icp=null,npm=null; const le=wb.sheets.find(s=>/loss event/i.test(s.name));
+  if(le){ const lm=await wb.cells(le); const below=re=>{ const f=ormFindAll(lm,s=>re.test(s))[0]; if(!f) return null; for(let r=f.r+1;r<=f.r+8;r++){ const v=ormNum(G(lm,f.c,r)); if(v!=null&&v>0&&v<1000&&r>f.r+2) return v; } return null; };
+    icp=below(/^icp$/); npm=below(/profit margin/); }
+  return {kind:"kertas",sheet:sh.name,data:{risks,rl,rmt,conv,icp,npm,file:fileName}};
+}
+function ormApplyKertas(k){
+  const p=ORM.params, d=k.data; p.risks=d.risks; if(d.rl) p.rl=d.rl; if(d.rl&&d.rmt) p.rmtPct=Math.round(d.rmt/d.rl*10000)/10000; if(d.conv) p.conv=d.conv;
+  if(d.icp) p.icp=d.icp; if(d.npm) p.npm=d.npm; p.example=false; p.src=d.file; p.srcAt=Date.now();
+}
+async function ormAddFiles(files){
+  if(ORMV.busy) return; ORMV.busy=true; ORMV.msg=[]; ORMV.demo=false; renderOrm();
+  const got=[];
+  for(const f of files){
+    if(!/\.xls[xm]$/i.test(f.name)){ ormMsg("bad",`${f.name}: bukan berkas Excel (.xlsx).`); continue; }
+    try{ const wb=await readWorkbook(await f.arrayBuffer()); const kind=await ormDetect(wb);
+      if(kind==="lifting") got.push(await ormParseLifting(wb,f.name));
+      else if(kind==="produksi") got.push(await ormParseProduksi(wb,f.name));
+      else if(kind==="kertas"){ if(!isRM()){ ormMsg("bad",`${f.name}: hanya akun Risk Management yang dapat mengimpor parameter.`); continue; } got.push(await ormParseKertas(wb,f.name)); }
+      else ormMsg("bad",`${f.name}: tidak dikenali sebagai berkas Monitoring Lifting, Rekonsiliasi Produksi, atau Kertas Kerja Perhitungan Current Risk.`);
+    }catch(e){ ormMsg("bad",`${f.name}: gagal dibaca – ${e&&e.message||e}`); }
+  }
+  const kertas=got.find(g=>g.kind==="kertas"); if(kertas){ ormApplyKertas(kertas); ormMsg("ok",`Parameter risk register diimpor dari ${kertas.data.file} (sheet ${kertas.sheet}): ${kertas.data.risks.length} risk event.`); }
+  const lift=got.find(g=>g.kind==="lifting"), prod=got.find(g=>g.kind==="produksi");
+  let key=(lift&&lift.key)||(prod&&prod.key)||ORM.cur||null;
+  if((lift||prod)&&!key){ const t=new Date(); t.setMonth(t.getMonth()-1); key=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}`; ormMsg("warn",`Periode tidak terbaca, sementara dianggap ${monthLabel(key)}. Ubah di pilihan periode bila keliru.`); }
+  if(lift&&prod&&lift.key&&prod.key&&lift.key!==prod.key) ormMsg("warn",`Periode berkas berbeda: lifting ${monthLabel(lift.key)}, produksi ${monthLabel(prod.key)}. Keduanya disimpan pada periode masing-masing.`);
+  for(const g of [lift,prod]){ if(!g) continue; const k=g.key||key; const P=ORM.periods[k]||(ORM.periods[k]={key:k});
+    P[g.kind==="lifting"?"lift":"prod"]=g.data; if(g.days) P.days=g.days; if(!P.days) P.days=ormDaysYTD(k); P.at=Date.now(); ORM.cur=k;
+    g.warn.forEach(w=>ormMsg("warn",`${g.data.file}: ${w}`));
+    ormMsg("ok",`${g.data.file} terbaca sebagai ${g.kind==="lifting"?"Monitoring Lifting":"Rekonsiliasi Produksi"} periode ${monthLabel(k)}.`); }
+  ormSnap(); ormSave(); ORMV.busy=false; renderOrm();
+  if(lift||prod){ const P=ORM.periods[ORM.cur]; if(P&&P.lift&&P.prod) ormMsg("ok","Data lengkap. Buka Dashboard ORM untuk melihat hasilnya."); else ormMsg("warn",`Periode ${monthLabel(ORM.cur)} masih menunggu berkas ${P&&P.lift?"Rekonsiliasi Produksi":"Monitoring Lifting"}.`); renderOrm(); }
+}
+
+/* ---------- perhitungan (sesuai kertas kerja & TKI) ---------- */
+function ormCalc(V,key){
+  const par=V.params, P=key?V.periods[key]:null, conv=par.conv||0.1726, rmt=(par.rl||0)*(par.rmtPct||0.5);
+  let mg=null; if(P&&P.prod){ const o=P.prod.oil,g=P.prod.gas; mg={oil:o,gas:g,gasB:{rkap:g.rkap*conv,progn:g.progn*conv,ytdT:g.ytdT*conv,ytdA:g.ytdA*conv}};
+    mg.tot={rkap:o.rkap+mg.gasB.rkap,progn:o.progn+mg.gasB.progn,ytdT:o.ytdT+mg.gasB.ytdT,ytdA:o.ytdA+mg.gasB.ytdA}; }
+  const F={produksi:mg&&mg.tot.rkap?(mg.tot.rkap-mg.tot.progn)/mg.tot.rkap:null, lifting:P&&P.lift&&P.lift.rkapFY?(P.lift.rkapFY-P.lift.prognFY)/P.lift.rkapFY:null};
+  const DE={produksi:mg?[mg.tot.rkap,mg.tot.progn]:null, lifting:P&&P.lift?[P.lift.rkapFY,P.lift.prognFY]:null};
+  const rows=par.risks.map(r=>{ const q=r.type!=="Kualitatif"; const inhS=ormRisk(r.inh.d,r.inh.p), resS=ormRisk(r.res.d,r.res.p);
+    const ire=q&&r.inh.imp!=null&&r.inh.p?r.inh.imp*ORM_MID[r.inh.p]:null, rre=q&&r.res.imp!=null&&r.res.p?r.res.imp*ORM_MID[r.res.p]:null;
+    const plan=+r.rt.plan||0, done=+r.rt.done||0, I=plan?done/plan:null; let civ=null, calc=null;
+    if(r.auto&&q){ const f=F[r.auto]; if(f!=null&&r.inh.imp!=null&&r.res.imp!=null&&I!=null){ const A=r.inh.imp,B=r.res.imp,C=A-B; civ=(A+A*f)-I*C; calc={A,B,C,D:DE[r.auto][0],E:DE[r.auto][1],F:f,G:plan,H:done,I}; } }
+    else if(q) civ=r.cur.imp;
+    let d=r.cur.d, dAuto=false; if((d==null||d==="")&&q&&civ!=null&&rmt>0){ const x=civ/rmt; d=x<0.2?1:x<0.4?2:x<0.6?3:x<0.8?4:5; dAuto=true; }
+    const p=r.cur.p, curS=ormRisk(d,p), cre=q&&civ!=null&&p?civ*ORM_MID[p]:null;
+    return {r,q,inhS,resS,curS,ire,rre,cre,civ,calc,d,dAuto,p,plan,done,I,ews:curS!=null&&curS>=20,waiting:r.auto&&q&&civ==null}; });
+  const sum=(k,f=x=>true)=>rows.filter(f).reduce((a,x)=>a+(x[k]||0),0);
+  const T={ire:sum("ire"),rre:sum("rre"),cre:sum("cre"),plan:sum("plan"),done:sum("done")};
+  const ew=[]; if(mg){ const R=Math.abs(mg.tot.ytdA-mg.tot.ytdT), days=P.days||ormDaysYTD(P.key);
+    ew.push({name:"Produksi migas (YTD)",real:mg.tot.ytdA,plan:mg.tot.ytdT,pct:mg.tot.ytdT?mg.tot.ytdA/mg.tot.ytdT:null,loss:R*days*(par.icp||0)*(par.npm||0),gap:R,days}); }
+  if(P&&P.lift&&P.lift.rkapYTD) ew.push({name:"Lifting migas (YTD)",real:P.lift.realYTD,plan:P.lift.rkapYTD,pct:P.lift.realYTD/P.lift.rkapYTD,loss:null});
+  return {P,par,mg,F,rows,T,rmt,ew};
+}
+function ormSnap(){ const V=ormView(); if(V.demo||!V.cur) return; const C=ormCalc(V,V.cur); const P=ORM.periods[V.cur]; if(!P) return;
+  P.snap={cre:C.T.cre,ire:C.T.ire,rre:C.T.rre,rt:C.T.plan?C.T.done/C.T.plan:null,rows:C.rows.map(x=>({no:x.r.no,name:x.r.name,cur:x.curS,civ:x.civ}))}; }
+
+/* ---------- tampilan ---------- */
+const ormF0=v=>v==null||isNaN(v)?"—":fmt(v,0), ormF2=v=>v==null||isNaN(v)?"—":fmt(v,2), ormP=v=>v==null||isNaN(v)?"—":fmt(v*100,1)+"%";
+function ormCell(s,extra=""){ const lv=ormLv(s); return lv?`<td class="olv" style="background:${lv.c};color:${lv.fg}" title="${esc(lv.t)}${extra?" · "+esc(extra):""}">${s}</td>`:`<td class="olv none">—</td>`; }
+function ormTable(C,q){
+  const rows=C.rows.filter(x=>x.q===q); if(!rows.length) return `<p class="note">Tidak ada risiko ${q?"kuantitatif":"kualitatif"}.</p>`;
+  return `<div class="otw"><table class="otab"><thead><tr><th>No</th><th class="l">Risk Event</th>${q?`<th>Current Impact<br><small>(000 USD)</small></th>`:""}<th>Inherent</th><th>Current</th><th>Residual</th><th>Probability</th><th>EWS</th></tr></thead><tbody>${rows.map(x=>`
+    <tr><td class="c">${x.r.no}</td><td class="l">${esc(x.r.name)}${x.r.auto?`<span class="oauto" title="Current impact dihitung otomatis dari berkas ${x.r.auto==="produksi"?"Rekonsiliasi Produksi":"Monitoring Lifting"}">otomatis · ${x.r.auto}</span>`:""}</td>
+    ${q?`<td class="n">${x.waiting?`<span class="note">menunggu berkas</span>`:ormF0(x.civ)}</td>`:""}${ormCell(x.inhS,`D${x.r.inh.d||"?"} × P${x.r.inh.p||"?"}`)}${ormCell(x.curS,`D${x.d||"?"}${x.dAuto?" (otomatis)":""} × P${x.p||"?"}`)}${ormCell(x.resS,`D${x.r.res.d||"?"} × P${x.r.res.p||"?"}`)}
+    <td class="c">${x.p?fmt(ORM_MID[x.p]*100,0)+"%":"—"}</td><td class="c">${x.curS==null?"—":x.ews?`<span class="oews up" title="Current risk berada di level High (≥ 20)">▲</span>`:`<span class="oews ok" title="Current risk di bawah level High">○</span>`}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function ormDonut(done,plan){ const out=Math.max(plan-done,0), f=plan?done/plan:0, R=46, L=2*Math.PI*R;
+  return `<svg viewBox="0 0 120 120" class="odonut" role="img" aria-label="Realisasi risk treatment ${ormP(f)}"><circle cx="60" cy="60" r="${R}" fill="none" stroke="#f08a24" stroke-width="18"/>
+  <circle cx="60" cy="60" r="${R}" fill="none" stroke="#1f6fd1" stroke-width="18" stroke-dasharray="${(L*f).toFixed(2)} ${L.toFixed(2)}" transform="rotate(-90 60 60)"/>
+  <text x="60" y="58" text-anchor="middle" font-size="17" font-weight="800" fill="#0b2b66">${ormP(f)}</text><text x="60" y="74" text-anchor="middle" font-size="9" fill="#5b6b82">${done} / ${plan} RT</text></svg>
+  <div class="olg"><span><i style="background:#1f6fd1"></i>Realization <b>${done}</b> (${ormP(f)})</span><span><i style="background:#f08a24"></i>Outstanding <b>${out}</b> (${ormP(plan?out/plan:0)})</span></div>`; }
+function ormHeat(C,mode){
+  const pos=x=>mode==="inh"?[x.r.inh.d,x.r.inh.p]:mode==="res"?[x.r.res.d,x.r.res.p]:[x.d,x.p];
+  let h=`<div class="ohm" role="grid" aria-label="Peta risiko 5×5"><div class="ohm-y">PROBABILITAS</div><div class="ohm-g">`;
+  for(let p=5;p>=1;p--){ h+=`<div class="ohm-pl"><b>${p}</b><span>${ORM_PL[p]}</span><small>${ORM_PE[p]}</small></div>`;
+    for(let d=1;d<=5;d++){ const s=ORM_MX[p][d], lv=ormLv(s), here=C.rows.filter(x=>{ const [a,b]=pos(x); return +a===d&&+b===p; });
+      h+=`<div class="ohm-c" style="background:${lv.c};color:${lv.fg}" title="Skala risiko ${s} · ${lv.t}"><span class="ohm-n">${s}</span><div class="ohm-ch">${here.map(x=>`<span class="ohch ${x.q?"q":"k"}" title="${esc(x.r.no+". "+x.r.name)}">${x.r.no}</span>`).join("")}</div></div>`; } }
+  h+=`<div></div>${[1,2,3,4,5].map(d=>`<div class="ohm-dl"><b>${d}</b><span>${ORM_DL[d]}</span><small>${ORM_DE[d]}</small></div>`).join("")}</div><div class="ohm-x">DAMPAK</div></div>`;
+  const leg=[["L","1 – 5"],["LM","6 – 11"],["M","12 – 15"],["MH","16 – 19"],["H","20 – 25"]].map(([k,r])=>{ const lv=ormLv({L:3,LM:8,M:13,MH:17,H:22}[k]); return `<div class="olgi"><i style="background:${lv.c}"></i><b>${lv.t}</b><span>${r}</span></div>`; }).join("");
+  return h+`<div class="ohm-side"><div class="ohm-tg" role="tablist">${[["inh","Inherent Risk"],["cur","Current Risk"],["res","Residual Risk"]].map(([k,t])=>`<button class="${mode===k?"on":""}" data-ohm="${k}" role="tab" aria-selected="${mode===k}">${t}</button>`).join("")}</div>
+    <div class="olgt">Legenda level risiko (TKI Tabel 1)</div>${leg}<div class="olgt" style="margin-top:10px">Penanda</div><div class="olgi"><span class="ohch q">1</span><span>Risiko kuantitatif</span></div><div class="olgi"><span class="ohch k">6</span><span>Risiko kualitatif</span></div></div>`;
+}
+function ormTrend(V){
+  const ks=Object.keys(V.periods).sort().filter(k=>V.periods[k].snap); if(ks.length<2) return `<p class="note">Grafik tren muncul setelah data minimal dua periode diunggah (data tiap periode tersimpan di peramban ini).</p>`;
+  const vals=ks.map(k=>V.periods[k].snap.cre), mx=Math.max(...vals)*1.15||1, W=640,H=200,pl=60,pb=28, x=i=>pl+(W-pl-20)*(ks.length===1?0.5:i/(ks.length-1)), y=v=>H-pb-(H-pb-14)*v/mx;
+  return `<svg viewBox="0 0 ${W} ${H}" class="otr" role="img" aria-label="Tren total current risk exposure">${[0,.5,1].map(t=>`<line x1="${pl}" x2="${W-20}" y1="${y(mx*t)}" y2="${y(mx*t)}" stroke="#e3e9f2"/><text x="${pl-6}" y="${y(mx*t)+4}" text-anchor="end" font-size="10" fill="#6b7a90">${fmt(mx*t,0)}</text>`).join("")}
+    <polyline points="${vals.map((v,i)=>`${x(i)},${y(v)}`).join(" ")}" fill="none" stroke="#d93025" stroke-width="2.5"/>${vals.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="#d93025"><title>${monthLabel(ks[i])}: ${fmt(v,0)}</title></circle><text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="10.5" fill="#33415c">${ORM_BLN[+ks[i].slice(5)]} ${ks[i].slice(2,4)}</text>`).join("")}</svg>`;
+}
+function ormCalcDetail(C){
+  if(!C.mg&&!C.P) return "";
+  let h=""; const mg=C.mg, conv=C.par.conv;
+  if(mg){ const r=(lb,o,u)=>`<tr><td class="l">${lb}<small>${u}</small></td><td class="n">${ormF2(o.ytdT)}</td><td class="n">${ormF2(o.ytdA)}</td><td class="n">${ormP(o.ytdT?o.ytdA/o.ytdT:null)}</td><td class="n">${ormF2(o.rkap)}</td><td class="n">${ormF2(o.progn)}</td><td class="n">${ormP(o.rkap?o.progn/o.rkap:null)}</td></tr>`;
+    h+=`<h3 class="oh3">Perhitungan Migas <span class="note">· konversi gas → BOE = ${fmt(conv,4)}</span></h3><div class="otw"><table class="otab det"><thead><tr><th class="l"></th><th>Plan YTD</th><th>Real YTD</th><th>%</th><th>RKAP</th><th>Prognosa</th><th>%</th></tr></thead><tbody>
+      ${r("Oil",mg.oil," MBOPD")}${r("Gas",mg.gas," MMSCFD")}${r("Konversi gas",mg.gasB," MBOEPD")}${r("<b>Migas</b>",mg.tot," MBOEPD")}
+      <tr class="dev"><td class="l">Deviasi (100% − %)</td><td></td><td></td><td class="n">${ormP(mg.tot.ytdT?1-mg.tot.ytdA/mg.tot.ytdT:null)}</td><td></td><td></td><td class="n">${ormP(mg.tot.rkap?1-mg.tot.progn/mg.tot.rkap:null)}</td></tr></tbody></table></div>`; }
+  if(C.P&&C.P.lift){ const L=C.P.lift; h+=`<h3 class="oh3">Lifting Migas <span class="note">· Region 1, BOE (MBOEPD)</span></h3><div class="otw"><table class="otab det"><thead><tr><th class="l"></th><th>Lift RKAP FY</th><th>Lift Prognosa FY</th><th>Lift RKAP YTD</th><th>Lift Real YTD</th><th>Real ÷ RKAP YTD</th></tr></thead><tbody>
+      <tr><td class="l">Migas</td><td class="n">${ormF2(L.rkapFY)}</td><td class="n">${ormF2(L.prognFY)}</td><td class="n">${ormF2(L.rkapYTD)}</td><td class="n">${ormF2(L.realYTD)}</td><td class="n">${ormP(L.rkapYTD?L.realYTD/L.rkapYTD:null)}</td></tr></tbody></table></div>`; }
+  C.rows.filter(x=>x.calc).forEach(x=>{ const c=x.calc, u=x.r.auto==="produksi"?"MBOEPD (migas)":"MBOEPD (lifting)";
+    h+=`<h3 class="oh3">${x.r.no}. ${esc(x.r.name)}</h3><div class="otw"><table class="otab det kv"><tbody>
+      <tr><td>A</td><td class="l">Nilai dampak inherent (000 USD)</td><td class="n">${ormF0(c.A)}</td></tr><tr><td>B</td><td class="l">Nilai dampak residual (000 USD)</td><td class="n">${ormF0(c.B)}</td></tr>
+      <tr><td>C</td><td class="l">Nilai dampak inherent − residual (A − B)</td><td class="n">${ormF0(c.C)}</td></tr><tr><td>D</td><td class="l">Target RKAP · ${u}</td><td class="n">${ormF2(c.D)}</td></tr>
+      <tr><td>E</td><td class="l">Prognosa · ${u}</td><td class="n">${ormF2(c.E)}</td></tr><tr><td>F</td><td class="l">Deviasi ((D − E) ÷ D)</td><td class="n">${ormP(c.F)}</td></tr>
+      <tr><td>G</td><td class="l">Total risk treatment</td><td class="n">${c.G}</td></tr><tr><td>H</td><td class="l">Risk treatment selesai</td><td class="n">${c.H}</td></tr>
+      <tr><td>I</td><td class="l">% risk treatment (H ÷ G)</td><td class="n">${ormP(c.I)}</td></tr>
+      <tr class="tot"><td></td><td class="l">Current Impact = (A + A×F) − (I×C)</td><td class="n">${ormF0(x.civ)}</td></tr>
+      <tr><td></td><td class="l">Skala dampak current (CIV ÷ RMT ${ormF0(C.rmt)} = ${ormP(C.rmt?x.civ/C.rmt:null)})${x.dAuto?"":" · <i>diisi manual di parameter</i>"}</td><td class="n">${x.d||"—"}</td></tr></tbody></table></div>`; });
+  return h;
+}
+function renderOrmDash(){
+  const box=$("ormDashBody"); if(!box) return; const V=ormView(), ks=Object.keys(V.periods).sort();
+  if(!V.cur){ box.innerHTML=`<div class="oempty"><b>Belum ada data ORM.</b><p>Unggah berkas <b>Monitoring Lifting</b> dan <b>Rekonsiliasi Produksi</b> di menu <a href="#/ormdata">Unggah &amp; Parameter ORM</a>, atau coba dengan data contoh.</p><button class="btn" data-orm-demo="1">Muat Data Contoh ORM</button></div>`; return; }
+  const C=ormCalc(V,V.cur), P=C.P, T=C.T, mg=C.mg;
+  const kpi=(t,v,s,cls="")=>`<div class="okpi ${cls}"><div class="okt">${t}</div><div class="okv">${v}</div><div class="oks">${s}</div></div>`;
+  const ewProd=C.ew.find(e=>/produksi/i.test(e.name)), ewLift=C.ew.find(e=>/lifting/i.test(e.name));
+  box.innerHTML=`
+  <div class="obanner"><div><div class="obt">MONITORING RISIKO ONGOING BUSINESS</div><div class="obs">REGIONAL 1 · ${esc(ormMonthLabel(V.cur))}${V.demo?` · <span class="badge demo">DATA CONTOH</span>`:""}</div></div>
+    <div class="obr"><label>Periode<select id="ormPer">${ks.map(k=>`<option value="${k}" ${k===V.cur?"selected":""}>${monthLabel(k)}</option>`).join("")}</select></label>
+    <div class="obf">${P.lift?`Lifting: ${esc(P.lift.file)}`:"<b>Lifting belum diunggah</b>"}<br>${P.prod?`Produksi: ${esc(P.prod.file)}`:"<b>Produksi belum diunggah</b>"}</div></div></div>
+  ${V.params.example&&!V.demo?`<div class="owarn">Parameter risk register masih <b>contoh</b>. Impor Kertas Kerja Perhitungan Current Risk tim di menu <a href="#/ormdata">Unggah &amp; Parameter ORM</a> agar hasilnya sesuai.</div>`:""}
+  <div class="okpis">
+    ${kpi("Produksi migas YTD",ewProd?ormP(ewProd.pct):"—",ewProd?`${ormF2(ewProd.real)} dari ${ormF2(ewProd.plan)} MBOEPD`:"menunggu berkas produksi",ewProd&&ewProd.pct<1?"bad":"")}
+    ${kpi("Lifting migas YTD",ewLift?ormP(ewLift.pct):"—",ewLift?`${ormF2(ewLift.real)} dari ${ormF2(ewLift.plan)} MBOEPD`:"menunggu berkas lifting",ewLift&&ewLift.pct<1?"bad":"")}
+    ${kpi("Prognosa vs RKAP (FY)",`${C.F.produksi!=null?"−"+ormP(C.F.produksi):"—"}`,`produksi migas · lifting ${C.F.lifting!=null?"−"+ormP(C.F.lifting):"—"}`)}
+    ${kpi("Σ Current Risk Exposure",ormF0(T.cre),`000 USD · IRE ${ormF0(T.ire)} · RRE ${ormF0(T.rre)}`)}
+    ${kpi("Realisasi risk treatment",ormP(T.plan?T.done/T.plan:null),`${T.done} dari ${T.plan} aktivitas`)}
+  </div>
+  <div class="ogrid">
+    <div class="opan"><div class="oph">TOP RISK LEVEL STATUS</div><div class="osub q">KUANTITATIF</div>${ormTable(C,true)}<div class="osub k">KUALITATIF</div>${ormTable(C,false)}
+      <p class="note">EWS ▲ = current risk berada di level <b>High</b> (skala ≥ 20). Probability = nilai tengah skala probabilitas current (TKI Lampiran 3).</p></div>
+    <div class="opan"><div class="oph">RISK MANAGEMENT PERFORMANCE</div><div class="osub rt">RISK TREATMENT</div><div class="odw">${ormDonut(T.done,T.plan)}</div>
+      <div class="osub ew">EARLY WARNING</div><div class="otw"><table class="otab"><thead><tr><th class="l">Early Warning</th><th>Realisasi YTD</th><th>Potential Loss<br><small>(000 USD)</small></th></tr></thead><tbody>
+      ${C.ew.length?C.ew.map(e=>`<tr><td class="l">${esc(e.name)}</td><td class="n ${e.pct<1?"neg":""}">${ormP(e.pct)}</td><td class="n">${e.loss!=null?ormF0(e.loss):"—"}</td></tr>`).join(""):`<tr><td colspan="3" class="note">Menunggu berkas lifting/produksi.</td></tr>`}</tbody></table></div>
+      ${ewProd?`<p class="note">Potential loss produksi = |Real − Plan YTD| ${ormF2(ewProd.gap)} MBOEPD × ${ewProd.days} hari × ICP USD ${fmt(C.par.icp,2)} × net profit margin ${ormP(C.par.npm)} (sesuai Formulir Loss Event tim).</p>`:""}
+      <div class="osub">RINGKASAN EKSPOSUR (000 USD)</div><div class="otw"><table class="otab"><thead><tr><th>IRE</th><th>RRE</th><th>CRE</th><th>CRE ÷ IRE</th></tr></thead><tbody><tr><td class="n">${ormF0(T.ire)}</td><td class="n">${ormF0(T.rre)}</td><td class="n">${ormF0(T.cre)}</td><td class="n">${ormP(T.ire?T.cre/T.ire:null)}</td></tr></tbody></table></div>
+      <p class="note">Risk Limit ${ormF0(C.par.rl)} · RMT ${ormF0(C.rmt)} (${ormP(C.par.rmtPct)} × Risk Limit, TKI Lampiran 1).</p></div>
+  </div>
+  <div class="opan wide"><div class="oph">PETA RISIKO (HEATMAP) · RISK MANAGEMENT</div><div class="ohw" id="ormHeat">${ormHeat(C,ORMV.mode)}</div>
+    <div class="otw" style="margin-top:12px"><table class="otab"><thead><tr><th>No</th><th class="l">Risk Event</th><th>Inherent<br><small>dampak · prob → skala</small></th><th>Current<br><small>dampak · prob → skala</small></th><th>Residual<br><small>dampak · prob → skala</small></th><th>Posisi current</th></tr></thead><tbody>
+    ${C.rows.map(x=>{ const mv=x.curS==null||x.resS==null?"—":x.curS>x.resS?`<span class="neg">di atas target residual</span>`:x.curS<x.resS?`<span class="pos">di bawah target residual</span>`:"sama dengan target residual";
+      return `<tr><td class="c">${x.r.no}</td><td class="l">${esc(x.r.name)}</td><td class="c">D${x.r.inh.d||"?"} · P${x.r.inh.p||"?"} → <b>${x.inhS??"—"}</b></td><td class="c">D${x.d||"?"} · P${x.p||"?"} → <b>${x.curS??"—"}</b></td><td class="c">D${x.r.res.d||"?"} · P${x.r.res.p||"?"} → <b>${x.resS??"—"}</b></td><td class="c">${mv}</td></tr>`; }).join("")}</tbody></table></div>
+    <p class="note">Peta Risiko BUMN 5×5 (TKI C12-004 Lampiran 4): angka di kotak = skala risiko; nomor bulat = nomor risk event. D = skala dampak, P = skala probabilitas.</p></div>
+  <div class="opan wide"><div class="oph">TREN Σ CURRENT RISK EXPOSURE (000 USD)</div>${ormTrend(V)}</div>
+  <div class="opan wide"><div class="oph">RINCIAN PERHITUNGAN</div>${ormCalcDetail(C)||`<p class="note">Menunggu berkas.</p>`}</div>`;
+}
+function ormInp(path,val,opt={}){ const ro=!isRM()?" disabled":""; const w=opt.w?` style="width:${opt.w}px"`:"";
+  if(opt.sel) return `<select data-oparam="${path}"${ro}>${opt.sel.map(([v,t])=>`<option value="${v}" ${String(val??"")===String(v)?"selected":""}>${t}</option>`).join("")}</select>`;
+  return `<input data-oparam="${path}" value="${val==null?"":esc(val)}" inputmode="decimal"${w}${opt.ph?` placeholder="${esc(opt.ph)}"`:""}${ro}>`; }
+function renderOrmData(){
+  const box=$("ormDataBody"); if(!box) return; const p=ORM.params, ks=Object.keys(ORM.periods).sort();
+  const sc=[["","—"],[1,"1"],[2,"2"],[3,"3"],[4,"4"],[5,"5"]];
+  const msgs=ORMV.msg.map(m=>`<div class="omsg ${m.k}">${esc(m.t)}</div>`).join("");
+  box.innerHTML=`
+  <div id="ormDrop" class="odrop" tabindex="0" role="button" aria-label="Pilih atau seret berkas Excel ORM">
+    <div class="dropic" aria-hidden="true">⇪</div><strong>Seret berkas Excel ORM ke sini</strong><br><span class="note">atau klik untuk memilih · boleh beberapa berkas sekaligus</span>
+    <div class="ftypes"><span class="tag">Monitoring Lifting (wajib)</span><span class="tag rr">Rekonsiliasi Produksi (wajib)</span>${isRM()?`<span class="tag unk">Kertas Kerja Perhitungan Current Risk (opsional, untuk parameter)</span>`:""}</div>
+    <input id="ormFile" type="file" accept=".xlsx,.xlsm" multiple class="hidden"></div>
+  <div class="row" style="margin-top:10px"><button class="btn" data-orm-demo="1">Muat Data Contoh ORM</button>${ORMV.busy?`<span class="note">Memproses berkas…</span>`:""}${ks.length?`<button class="btn primary" id="ormGo">Buka Dashboard ORM →</button>`:""}</div>
+  ${msgs?`<div class="omsgs">${msgs}</div>`:""}
+  <div class="oguide"><b>Yang diambil otomatis dari berkas</b><ul>
+    <li><b>Monitoring Lifting</b> → sheet <i>Dashboard</i>, baris BOE <i>Region 1</i>: Lift RKAP FY (V143), Lift Prognosa FY (AA143), Lift RKAP YTD, Lift Real YTD.</li>
+    <li><b>Rekonsiliasi Produksi</b> → sheet <i>Oil</i> dan <i>Gas</i>, baris <i>Regional 1 – Total</i> (baris 332): RKAP, Prognosa, YTD Target, YTD Actual. Gas dikonversi ke BOE × ${fmt(p.conv,4)}, lalu dijumlah menjadi migas.</li>
+    <li>Periode dibaca dari isi berkas lifting atau dari nama berkas (misal “Okt 26”).</li></ul></div>
+  <h3 class="oh3">Periode tersimpan</h3>${ks.length?`<div class="otw"><table class="otab"><thead><tr><th class="l">Periode</th><th class="l">Monitoring Lifting</th><th class="l">Rekonsiliasi Produksi</th><th>Σ CRE (000 USD)</th>${isRM()?"<th></th>":""}</tr></thead><tbody>${ks.map(k=>{ const P=ORM.periods[k];
+    return `<tr><td class="l">${monthLabel(k)}${k===ORM.cur?" <span class='badge'>aktif</span>":""}</td><td class="l">${P.lift?esc(P.lift.file):"<span class='neg'>belum</span>"}</td><td class="l">${P.prod?esc(P.prod.file):"<span class='neg'>belum</span>"}</td><td class="n">${P.snap?ormF0(P.snap.cre):"—"}</td>${isRM()?`<td class="c"><button class="btn sm" data-orm-del="${k}">Hapus</button></td>`:""}</tr>`; }).join("")}</tbody></table></div>`:`<p class="note">Belum ada.</p>`}
+  <h3 class="oh3">Parameter Risk Register ORM ${p.example?`<span class="badge demo">CONTOH</span>`:`<span class="badge">dari ${esc(p.src||"isian manual")}</span>`}</h3>
+  <p class="note">Nilai dampak, skala, dan jumlah risk treatment diambil dari Kertas Kerja Perhitungan Current Risk tim (sekali impor, lalu tersimpan di peramban ini). Setiap bulan cukup unggah berkas lifting dan produksi; perbarui <b>jumlah risk treatment selesai</b> dan <b>skala probabilitas current</b> bila berubah. ${isRM()?"":"<b>Akun Viewer hanya dapat melihat parameter.</b>"}</p>
+  <div class="oparg"><label>Risk Limit (000 USD)${ormInp("rl",p.rl)}</label><label>RMT (% dari Risk Limit)${ormInp("rmtPct",p.rmtPct!=null?r2(p.rmtPct*100):"",{ph:"50"})}</label>
+    <label>Konversi gas → BOE${ormInp("conv",p.conv)}</label><label>ICP (USD/bbl)${ormInp("icp",p.icp)}</label><label>Net profit margin (%)${ormInp("npm",p.npm!=null?r2(p.npm*100):"")}</label></div>
+  <div class="otw"><table class="otab par"><thead><tr><th rowspan="2">No</th><th rowspan="2">Jenis</th><th rowspan="2" class="l">Risk Event</th><th rowspan="2">Current impact</th><th colspan="3">Inherent</th><th colspan="3">Residual</th><th colspan="3">Current</th><th colspan="2">Risk Treatment</th></tr>
+    <tr><th>Dampak<br><small>000 USD</small></th><th>D</th><th>P</th><th>Dampak<br><small>000 USD</small></th><th>D</th><th>P</th><th>CIV manual<br><small>000 USD</small></th><th>D<br><small>kosong = otomatis</small></th><th>P</th><th>Plan</th><th>Selesai</th></tr></thead><tbody>
+    ${p.risks.map((r,i)=>{ const q=r.type!=="Kualitatif"; return `<tr><td>${ormInp(`risks.${i}.no`,r.no,{w:38})}</td><td>${ormInp(`risks.${i}.type`,r.type,{sel:[["Kuantitatif","Kuantitatif"],["Kualitatif","Kualitatif"]]})}</td><td class="l">${ormInp(`risks.${i}.name`,r.name,{w:260})}</td>
+      <td class="osel">${ormInp(`risks.${i}.auto`,r.auto||"",{sel:[["","Manual"],["produksi","Auto · produksi"],["lifting","Auto · lifting"]]})}</td>
+      <td>${q?ormInp(`risks.${i}.inh.imp`,r.inh.imp,{w:84}):"—"}</td><td>${ormInp(`risks.${i}.inh.d`,r.inh.d,{sel:sc})}</td><td>${ormInp(`risks.${i}.inh.p`,r.inh.p,{sel:sc})}</td>
+      <td>${q?ormInp(`risks.${i}.res.imp`,r.res.imp,{w:84}):"—"}</td><td>${ormInp(`risks.${i}.res.d`,r.res.d,{sel:sc})}</td><td>${ormInp(`risks.${i}.res.p`,r.res.p,{sel:sc})}</td>
+      <td>${q&&!r.auto?ormInp(`risks.${i}.cur.imp`,r.cur.imp,{w:84}):`<span class="note">${q?"otomatis":"—"}</span>`}</td><td>${ormInp(`risks.${i}.cur.d`,r.cur.d,{sel:sc})}</td><td>${ormInp(`risks.${i}.cur.p`,r.cur.p,{sel:sc})}</td>
+      <td>${ormInp(`risks.${i}.rt.plan`,r.rt.plan,{w:52})}</td><td>${ormInp(`risks.${i}.rt.done`,r.rt.done,{w:52})}</td>${isRM()?`<td><button class="btn sm" data-orm-rm="${i}" title="Hapus baris">×</button></td>`:""}</tr>`; }).join("")}</tbody></table></div>
+  ${isRM()?`<div class="row" style="margin-top:10px"><button class="btn" id="ormAdd">＋ Tambah risk event</button><button class="btn" id="ormXls">Unduh Kertas Kerja ORM (.xlsx)</button><button class="btn" id="ormReset">Kembalikan parameter contoh</button></div>`:""}`;
+}
+function renderOrm(){ if(ROUTE==="orm") renderOrmDash(); if(ROUTE==="ormdata") renderOrmData(); }
+function ormParseIn(s){ s=String(s||"").trim().replace(/\s/g,""); if(!s) return null;
+  if(/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s=s.replace(/\./g,"").replace(",","."); else if(/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) s=s.replace(/,/g,""); else s=s.replace(",",".");
+  const v=parseFloat(s); return isFinite(v)?v:null; }
+function ormSetPath(path,raw){
+  const parts=path.split("."); let o=ORM.params; for(let i=0;i<parts.length-1;i++) o=o[parts[i]];
+  const k=parts[parts.length-1]; const s=String(raw).trim();
+  if(["name","type"].includes(k)) o[k]=s; else if(k==="auto") o[k]=s||null;
+  else if(k==="rmtPct"||k==="npm"){ const v=ormParseIn(s); o[k]=v==null?null:v/100; }
+  else o[k]=ormParseIn(s);
+  if(path!=="example") ORM.params.example=false;
+}
+document.addEventListener("change",e=>{ const t=e.target;
+  if(t.id==="ormPer"){ ORM.cur=t.value; ormSave(); renderOrm(); return; }
+  if(t.dataset&&t.dataset.oparam&&isRM()){ ormSetPath(t.dataset.oparam,t.value); ormSnap(); ormSave(); renderOrmData(); }
+  if(t.id==="ormFile"&&t.files&&t.files.length){ const f=[...t.files]; t.value=""; ormAddFiles(f); } });
+document.addEventListener("click",e=>{ const t=e.target.closest&&e.target.closest("[data-orm-demo],[data-ohm],#ormGo,#ormAdd,#ormReset,#ormXls,[data-orm-del],[data-orm-rm],#ormDrop"); if(!t) return;
+  if(t.dataset.ormDemo){ ORMV.demo=true; ORMV.msg=[{k:"ok",t:"Data contoh ORM dimuat (angka dummy, tidak disimpan)."}]; go("orm"); return; }
+  if(t.dataset.ohm){ ORMV.mode=t.dataset.ohm; const V=ormView(); if(V.cur) $("ormHeat").innerHTML=ormHeat(ormCalc(V,V.cur),ORMV.mode); return; }
+  if(t.id==="ormGo"){ ORMV.demo=false; go("orm"); return; }
+  if(t.id==="ormDrop"){ $("ormFile").click(); return; }
+  if(!isRM()) return;
+  if(t.id==="ormAdd"){ const n=ORM.params.risks.reduce((a,r)=>Math.max(a,+r.no||0),0)+1; ORM.params.risks.push({no:n,type:"Kuantitatif",name:"Risk event baru",auto:null,inh:{imp:null,d:null,p:null},res:{imp:null,d:null,p:null},cur:{imp:null,d:null,p:null},rt:{plan:0,done:0}}); ormSave(); renderOrmData(); return; }
+  if(t.dataset.ormRm!=null){ ORM.params.risks.splice(+t.dataset.ormRm,1); ormSnap(); ormSave(); renderOrmData(); return; }
+  if(t.dataset.ormDel){ if(t.classList.contains("cf")){ delete ORM.periods[t.dataset.ormDel]; if(ORM.cur===t.dataset.ormDel) ORM.cur=null; ormSave(); renderOrmData(); } else { t.classList.add("cf"); t.textContent="Yakin hapus?"; } return; }
+  if(t.id==="ormReset"){ if(t.classList.contains("cf")){ ORM.params=ormDefaults(); ormSnap(); ormSave(); renderOrmData(); } else { t.classList.add("cf"); t.textContent="Klik lagi untuk konfirmasi"; } return; }
+  if(t.id==="ormXls"){ ormExport(); return; } });
+document.addEventListener("keydown",e=>{ if(e.target&&e.target.id==="ormDrop"&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); $("ormFile").click(); } });
+["dragover","drop"].forEach(ev=>document.addEventListener(ev,e=>{ const z=e.target.closest&&e.target.closest("#ormDrop"); if(!z) return; e.preventDefault(); e.stopPropagation();
+  if(ev==="dragover") z.classList.add("over"); else { z.classList.remove("over"); const f=[...(e.dataTransfer&&e.dataTransfer.files||[])]; if(f.length) ormAddFiles(f); } },true));
+document.addEventListener("dragleave",e=>{ const z=e.target.closest&&e.target.closest("#ormDrop"); if(z) z.classList.remove("over"); });
+
+/* ---------- unduh kertas kerja (format tim, dengan rumus) ---------- */
+function ormExport(){
+  const V=ormView(); const C=ormCalc(V,V.cur), par=C.par, key=V.cur||"";
+  const W={}, put=(ref,v,s)=>{ W[ref]={v,s}; }, F=(ref,f,v,s)=>{ W[ref]={v,f,s}; };
+  const H={font:{b:1,color:"FFFFFF"},fill:"16365C",bd:"lrtb",h:"center",v:"center",wrap:1}, B={bd:"lrtb"}, BN={bd:"lrtb",nf:"#,##0"}, BC={bd:"lrtb",h:"center"}, BP={bd:"lrtb",nf:"0.0%",h:"center"}, IN={bd:"lrtb",fill:"FFF2CC",nf:"#,##0"}, INC={bd:"lrtb",fill:"FFF2CC",h:"center"}, T={font:{b:1,sz:13,color:"16365C"}}, BB={font:{b:1}};
+  const per=key?`PERIODE ${NAMA_BULAN[+key.slice(5)].toUpperCase()} TAHUN ${key.slice(0,4)}`:"PERIODE —";
+  put("B1","KERTAS KERJA PERHITUNGAN DAMPAK CURRENT RISK",T); put("B2","REGIONAL 1",BB); put("B3",per,BB); put("D4","Sel kuning = isian/parameter; sel lain berisi rumus. Dihasilkan oleh website Monitoring Risiko (ORM).",{font:{i:1,color:"6B7A90"}});
+  [["A6","No."],["B6","Kuantitatif/ Kualitatif Risk"],["C6","RISK EVENT TOP RISK"],["D6","INHERENT"],["I6","RESIDUAL"],["O6","CURRENT"],["Z6","Risk Treatment"]].forEach(([r,t])=>put(r,t,H));
+  const sub=[["D","Dampak Kuantitatif (000 USD)"],["E","Skala Dampak"],["F","Skala Probabilitas"],["G","LEVEL RISIKO"],["H","IRE"],["I","Dampak Kuantitatif (000 USD)"],["J","Skala Dampak"],["K","Skala Probabilitas"],["L","LEVEL RISIKO"],["M","RRE"],["O","Dampak Kuantitatif (CIV) (000 USD)"],["P","Skala Dampak"],["Q","Skala Probabilitas"],["R","RPN"],["S","CRE"],["T","Nilai tengah Probability"],["Z","Plan"],["AA","Realization"],["AB","%"],["AC","Outstanding"]];
+  sub.forEach(([c,t])=>put(c+"7",t,H)); ["A","B","C"].forEach(c=>put(c+"7","",H));
+  put("AJ9","Risk Limit",BB); put("AK9",par.rl,IN); put("AJ10","RMT",BB); F("AK10",`AK9*${par.rmtPct||0.5}`,C.rmt,BN); put("AL10",`= ${r2((par.rmtPct||0.5)*100)}% × Risk Limit (TKI Lampiran 1)`,{font:{i:1,color:"6B7A90"}});
+  put("AN20","RISK MATRIX (HEATMAP BUMN)",BB); for(let p=5,i=0;p>=1;p--,i++){ put("AN"+(22+i),`${p}. ${ORM_PL[p]}`,B); [1,2,3,4,5].forEach(d=>{ const s=ORM_MX[p][d], lv=ormLv(s); put(colL(40+d)+(22+i),s,{bd:"lrtb",h:"center",fill:lv.c.slice(1).toUpperCase()}); }); }
+  [1,2,3,4,5].forEach(d=>put(colL(40+d)+"27",`${d}. ${ORM_DL[d]}`,{bd:"lrtb",h:"center",wrap:1})); put("AN27","Probabilitas ↑ / Dampak →",{font:{i:1}});
+  const MX="$AO$22:$AS$26", mid=c=>`CHOOSE(${c},0.1,0.3,0.5,0.7,0.9)`, lvl=(d,p)=>`IF(AND(${d}>0,${p}>0),INDEX(${MX},6-${p},${d}),"")`;
+  const r0=9, rowOf={}; C.rows.forEach((x,i)=>{ const r=r0+i, R=x.r; rowOf[R.no+"|"+i]=r; x._row=r;
+    put("A"+r,R.no,BC); put("B"+r,R.type,B); put("C"+r,R.name,{bd:"lrtb",wrap:1});
+    if(x.q) put("D"+r,R.inh.imp,IN); else put("D"+r,"",B); put("E"+r,R.inh.d,INC); put("F"+r,R.inh.p,INC); F("G"+r,lvl("E"+r,"F"+r),x.inhS,BC); x.q?F("H"+r,`IF(D${r}="","",D${r}*${mid("F"+r)})`,x.ire,BN):put("H"+r,"",B);
+    if(x.q) put("I"+r,R.res.imp,IN); else put("I"+r,"",B); put("J"+r,R.res.d,INC); put("K"+r,R.res.p,INC); F("L"+r,lvl("J"+r,"K"+r),x.resS,BC); x.q?F("M"+r,`IF(I${r}="","",I${r}*${mid("K"+r)})`,x.rre,BN):put("M"+r,"",B);
+    if(x.q&&!R.auto) put("O"+r,R.cur.imp,IN); else if(!x.q) put("O"+r,"",B);
+    if(R.cur.d!=null&&R.cur.d!=="") put("P"+r,R.cur.d,INC); else if(x.q) F("P"+r,`IF(O${r}="","",IF(O${r}/$AK$10<0.2,1,IF(O${r}/$AK$10<0.4,2,IF(O${r}/$AK$10<0.6,3,IF(O${r}/$AK$10<0.8,4,5)))))`,x.d,BC);
+    put("Q"+r,R.cur.p,INC); F("R"+r,lvl("P"+r,"Q"+r),x.curS,BC); x.q?F("S"+r,`IF(O${r}="","",O${r}*${mid("Q"+r)})`,x.cre,BN):put("S"+r,"",B); F("T"+r,`IF(Q${r}>0,${mid("Q"+r)},"")`,x.p?ORM_MID[x.p]:null,BP);
+    put("Z"+r,x.plan,IN); put("AA"+r,x.done,IN); F("AB"+r,`IF(Z${r}>0,AA${r}/Z${r},"")`,x.I,BP); F("AC"+r,`Z${r}-AA${r}`,x.plan-x.done,BC); });
+  const rT=r0+C.rows.length; put("C"+rT,"TOTAL (risiko kuantitatif)",{bd:"lrtb",font:{b:1}});
+  F("H"+rT,`SUM(H${r0}:H${rT-1})`,C.T.ire,{...BN,font:{b:1}}); F("M"+rT,`SUM(M${r0}:M${rT-1})`,C.T.rre,{...BN,font:{b:1}}); F("S"+rT,`SUM(S${r0}:S${rT-1})`,C.T.cre,{...BN,font:{b:1}});
+  F("Z"+rT,`SUM(Z${r0}:Z${rT-1})`,C.T.plan,{...BC,font:{b:1}}); F("AA"+rT,`SUM(AA${r0}:AA${rT-1})`,C.T.done,{...BC,font:{b:1}}); F("AB"+rT,`IF(Z${rT}>0,AA${rT}/Z${rT},"")`,C.T.plan?C.T.done/C.T.plan:null,{...BP,font:{b:1}}); F("AC"+rT,`Z${rT}-AA${rT}`,C.T.plan-C.T.done,{...BC,font:{b:1}});
+  let r=Math.max(rT+4,30); const mg=C.mg, rM=r;
+  put("B"+r,"PERHITUNGAN MIGAS",T); put("J"+r,"Konversi gas → BOE",BB); put("L"+r,par.conv,{...IN,nf:"0.0000"});
+  ["C","D","E","F","G","H"].forEach((c,i)=>put(c+(r+1),["Plan YTD","Real YTD","%","RKAP","Prognosa","%"][i],H)); put("B"+(r+1),"",H);
+  const mrow=(rr,lb,o)=>{ put("B"+rr,lb,B); ["ytdT","ytdA"].forEach((k,i)=>put(["C","D"][i]+rr,o?o[k]:null,{...IN,nf:"#,##0.000"})); F("E"+rr,`IF(C${rr}=0,"",D${rr}/C${rr})`,null,BP); ["rkap","progn"].forEach((k,i)=>put(["F","G"][i]+rr,o?o[k]:null,{...IN,nf:"#,##0.000"})); F("H"+rr,`IF(F${rr}=0,"",G${rr}/F${rr})`,null,BP); };
+  mrow(r+2,"Oil (MBOPD)",mg&&mg.oil); mrow(r+3,"Gas (MMSCFD)",mg&&mg.gas);
+  const rk=r+4, rm=r+5; put("B"+rk,"Konversi (MBOEPD)",B); ["C","D","F","G"].forEach(c=>F(c+rk,`${c}${r+3}*$L$${r}`,null,{bd:"lrtb",nf:"#,##0.000"})); F("E"+rk,`IF(C${rk}=0,"",D${rk}/C${rk})`,null,BP); F("H"+rk,`IF(F${rk}=0,"",G${rk}/F${rk})`,null,BP);
+  put("B"+rm,"Migas (MBOEPD)",{bd:"lrtb",font:{b:1}}); ["C","D","F","G"].forEach(c=>F(c+rm,`${c}${r+2}+${c}${rk}`,null,{bd:"lrtb",nf:"#,##0.000",font:{b:1}})); F("E"+rm,`IF(C${rm}=0,"",D${rm}/C${rm})`,null,BP); F("H"+rm,`IF(F${rm}=0,"",G${rm}/F${rm})`,null,BP);
+  F("E"+(rm+1),`IF(E${rm}="","",1-E${rm})`,null,BP); F("H"+(rm+1),`IF(H${rm}="","",1-H${rm})`,null,BP); put("B"+(rm+1),"Deviasi",B);
+  r=rm+3; const liftR=r; put("B"+r,"LIFTING MIGAS (BOE, Region 1, MBOEPD)",T); ["C","D","E","F"].forEach((c,i)=>put(c+(r+1),["Lift RKAP FY","Lift Prognosa FY","Lift RKAP YTD","Lift Real YTD"][i],H)); put("B"+(r+1),"",H);
+  const L=C.P&&C.P.lift; put("B"+(r+2),"Region 1",B); ["rkapFY","prognFY","rkapYTD","realYTD"].forEach((k,i)=>put(["C","D","E","F"][i]+(r+2),L?L[k]:null,{...IN,nf:"#,##0.000"}));
+  r=r+5;
+  C.rows.filter(x=>x.r.auto&&x.q).forEach(x=>{ const rr=x._row, top=r, isP=x.r.auto==="produksi";
+    put("B"+r,`${x.r.no}. ${x.r.name}`,T); r++;
+    const lines=[["A","Nilai dampak inherent (000 USD)",`D${rr}`],["B","Nilai dampak residual (000 USD)",`I${rr}`],["C","Inherent − residual (A − B)",`D${r}-D${r+1}`],
+      ["D",isP?"Target RKAP migas (MBOEPD)":"Lift RKAP FY (MBOEPD)",isP?`F${rm}`:`C${liftR+2}`],["E",isP?"Prognosa migas (MBOEPD)":"Lift Prognosa FY (MBOEPD)",isP?`G${rm}`:`D${liftR+2}`],
+      ["F","Deviasi ((D − E) ÷ D)",`IF(D${r+3}=0,"",(D${r+3}-D${r+4})/D${r+3})`],["G","Total risk treatment",`Z${rr}`],["H","Risk treatment selesai",`AA${rr}`],["I","% risk treatment (H ÷ G)",`IF(D${r+6}=0,"",D${r+7}/D${r+6})`],
+      ["CIV","Current Impact = (A + A×F) − (I×C)",`(D${r}+D${r}*D${r+5})-(D${r+8}*D${r+2})`]];
+    lines.forEach(([c,lb,f],i)=>{ put("B"+(r+i),lb,B); put("C"+(r+i),c,BC); F("D"+(r+i),f,null,{bd:"lrtb",nf:["F","I"].includes(c)?"0.0%":c==="D"||c==="E"?"#,##0.000":"#,##0",font:c==="CIV"?{b:1}:undefined}); });
+    F("O"+rr,`D${r+9}`,x.civ,{...BN,fill:"DDEBF7"}); r+=12; void top; });
+  put("B"+r,"POTENTIAL LOSS PRODUKSI MIGAS (Formulir Loss Event)",T); r++;
+  const pl=[["|Real − Plan YTD| (MBOEPD)",`ABS(D${rm}-C${rm})`,"#,##0.000"],["Hari (YTD)",C.P?C.P.days||ormDaysYTD(key):null,"0"],["ICP (USD/bbl)",par.icp,"#,##0.00"],["Net profit margin",par.npm,"0%"],["Potential loss (000 USD)",`D${r}*D${r+1}*D${r+2}*D${r+3}`,"#,##0"]];
+  pl.forEach(([lb,v,nf],i)=>{ put("B"+(r+i),lb,B); if(typeof v==="string") F("D"+(r+i),v,null,{bd:"lrtb",nf,font:i===4?{b:1}:undefined}); else put("D"+(r+i),v,{...IN,nf}); });
+  r+=6; put("B"+r,"Catatan: skala dampak current kuantitatif = Current Impact ÷ RMT dibandingkan kolom Financial TKI Lampiran 2 (<20%, 20–40%, 40–60%, 60–80%, >80%). Level risiko memakai Peta Risiko BUMN (Lampiran 4) dan Tabel 1 TKI C12-004.",{font:{i:1,color:"6B7A90"}});
+  // susun baris
+  let maxR=0; for(const ref in W){ const {r:rr}=refRC(ref); if(rr>maxR) maxR=rr; }
+  const rows=Array.from({length:maxR},()=>[]); for(const ref in W){ const {c,r:rr}=refRC(ref), x=W[ref]; rows[rr-1][c-1]=x.f?{v:x.v,f:x.f,s:x.s||0}:{v:x.v,s:x.s||0}; }
+  const widths=[5,20,44,14,9,10,9,10,14,9,10,9,10,2,15,9,10,8,12,10,2,2,2,2,2,8,10,8,10,2,2,2,2,2,2,12,14,2,2,26,12,12,12,12,12];
+  const sh={name:key?`${ORM_BLN[+key.slice(5)]} ${key.slice(0,4)}`:"ORM",rows,widths,heights:{6:30,7:46},freeze:"D8",merges:["D6:H6","I6:M6","O6:T6","Z6:AC6","A6:A7","B6:B7","C6:C7"],tab:"16365C"};
+  saveBlob(buildXlsx([sh]),`Kertas_Kerja_Current_Risk_ORM_${key?ormMonthLabel(key).replace(" ","_"):"data"}${V.demo?"_CONTOH":""}.xlsx`);
+}
+
 /* ===================== LOGIN & PERAN PENGGUNA ===================== */
 // Akun disimpan sebagai hash: id = SHA-256("mrp:"+username), password = PBKDF2-SHA256 (100.000 iterasi, salt acak).
 // Tidak ada username/password asli di dalam kode. Data laporan tetap hanya diolah di peramban.
 const MR_USERS=[{"id":"0972620b10183b5ed859824414172291e9612d90f88b65f7f24914afafe22421","n":"Charla","r":"rm","s":"AyMkkIsw9Rm7nBagkiZIQA==","h":"05da536d355c76d370df488d793203f0de90bfd9c50b469851741248b09b6b94"},{"id":"f8f8332e8ea873d12838834b02e79a2fef0a5cf5c60db0d547689a9f0dde50ea","n":"Risk Management","r":"rm","s":"HS6z4GtqjMrsPEFFBuc6mg==","h":"4d5e19687dc232103e5d7426ab2087105132c81f9f9349af2262ec577f27f3e9"},{"id":"8be344534349dab4fea6cca1cac1a461ae659ebe27657bf6073ad0090fc4156d","n":"Viewer","r":"viewer","s":"VZuWBgM1ujjS0cxqifQmqQ==","h":"00fef0a6b78492f9cae0bfe01788722f78e1fa7cca08840d506f3bf0ca035df5"}];
 const ROLE_INFO={
-  rm:{label:"Risk Management",routes:null,desc:"Semua menu: unggah, isi otomatis, penilaian profesional, pemeriksaan, dan unduh berkas"},
-  viewer:{label:"Viewer",routes:["dashboard","proyek","unggah","istilah"],desc:"Hanya melihat Dashboard, Halaman Proyek, dan Daftar Istilah"}};
+  rm:{label:"Risk Management",routes:null,desc:"Semua menu PRM & ORM: unggah, isi otomatis, penilaian, parameter, dan unduh berkas"},
+  viewer:{label:"Viewer",routes:["dashboard","proyek","unggah","istilah","orm","ormdata"],desc:"Hanya melihat dashboard PRM & ORM, Halaman Proyek, dan Daftar Istilah"}};
 let AUTH=null; const SESS_KEY="mrp:sess", SESS_DAYS=30; let lgFail=0, lgLockUntil=0;
 function canRoute(r){ if(!AUTH) return false; const ri=ROLE_INFO[AUTH.r]; return !!ri&&(!ri.routes||ri.routes.includes(r)); }
 function isRM(){ return !!AUTH&&AUTH.r==="rm"; }
@@ -2664,6 +3108,8 @@ function applyAuth(u){
   const ub=$("userBox"); if(ub) ub.innerHTML=AUTH?`<div class="uav" aria-hidden="true">${esc(AUTH.n.charAt(0).toUpperCase())}</div><div class="uinf"><b>${esc(AUTH.n)}</b><span class="urole r-${AUTH.r}">${esc(ROLE_INFO[AUTH.r].label)}</span></div><button class="ulogout" id="logoutBtn" title="Keluar">Keluar</button>`:"";
   const lb=$("logoutBtn"); if(lb) lb.onclick=logout;
 }
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-stream-go]"); if(!b) return; e.preventDefault();
+  if(b.dataset.streamGo==="orm") go(Object.keys(ORM.periods).length||ORMV.demo?"orm":"ormdata"); else go(hasData()?"dashboard":"unggah"); });
 function logout(){ sessClear(); AUTH=null; try{ location.hash=""; }catch(e){} location.reload(); }
 const LG_IC={user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
   lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
@@ -2680,13 +3126,13 @@ function lgArt(){ // ilustrasi dashboard mini
 }
 function showLogin(err){
   const el=$("login");
-  el.innerHTML=`<div class="lg-hero"><div class="lg-top"><span class="lg-mark">${LG_IC.shield}</span><div><b>Monitoring Risiko</b><small>Proyek Prioritas · v0.5</small></div></div>
-    <div class="lg-copy"><div class="lg-eye">Risk Management · Early Warning System</div><h1>Monitoring Risiko<br><span>Proyek Prioritas</span></h1>
-    <p>EWS, ALERT, dan dashboard risiko proyek dari Risk Register dan MONEVA, dalam satu tempat.</p></div>
+  el.innerHTML=`<div class="lg-hero"><div class="lg-top"><span class="lg-mark">${LG_IC.shield}</span><div><b>Monitoring Risiko</b><small>PRM &amp; ORM · v0.6</small></div></div>
+    <div class="lg-copy"><div class="lg-eye">Risk Management · Early Warning System</div><h1>Monitoring Risiko<br><span>Proyek Prioritas &amp; Ongoing Business</span></h1>
+    <p>PRM: EWS, ALERT, dan dashboard proyek dari Risk Register dan MONEVA. ORM: current risk dan heatmap dari data lifting dan produksi.</p></div>
     <div class="lg-artw">${lgArt()}</div>
     <div class="lg-roles"><div><b>Risk Management</b><span>${ROLE_INFO.rm.desc}</span></div><div><b>Viewer</b><span>${ROLE_INFO.viewer.desc}</span></div></div></div>
   <div class="lg-side"><form class="lg-card" id="loginForm" autocomplete="on" novalidate>
-    <div class="lg-cmark">${LG_IC.shield}</div><div class="lg-mtitle">Monitoring Risiko · Proyek Prioritas</div><h2>Selamat datang</h2><p class="lg-sub">Masuk dengan akun yang diberikan tim Risk Management.</p>
+    <div class="lg-cmark">${LG_IC.shield}</div><div class="lg-mtitle">Monitoring Risiko · PRM &amp; ORM</div><h2>Selamat datang</h2><p class="lg-sub">Masuk dengan akun yang diberikan tim Risk Management.</p>
     <label class="lg-lbl" for="lgUser">Username</label><div class="lg-field">${LG_IC.user}<input id="lgUser" name="username" autocomplete="username" placeholder="Username" autocapitalize="none" spellcheck="false" required></div>
     <label class="lg-lbl" for="lgPw">Password</label><div class="lg-field">${LG_IC.lock}<input id="lgPw" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required><button type="button" class="lg-eyeb" id="lgEye" title="Tampilkan password" aria-label="Tampilkan password">${LG_IC.eye}</button></div>
     <label class="lg-rem"><input type="checkbox" id="lgRemember"> Ingat saya di perangkat ini</label>
@@ -2720,6 +3166,8 @@ const ROUTES={
   unggah:["Unggah & Panduan","Unggah berkas laporan serta panduan cara mengisi dan membaca"],
   periksa:["Pemeriksaan Data","Temuan yang perlu diverifikasi sebelum laporan disampaikan"],
   unduh:["Unduh Data","Simpan isian dan hasil perhitungan dalam satu berkas Excel"],
+  orm:["Dashboard ORM","Monitoring risiko Ongoing Business Regional 1 · produksi & lifting"],
+  ormdata:["Unggah & Parameter ORM","Berkas Monitoring Lifting, Rekonsiliasi Produksi, dan parameter risk register ORM"],
   istilah:["Daftar Istilah","Istilah bawaan website, atau dari sheet Index bila Database Dashboard diunggah"]};
 let ROUTE="unggah";
 function hasData(){return monthKeys().length>0||S.rr.length>0||!!S.db||S.lossIn.length>0||S.moneva.length>0;}
@@ -2739,6 +3187,9 @@ function applyRoute(){
   document.querySelectorAll("#nav a[data-route]").forEach(a=>a.classList.toggle("act",a.dataset.route===r||(r==="proyek"&&a.dataset.route==="dashboard")));
   const [t,s]=ROUTES[r]; $("pageTitle").textContent=r==="proyek"?(S.focus||t):t;
   $("pageSub").textContent=r==="proyek"?"Halaman proyek · klik “Kembali ke Dashboard” untuk melihat seluruh proyek":s;
+  const strm=r==="orm"||r==="ormdata"?"orm":"prm"; document.body.classList.toggle("s-orm",strm==="orm"); document.body.classList.toggle("s-prm",strm==="prm");
+  document.querySelectorAll("#streamSw [data-stream-go]").forEach(b=>{ b.classList.toggle("on",b.dataset.streamGo===strm); b.setAttribute("aria-selected",b.dataset.streamGo===strm); });
+  if(strm==="orm"){ $("emptyCard").classList.add("hidden"); closePop(); closeHist(); renderOrm(); window.scrollTo(0,0); return; }
   $("emptyCard").classList.toggle("hidden",has); closePop(); closeHist();
   if(has) refreshCross(); else renderFilterBar();
   window.scrollTo(0,0);
