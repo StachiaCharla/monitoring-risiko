@@ -324,6 +324,7 @@ body:not(.authed) .app{display:none}
 .lg-field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(2,85,193,.15);background:#fff}
 .lg-eyeb{position:absolute;right:6px;border:none;background:none;padding:6px;border-radius:8px;cursor:pointer;color:#8a96ad;display:flex}.lg-eyeb svg{width:18px;height:18px}.lg-eyeb.on,.lg-eyeb:hover{color:var(--accent)}
 .lg-rem{display:flex;align-items:center;gap:8px;margin:14px 0 4px;font-size:13px;color:var(--muted);cursor:pointer}
+.hown{color:#ffd166}
 .lg-caps{margin-top:8px;font-size:12.5px;color:#9a6200;background:#fff6e0;border:1px solid #f5d48a;border-radius:8px;padding:5px 9px}.lg-caps.hidden{display:none}.lg-ver{display:block;margin-top:2px;color:#a3adbf}.lg-foot{flex-wrap:wrap}
 .lg-err{min-height:20px;color:#c51e28;font-size:13px;margin:6px 0 4px}
 .lg-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:11px;padding:12px;font:inherit;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(90deg,var(--navy),var(--accent));cursor:pointer;box-shadow:0 6px 16px rgba(2,85,193,.28)}
@@ -1683,7 +1684,7 @@ const HDB="mrhist_v1", HST="sessions"; let _hdb=null, H=[], hDelArm=null;
 function hdb(){ if(_hdb) return _hdb; _hdb=new Promise((res,rej)=>{ if(!window.indexedDB) return rej(new Error("penyimpanan riwayat tidak didukung oleh peramban ini")); const r=indexedDB.open(HDB,1); r.onupgradeneeded=()=>r.result.createObjectStore(HST,{keyPath:"id"}); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);}); _hdb.catch(()=>{_hdb=null;}); return _hdb; }
 async function hTx(mode,fn){ const db=await hdb(); return new Promise((res,rej)=>{ const t=db.transaction(HST,mode), r=fn(t.objectStore(HST)); let out; if(r) r.onsuccess=()=>{out=r.result;}; t.oncomplete=()=>res(out); t.onerror=()=>rej(t.error); t.onabort=()=>rej(t.error); }); }
 const hGet=id=>hTx("readonly",st=>st.get(id)), hPut=o=>hTx("readwrite",st=>st.put(o)), hDel=id=>hTx("readwrite",st=>st.delete(id));
-async function hLoad(){ const all=await hTx("readonly",st=>st.getAll())||[]; H=all.filter(histMine).map(x=>({id:x.id,title:x.title,custom:x.custom,created:x.created,updated:x.updated,files:x.files.map(f=>({name:f.name,size:f.size}))})).sort((a,b)=>b.updated-a.updated); }
+async function hLoad(){ const all=await hTx("readonly",st=>st.getAll())||[]; H=all.filter(histMine).map(x=>({id:x.id,title:x.title,custom:x.custom,created:x.created,updated:x.updated,u:x.u,files:x.files.map(f=>({name:f.name,size:f.size}))})).sort((a,b)=>b.updated-a.updated); }
 function histMsg(t){ $("histMsg").textContent=t||""; }
 function autoTitle(){ const ks=monthKeys(); if(ks.length) return `Laporan ${monthLabel(ks[ks.length-1])}`; if(S.db) return "Database Dashboard"; if(S.moneva.length) return `MONEVA ${S.moneva[0].periodText||""} · ${S.moneva.length} proyek`.trim(); if(S.rr.length) return `Risk Register ${S.rr[0].rrName||S.rr[0].file}`; return S.files[0]?S.files[0].name:"Sesi tanpa nama"; }
 const fmtSize=b=>b>=1048576?`${(b/1048576).toFixed(1).replace(".",",")} MB`:`${Math.max(1,Math.round(b/1024))} KB`;
@@ -1714,7 +1715,7 @@ async function renderHist(){
   let g="", out="";
   H.forEach(x=>{ const gg=grpOf(x.updated); if(gg!==g){ out+=`<div class="hg">${gg}</div>`; g=gg; }
     const size=x.files.reduce((a,f)=>a+(f.size||0),0);
-    out+=`<div class="hi ${x.id===S.sessionId?"act":""}" data-id="${x.id}" title="${esc(x.files.map(f=>f.name).join("\n"))}"><div class="ht">${esc(x.title)}</div><div class="hm">${fmtWhen(x.updated)} · ${x.files.length} berkas · ${fmtSize(size)}</div><div class="ha"><button data-h="ren">Ubah Nama</button><button data-h="del" class="del ${hDelArm===x.id?"cf":""}">${hDelArm===x.id?"Konfirmasi hapus":"Hapus"}</button></div></div>`; });
+    out+=`<div class="hi ${x.id===S.sessionId?"act":""}" data-id="${x.id}" title="${esc(x.files.map(f=>f.name).join("\n"))}"><div class="ht">${esc(x.title)}</div><div class="hm">${fmtWhen(x.updated)} · ${x.files.length} berkas · ${fmtSize(size)}${isRM()&&x.u!==AUTH.id?` · <span class="hown">oleh ${esc(histOwner(x))}</span>`:""}</div><div class="ha"><button data-h="ren">Ubah Nama</button><button data-h="del" class="del ${hDelArm===x.id?"cf":""}">${hDelArm===x.id?"Konfirmasi hapus":"Hapus"}</button></div></div>`; });
   $("histList").innerHTML=out; renderHistResume();
 }
 function renderHistResume(){
@@ -2623,7 +2624,9 @@ const ROLE_INFO={
 let AUTH=null; const SESS_KEY="mrp:sess", SESS_DAYS=30; let lgFail=0, lgLockUntil=0;
 function canRoute(r){ if(!AUTH) return false; const ri=ROLE_INFO[AUTH.r]; return !!ri&&(!ri.routes||ri.routes.includes(r)); }
 function isRM(){ return !!AUTH&&AUTH.r==="rm"; }
-function histMine(x){ return !!AUTH&&(x.u?x.u===AUTH.id:isRM()); }
+// Risk Management melihat semua sesi di perangkat ini; Viewer hanya sesinya sendiri.
+function histMine(x){ return !!AUTH&&(isRM()||x.u===AUTH.id); }
+function histOwner(x){ if(!x.u) return "sebelum login"; const u=MR_USERS.find(y=>y.id===x.u); return u?u.n+(u.r==="viewer"&&!/viewer/i.test(u.n)?" (Viewer)":""):"akun lama"; }
 const AuthCrypto=(()=>{
   const enc=s=>new TextEncoder().encode(s), hex=b=>Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("");
   const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)), sub=window.crypto&&crypto.subtle;
