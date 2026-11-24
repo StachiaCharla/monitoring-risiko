@@ -371,7 +371,7 @@ body[data-route=orm] section[data-pg~=orm],body[data-route=ormdata] section[data
 .otab td.olv{text-align:center;font-weight:800;min-width:44px}.otab td.olv.none{color:#9aa6b8;font-weight:400}.otab tr:nth-child(even) td:not(.olv){background:#f7f9fc}
 .otab.det td.l small{color:var(--muted);margin-left:4px}.otab tr.dev td{font-style:italic;color:#7a5200}.otab tr.tot td{font-weight:800;background:#eef4ff!important}.otab.kv td:first-child{width:34px;text-align:center;font-weight:700;color:var(--muted)}
 .oauto{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:700;color:#0a4fb3;background:#e8f0fd;border-radius:999px;padding:1px 7px;vertical-align:1px}
-.oews{font-size:15px;font-weight:800}.oews.up{color:#f08a24}.oews.ok{color:#33415c}
+.oman{color:#7a5200;font-weight:800;margin-left:1px}.oews{font-size:15px;font-weight:800}.oews.up{color:#f08a24}.oews.ok{color:#33415c}
 .neg{color:#c51e28}.pos{color:#2e7d32}
 .odw{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-top:8px}.odonut{width:150px;height:150px}.olg{display:flex;flex-direction:column;gap:6px;font-size:13px}.olg i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 .oh3{font-size:14px;color:var(--navy);margin:14px 0 6px}
@@ -400,7 +400,7 @@ body[data-route=orm] section[data-pg~=orm],body[data-route=ormdata] section[data
 .oparg{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 10px}.oparg label{display:flex;flex-direction:column;font-size:11.5px;font-weight:700;color:var(--muted);gap:3px}
 .oparg input,.otab.par input,.otab.par select{font:inherit;font-size:12.5px;padding:5px 6px;border:1px solid var(--line);border-radius:6px;background:#fff;max-width:100%}
 .oparg input{width:140px}.otab.par td{padding:3px 4px}.otab.par input:disabled,.otab.par select:disabled,.oparg input:disabled{background:#f3f5f9;color:var(--ink)}
-.otab.par td.osel select{width:118px}.btn.sm{padding:3px 9px;font-size:12px}.btn.cf{border-color:var(--red);color:var(--red)}
+.otab.par td.osel select{width:128px}.otab.par td.oname{min-width:220px;max-width:380px}.otab.par td.oname small{display:block;color:var(--muted);font-size:11px}.otab.par select{min-width:54px}.btn.sm{padding:3px 9px;font-size:12px}.btn.cf{border-color:var(--red);color:var(--red)}
 .badge.demo{background:#ffd166;color:#5a4300}
 </style>
 </head>
@@ -1561,6 +1561,7 @@ const GLOSS=[
  {k:"IRE / RRE / CRE",v:"Inherent / Residual / Current Risk Exposure = nilai dampak kuantitatif × nilai tengah indeks probabilitas (10%, 30%, 50%, 70%, 90%). Satuan ribu USD (TKI C12-004)."},
  {k:"CIV (Current Impact Value)",v:"Nilai dampak terkini. Untuk risiko produksi/lifting: (A + A×F) − (I×C), A = dampak inherent, C = inherent − residual, F = deviasi prognosa terhadap RKAP, I = % risk treatment selesai."},
  {k:"Skala risiko / RPN",v:"Angka 1–25 pada Peta Risiko (Heatmap) BUMN 5×5 dari kombinasi skala dampak dan skala probabilitas. 1–5 Low, 6–11 Low to Moderate, 12–15 Moderate, 16–19 Moderate to High, 20–25 High."},
+ {k:"Skala probabilitas current (ORM)",v:"Otomatis dari % risk treatment selesai (rumus kertas kerja): ≤20% → 4, ≤40% → 3, di atas 40% → 2, tidak melebihi probabilitas inherent. Dapat diganti manual (expert judgement, TKI C13-002). Nilai tengah: 1=10%, 2=30%, 3=50%, 4=70%, 5=90%."},
  {k:"RMT (ORM)",v:"Risk Materiality Threshold ORM = 50% × Risk Limit (TKI C12-004 Lampiran 1). Skala dampak kuantitatif: <20% RMT = 1, 20–40% = 2, 40–60% = 3, 60–80% = 4, >80% = 5."},
  {k:"MBOEPD / MBOPD / MMSCFD",v:"Ribu barel setara minyak per hari / ribu barel minyak per hari / juta kaki kubik gas per hari. Gas dikonversi ke BOE dengan faktor 0,1726."},
  {k:"RKAP / Prognosa (lifting & produksi)",v:"RKAP = target tahunan; Prognosa = perkiraan capaian akhir tahun. YTD = kumulatif sejak Januari sampai bulan laporan."}
@@ -2705,8 +2706,8 @@ const ormMonthLabel=k=>k?monthLabel(k):"—";
 function ormDefaults(){ return {example:true, rl:150000, rmtPct:0.5, conv:0.1726, icp:80, npm:0.25, risks:[
   {no:1,type:"Kuantitatif",name:"Contoh: Tidak tercapainya target volume produksi migas",auto:"produksi",inh:{imp:80000,d:4,p:4},res:{imp:52000,d:3,p:3},cur:{imp:null,d:null,p:5},rt:{plan:120,done:90}},
   {no:2,type:"Kuantitatif",name:"Contoh: Tidak tercapainya target volume lifting",auto:"lifting",inh:{imp:20000,d:1,p:4},res:{imp:4000,d:1,p:3},cur:{imp:null,d:null,p:4},rt:{plan:24,done:18}},
-  {no:3,type:"Kuantitatif",name:"Contoh: Tidak tercapainya target EBITDA",auto:null,inh:{imp:45000,d:3,p:3},res:{imp:20000,d:1,p:2},cur:{imp:15000,d:null,p:2},rt:{plan:8,done:6}},
-  {no:4,type:"Kualitatif",name:"Contoh: Tidak tercapainya target HSSE Excellent",auto:null,inh:{imp:null,d:5,p:4},res:{imp:null,d:3,p:2},cur:{imp:null,d:4,p:2},rt:{plan:40,done:30}},
+  {no:3,type:"Kuantitatif",name:"Contoh: Tidak tercapainya target EBITDA",auto:null,inh:{imp:45000,d:3,p:3},res:{imp:20000,d:1,p:2},cur:{imp:15000,d:null,p:null},rt:{plan:8,done:6}},
+  {no:4,type:"Kualitatif",name:"Contoh: Tidak tercapainya target HSSE Excellent",auto:null,inh:{imp:null,d:5,p:4},res:{imp:null,d:3,p:2},cur:{imp:null,d:4,p:null},rt:{plan:40,done:30}},
   {no:5,type:"Kualitatif",name:"Contoh: Penurunan kehandalan fasilitas produksi",auto:null,inh:{imp:null,d:5,p:3},res:{imp:null,d:3,p:2},cur:{imp:null,d:4,p:1},rt:{plan:20,done:15}}]}; }
 function ormLoad(){ try{ const v=JSON.parse(localStorage.getItem(ORM_KEY)||"null"); if(v&&v.params&&Array.isArray(v.params.risks)) return Object.assign({periods:{},cur:null},v); }catch(e){} return {params:ormDefaults(),periods:{},cur:null}; }
 let ORM=ormLoad(); let ORMV={demo:false,mode:"cur",msg:[],busy:false};
@@ -2783,9 +2784,9 @@ async function ormParseKertas(wb,fileName){
   const risks=[]; for(let r=r0+2;r<=r0+40;r++){ const no=ormNum(G(m,cNo,r)), name=clean(G(m,cName,r)); if(no==null||!name) continue;
     const type=/kualitatif/i.test(clean(G(m,cType||2,r)))?"Kualitatif":"Kuantitatif"; const n=c=>c?ormNum(G(m,c,r)):null;
     const nm=name.toLowerCase(), auto=type!=="Kuantitatif"||/ebitda|excl/.test(nm)?null:/volume lifting|target lifting/.test(nm)?"lifting":/volume produksi|target produksi/.test(nm)?"produksi":null;
-    const dRef=C.d?colL(C.d)+r:null, dOver=dRef&&!fx.has(dRef)?n(C.d):null;
+    const dRef=C.d?colL(C.d)+r:null, dOver=dRef&&!fx.has(dRef)?n(C.d):null, pRef=C.p?colL(C.p)+r:null, pOver=pRef&&fx.has(pRef)?null:n(C.p);
     risks.push({no,type,name,auto,inh:{imp:type==="Kuantitatif"?n(I.imp):null,d:n(I.d),p:n(I.p)},res:{imp:type==="Kuantitatif"?n(R.imp):null,d:n(R.d),p:n(R.p)},
-      cur:{imp:auto?null:(type==="Kuantitatif"?n(C.imp):null),d:type==="Kualitatif"?n(C.d):dOver,p:n(C.p)},rt:{plan:n(cPlan)||0,done:n(cReal)||0}}); }
+      cur:{imp:auto?null:(type==="Kuantitatif"?n(C.imp):null),d:type==="Kualitatif"?n(C.d):dOver,p:pOver},rt:{plan:n(cPlan)||0,done:n(cReal)||0}}); }
   if(!risks.length) throw new Error("baris risk event tidak terbaca");
   const lab=re=>{ const f=ormFindAll(m,s=>re.test(s))[0]; if(!f) return null; for(let c=f.c+1;c<=f.c+3;c++){ const v=ormNum(G(m,c,f.r)); if(v!=null) return v; } return null; };
   const rl=lab(/^risk limit$/), rmt=lab(/^rmt$/), conv=lab(/^konversi$/);
@@ -2824,6 +2825,9 @@ async function ormAddFiles(files){
 }
 
 /* ---------- perhitungan (sesuai kertas kerja & TKI) ---------- */
+// Skala probabilitas current otomatis = rumus kertas kerja tim (kolom Q): % risk treatment selesai
+// <=20% -> 4, <=40% -> 3, >40% -> 2, dan tidak melebihi skala probabilitas inherent.
+function ormAutoP(I,pi){ if(I==null) return pi||null; const f=I<=0.2?4:I<=0.4?3:2; return pi?Math.min(f,pi):f; }
 function ormCalc(V,key){
   const par=V.params, P=key?V.periods[key]:null, conv=par.conv||0.1726, rmt=(par.rl||0)*(par.rmtPct||0.5);
   let mg=null; if(P&&P.prod){ const o=P.prod.oil,g=P.prod.gas; mg={oil:o,gas:g,gasB:{rkap:g.rkap*conv,progn:g.progn*conv,ytdT:g.ytdT*conv,ytdA:g.ytdA*conv}};
@@ -2836,8 +2840,9 @@ function ormCalc(V,key){
     if(r.auto&&q){ const f=F[r.auto]; if(f!=null&&r.inh.imp!=null&&r.res.imp!=null&&I!=null){ const A=r.inh.imp,B=r.res.imp,C=A-B; civ=(A+A*f)-I*C; calc={A,B,C,D:DE[r.auto][0],E:DE[r.auto][1],F:f,G:plan,H:done,I}; } }
     else if(q) civ=r.cur.imp;
     let d=r.cur.d, dAuto=false; if((d==null||d==="")&&q&&civ!=null&&rmt>0){ const x=civ/rmt; d=x<0.2?1:x<0.4?2:x<0.6?3:x<0.8?4:5; dAuto=true; }
-    const p=r.cur.p, curS=ormRisk(d,p), cre=q&&civ!=null&&p?civ*ORM_MID[p]:null;
-    return {r,q,inhS,resS,curS,ire,rre,cre,civ,calc,d,dAuto,p,plan,done,I,ews:curS!=null&&curS>=20,waiting:r.auto&&q&&civ==null}; });
+    let p=r.cur.p, pAuto=false; if(p==null||p===""){ p=ormAutoP(I,r.inh.p); pAuto=p!=null; }
+    const curS=ormRisk(d,p), cre=q&&civ!=null&&p?civ*ORM_MID[p]:null;
+    return {r,q,inhS,resS,curS,ire,rre,cre,civ,calc,d,dAuto,p,pAuto,plan,done,I,ews:curS!=null&&curS>=20,waiting:r.auto&&q&&civ==null}; });
   const sum=(k,f=x=>true)=>rows.filter(f).reduce((a,x)=>a+(x[k]||0),0);
   const T={ire:sum("ire"),rre:sum("rre"),cre:sum("cre"),plan:sum("plan"),done:sum("done")};
   const ew=[]; if(mg){ const R=Math.abs(mg.tot.ytdA-mg.tot.ytdT), days=P.days||ormDaysYTD(P.key);
@@ -2855,8 +2860,8 @@ function ormTable(C,q){
   const rows=C.rows.filter(x=>x.q===q); if(!rows.length) return `<p class="note">Tidak ada risiko ${q?"kuantitatif":"kualitatif"}.</p>`;
   return `<div class="otw"><table class="otab"><thead><tr><th>No</th><th class="l">Risk Event</th>${q?`<th>Current Impact<br><small>(000 USD)</small></th>`:""}<th>Inherent</th><th>Current</th><th>Residual</th><th>Probability</th><th>EWS</th></tr></thead><tbody>${rows.map(x=>`
     <tr><td class="c">${x.r.no}</td><td class="l">${esc(x.r.name)}${x.r.auto?`<span class="oauto" title="Current impact dihitung otomatis dari berkas ${x.r.auto==="produksi"?"Rekonsiliasi Produksi":"Monitoring Lifting"}">otomatis · ${x.r.auto}</span>`:""}</td>
-    ${q?`<td class="n">${x.waiting?`<span class="note">menunggu berkas</span>`:ormF0(x.civ)}</td>`:""}${ormCell(x.inhS,`D${x.r.inh.d||"?"} × P${x.r.inh.p||"?"}`)}${ormCell(x.curS,`D${x.d||"?"}${x.dAuto?" (otomatis)":""} × P${x.p||"?"}`)}${ormCell(x.resS,`D${x.r.res.d||"?"} × P${x.r.res.p||"?"}`)}
-    <td class="c">${x.p?fmt(ORM_MID[x.p]*100,0)+"%":"—"}</td><td class="c">${x.curS==null?"—":x.ews?`<span class="oews up" title="Current risk berada di level High (≥ 20)">▲</span>`:`<span class="oews ok" title="Current risk di bawah level High">○</span>`}</td></tr>`).join("")}</tbody></table></div>`;
+    ${q?`<td class="n">${x.waiting?`<span class="note">menunggu berkas</span>`:ormF0(x.civ)}</td>`:""}${ormCell(x.inhS,`D${x.r.inh.d||"?"} × P${x.r.inh.p||"?"}`)}${ormCell(x.curS,`dampak ${x.d||"?"}${x.dAuto?" (otomatis)":" (manual)"} · probabilitas ${x.p||"?"}${x.pAuto?" (otomatis)":" (manual)"}`)}${ormCell(x.resS,`D${x.r.res.d||"?"} × P${x.r.res.p||"?"}`)}
+    <td class="c" title="Skala probabilitas ${x.p||"?"} · ${x.pAuto?"otomatis dari % risk treatment":"diisi manual"}">${x.p?fmt(ORM_MID[x.p]*100,0)+"%":"—"}${x.pAuto?"":"<sup class='oman'>m</sup>"}</td><td class="c">${x.curS==null?"—":x.ews?`<span class="oews up" title="Current risk berada di level High (≥ 20)">▲</span>`:`<span class="oews ok" title="Current risk di bawah level High">○</span>`}</td></tr>`).join("")}</tbody></table></div>`;
 }
 function ormDonut(done,plan){ const out=Math.max(plan-done,0), f=plan?done/plan:0, R=46, L=2*Math.PI*R;
   return `<svg viewBox="0 0 120 120" class="odonut" role="img" aria-label="Realisasi risk treatment ${ormP(f)}"><circle cx="60" cy="60" r="${R}" fill="none" stroke="#f08a24" stroke-width="18"/>
@@ -2897,7 +2902,9 @@ function ormCalcDetail(C){
       <tr><td>G</td><td class="l">Total risk treatment</td><td class="n">${c.G}</td></tr><tr><td>H</td><td class="l">Risk treatment selesai</td><td class="n">${c.H}</td></tr>
       <tr><td>I</td><td class="l">% risk treatment (H ÷ G)</td><td class="n">${ormP(c.I)}</td></tr>
       <tr class="tot"><td></td><td class="l">Current Impact = (A + A×F) − (I×C)</td><td class="n">${ormF0(x.civ)}</td></tr>
-      <tr><td></td><td class="l">Skala dampak current (CIV ÷ RMT ${ormF0(C.rmt)} = ${ormP(C.rmt?x.civ/C.rmt:null)})${x.dAuto?"":" · <i>diisi manual di parameter</i>"}</td><td class="n">${x.d||"—"}</td></tr></tbody></table></div>`; });
+      <tr><td></td><td class="l">Skala dampak current (CIV ÷ RMT ${ormF0(C.rmt)} = ${ormP(C.rmt?x.civ/C.rmt:null)})${x.dAuto?"":" · <i>diisi manual di parameter</i>"}</td><td class="n">${x.d||"—"}</td></tr>
+      <tr><td></td><td class="l">Skala probabilitas current ${x.pAuto?`(otomatis: % RT ${ormP(c.I)} → ${c.I<=0.2?4:c.I<=0.4?3:2}, maks. inherent ${x.r.inh.p||"—"})`:"· <i>diisi manual di parameter</i>"}</td><td class="n">${x.p||"—"}</td></tr>
+      <tr class="tot"><td></td><td class="l">Skala risiko / RPN (Peta Risiko BUMN) · CRE = CIV × ${x.p?fmt(ORM_MID[x.p]*100,0)+"%":"—"}</td><td class="n">${x.curS??"—"} · ${ormF0(x.cre)}</td></tr></tbody></table></div>`; });
   return h;
 }
 function renderOrmDash(){
@@ -2920,7 +2927,7 @@ function renderOrmDash(){
   </div>
   <div class="ogrid">
     <div class="opan"><div class="oph">TOP RISK LEVEL STATUS</div><div class="osub q">KUANTITATIF</div>${ormTable(C,true)}<div class="osub k">KUALITATIF</div>${ormTable(C,false)}
-      <p class="note">EWS ▲ = current risk berada di level <b>High</b> (skala ≥ 20). Probability = nilai tengah skala probabilitas current (TKI Lampiran 3).</p></div>
+      <p class="note">EWS ▲ = current risk berada di level <b>High</b> (skala ≥ 20). Probability = nilai tengah skala probabilitas current (TKI Lampiran 3); <sup class="oman">m</sup> = diisi manual, lainnya otomatis dari % risk treatment.</p></div>
     <div class="opan"><div class="oph">RISK MANAGEMENT PERFORMANCE</div><div class="osub rt">RISK TREATMENT</div><div class="odw">${ormDonut(T.done,T.plan)}</div>
       <div class="osub ew">EARLY WARNING</div><div class="otw"><table class="otab"><thead><tr><th class="l">Early Warning</th><th>Realisasi YTD</th><th>Potential Loss<br><small>(000 USD)</small></th></tr></thead><tbody>
       ${C.ew.length?C.ew.map(e=>`<tr><td class="l">${esc(e.name)}</td><td class="n ${e.pct<1?"neg":""}">${ormP(e.pct)}</td><td class="n">${e.loss!=null?ormF0(e.loss):"—"}</td></tr>`).join(""):`<tr><td colspan="3" class="note">Menunggu berkas lifting/produksi.</td></tr>`}</tbody></table></div>
@@ -2941,6 +2948,7 @@ function ormInp(path,val,opt={}){ const ro=!isRM()?" disabled":""; const w=opt.w
   return `<input data-oparam="${path}" value="${val==null?"":esc(val)}" inputmode="decimal"${w}${opt.ph?` placeholder="${esc(opt.ph)}"`:""}${ro}>`; }
 function renderOrmData(){
   const box=$("ormDataBody"); if(!box) return; const p=ORM.params, ks=Object.keys(ORM.periods).sort();
+  let CC=null; try{ const V0={params:p,periods:ORM.periods,cur:ORM.cur&&ORM.periods[ORM.cur]?ORM.cur:ks[ks.length-1]||null}; CC=ormCalc(V0,V0.cur); }catch(e){}
   const sc=[["","—"],[1,"1"],[2,"2"],[3,"3"],[4,"4"],[5,"5"]];
   const msgs=ORMV.msg.map(m=>`<div class="omsg ${m.k}">${esc(m.t)}</div>`).join("");
   box.innerHTML=`
@@ -2958,16 +2966,28 @@ function renderOrmData(){
     return `<tr><td class="l">${monthLabel(k)}${k===ORM.cur?" <span class='badge'>aktif</span>":""}</td><td class="l">${P.lift?esc(P.lift.file):"<span class='neg'>belum</span>"}</td><td class="l">${P.prod?esc(P.prod.file):"<span class='neg'>belum</span>"}</td><td class="n">${P.snap?ormF0(P.snap.cre):"—"}</td>${isRM()?`<td class="c"><button class="btn sm" data-orm-del="${k}">Hapus</button></td>`:""}</tr>`; }).join("")}</tbody></table></div>`:`<p class="note">Belum ada.</p>`}
   <h3 class="oh3">Parameter Risk Register ORM ${p.example?`<span class="badge demo">CONTOH</span>`:`<span class="badge">dari ${esc(p.src||"isian manual")}</span>`}</h3>
   <p class="note">Nilai dampak, skala, dan jumlah risk treatment diambil dari Kertas Kerja Perhitungan Current Risk tim (sekali impor, lalu tersimpan di peramban ini). Setiap bulan cukup unggah berkas lifting dan produksi; perbarui <b>jumlah risk treatment selesai</b> dan <b>skala probabilitas current</b> bila berubah. ${isRM()?"":"<b>Akun Viewer hanya dapat melihat parameter.</b>"}</p>
+  <div class="oguide"><b>Skala current: otomatis atau manual</b><ul>
+    <li><b>Skala dampak (kuantitatif)</b> otomatis = Current Impact ÷ RMT: &lt;20% → 1, 20–40% → 2, 40–60% → 3, 60–80% → 4, &gt;80% → 5 (rumus kolom P kertas kerja, TKI Lampiran 2). Risiko kualitatif diisi manual.</li>
+    <li><b>Skala probabilitas</b> otomatis = dari % risk treatment selesai: ≤20% → 4, ≤40% → 3, di atas 40% → 2, tidak melebihi probabilitas inherent (rumus kolom Q kertas kerja).</li>
+    <li>Pilih angka 1–5 bila ada pertimbangan lain (<i>expert judgement</i>, TKI C13-002 VI.d.4). Skala risiko/RPN lalu dibaca dari Peta Risiko BUMN, sama seperti heatmap.</li></ul></div>
   <div class="oparg"><label>Risk Limit (000 USD)${ormInp("rl",p.rl)}</label><label>RMT (% dari Risk Limit)${ormInp("rmtPct",p.rmtPct!=null?r2(p.rmtPct*100):"",{ph:"50"})}</label>
     <label>Konversi gas → BOE${ormInp("conv",p.conv)}</label><label>ICP (USD/bbl)${ormInp("icp",p.icp)}</label><label>Net profit margin (%)${ormInp("npm",p.npm!=null?r2(p.npm*100):"")}</label></div>
-  <div class="otw"><table class="otab par"><thead><tr><th rowspan="2">No</th><th rowspan="2">Jenis</th><th rowspan="2" class="l">Risk Event</th><th rowspan="2">Current impact</th><th colspan="3">Inherent</th><th colspan="3">Residual</th><th colspan="3">Current</th><th colspan="2">Risk Treatment</th></tr>
-    <tr><th>Dampak<br><small>000 USD</small></th><th>D</th><th>P</th><th>Dampak<br><small>000 USD</small></th><th>D</th><th>P</th><th>CIV manual<br><small>000 USD</small></th><th>D<br><small>kosong = otomatis</small></th><th>P</th><th>Plan</th><th>Selesai</th></tr></thead><tbody>
-    ${p.risks.map((r,i)=>{ const q=r.type!=="Kualitatif"; return `<tr><td>${ormInp(`risks.${i}.no`,r.no,{w:38})}</td><td>${ormInp(`risks.${i}.type`,r.type,{sel:[["Kuantitatif","Kuantitatif"],["Kualitatif","Kualitatif"]]})}</td><td class="l">${ormInp(`risks.${i}.name`,r.name,{w:260})}</td>
-      <td class="osel">${ormInp(`risks.${i}.auto`,r.auto||"",{sel:[["","Manual"],["produksi","Auto · produksi"],["lifting","Auto · lifting"]]})}</td>
-      <td>${q?ormInp(`risks.${i}.inh.imp`,r.inh.imp,{w:84}):"—"}</td><td>${ormInp(`risks.${i}.inh.d`,r.inh.d,{sel:sc})}</td><td>${ormInp(`risks.${i}.inh.p`,r.inh.p,{sel:sc})}</td>
-      <td>${q?ormInp(`risks.${i}.res.imp`,r.res.imp,{w:84}):"—"}</td><td>${ormInp(`risks.${i}.res.d`,r.res.d,{sel:sc})}</td><td>${ormInp(`risks.${i}.res.p`,r.res.p,{sel:sc})}</td>
-      <td>${q&&!r.auto?ormInp(`risks.${i}.cur.imp`,r.cur.imp,{w:84}):`<span class="note">${q?"otomatis":"—"}</span>`}</td><td>${ormInp(`risks.${i}.cur.d`,r.cur.d,{sel:sc})}</td><td>${ormInp(`risks.${i}.cur.p`,r.cur.p,{sel:sc})}</td>
-      <td>${ormInp(`risks.${i}.rt.plan`,r.rt.plan,{w:52})}</td><td>${ormInp(`risks.${i}.rt.done`,r.rt.done,{w:52})}</td>${isRM()?`<td><button class="btn sm" data-orm-rm="${i}" title="Hapus baris">×</button></td>`:""}</tr>`; }).join("")}</tbody></table></div>
+  <h3 class="oh3">A. Diperbarui tiap bulan · current &amp; risk treatment</h3>
+  <div class="otw"><table class="otab par"><thead><tr><th>No</th><th class="l">Risk Event</th><th>Current impact</th><th>CIV manual<br><small>000 USD</small></th><th>Skala dampak</th><th>Skala probabilitas</th><th>RT plan</th><th>RT selesai</th><th>% RT</th></tr></thead><tbody>
+    ${p.risks.map((r,i)=>{ const q=r.type!=="Kualitatif", x=CC&&CC.rows[i];
+      return `<tr><td class="c">${esc(r.no)}</td><td class="l oname">${esc(r.name)}<small>${esc(r.type)}</small></td>
+      <td class="osel">${q?ormInp(`risks.${i}.auto`,r.auto||"",{sel:[["","Manual"],["produksi","Auto · produksi"],["lifting","Auto · lifting"]]}):`<span class="note">—</span>`}</td>
+      <td>${q&&!r.auto?ormInp(`risks.${i}.cur.imp`,r.cur.imp,{w:96}):`<span class="note">${q?(x&&x.civ!=null?"otomatis: "+ormF0(x.civ):"otomatis"):"—"}</span>`}</td>
+      <td>${ormInp(`risks.${i}.cur.d`,r.cur.d,{sel:q?[["",`Otomatis${x&&x.dAuto?" → "+x.d:""}`],...sc.slice(1)]:sc})}</td>
+      <td>${ormInp(`risks.${i}.cur.p`,r.cur.p,{sel:[["",`Otomatis${x&&x.pAuto?" → "+x.p:""}`],...sc.slice(1)]})}</td>
+      <td>${ormInp(`risks.${i}.rt.plan`,r.rt.plan,{w:56})}</td><td>${ormInp(`risks.${i}.rt.done`,r.rt.done,{w:56})}</td><td class="n">${x?ormP(x.I):"—"}</td></tr>`; }).join("")}</tbody></table></div>
+  <h3 class="oh3">B. Data risk register · inherent &amp; residual <span class="note">(jarang berubah)</span></h3>
+  <div class="otw"><table class="otab par"><thead><tr><th rowspan="2">No</th><th rowspan="2">Jenis</th><th rowspan="2" class="l">Risk Event</th><th colspan="3">Inherent</th><th colspan="3">Residual</th>${isRM()?`<th rowspan="2"></th>`:""}</tr>
+    <tr><th>Dampak<br><small>000 USD</small></th><th>Skala dampak</th><th>Skala prob.</th><th>Dampak<br><small>000 USD</small></th><th>Skala dampak</th><th>Skala prob.</th></tr></thead><tbody>
+    ${p.risks.map((r,i)=>{ const q=r.type!=="Kualitatif"; return `<tr><td>${ormInp(`risks.${i}.no`,r.no,{w:40})}</td><td>${ormInp(`risks.${i}.type`,r.type,{sel:[["Kuantitatif","Kuantitatif"],["Kualitatif","Kualitatif"]]})}</td><td class="l">${ormInp(`risks.${i}.name`,r.name,{w:300})}</td>
+      <td>${q?ormInp(`risks.${i}.inh.imp`,r.inh.imp,{w:90}):"—"}</td><td>${ormInp(`risks.${i}.inh.d`,r.inh.d,{sel:sc})}</td><td>${ormInp(`risks.${i}.inh.p`,r.inh.p,{sel:sc})}</td>
+      <td>${q?ormInp(`risks.${i}.res.imp`,r.res.imp,{w:90}):"—"}</td><td>${ormInp(`risks.${i}.res.d`,r.res.d,{sel:sc})}</td><td>${ormInp(`risks.${i}.res.p`,r.res.p,{sel:sc})}</td>
+      ${isRM()?`<td><button class="btn sm" data-orm-rm="${i}" title="Hapus baris">×</button></td>`:""}</tr>`; }).join("")}</tbody></table></div>
   ${isRM()?`<div class="row" style="margin-top:10px"><button class="btn" id="ormAdd">＋ Tambah risk event</button><button class="btn" id="ormXls">Unduh Kertas Kerja ORM (.xlsx)</button><button class="btn" id="ormReset">Kembalikan parameter contoh</button></div>`:""}`;
 }
 function renderOrm(){ if(ROUTE==="orm") renderOrmDash(); if(ROUTE==="ormdata") renderOrmData(); }
@@ -3022,7 +3042,7 @@ function ormExport(){
     if(x.q) put("I"+r,R.res.imp,IN); else put("I"+r,"",B); put("J"+r,R.res.d,INC); put("K"+r,R.res.p,INC); F("L"+r,lvl("J"+r,"K"+r),x.resS,BC); x.q?F("M"+r,`IF(I${r}="","",I${r}*${mid("K"+r)})`,x.rre,BN):put("M"+r,"",B);
     if(x.q&&!R.auto) put("O"+r,R.cur.imp,IN); else if(!x.q) put("O"+r,"",B);
     if(R.cur.d!=null&&R.cur.d!=="") put("P"+r,R.cur.d,INC); else if(x.q) F("P"+r,`IF(O${r}="","",IF(O${r}/$AK$10<0.2,1,IF(O${r}/$AK$10<0.4,2,IF(O${r}/$AK$10<0.6,3,IF(O${r}/$AK$10<0.8,4,5)))))`,x.d,BC);
-    put("Q"+r,R.cur.p,INC); F("R"+r,lvl("P"+r,"Q"+r),x.curS,BC); x.q?F("S"+r,`IF(O${r}="","",O${r}*${mid("Q"+r)})`,x.cre,BN):put("S"+r,"",B); F("T"+r,`IF(Q${r}>0,${mid("Q"+r)},"")`,x.p?ORM_MID[x.p]:null,BP);
+    if(R.cur.p!=null&&R.cur.p!=="") put("Q"+r,R.cur.p,INC); else F("Q"+r,`IF(Z${r}>0,MIN(IF(AB${r}<=0.2,4,IF(AB${r}<=0.4,3,2)),IF(F${r}>0,F${r},5)),F${r})`,x.p,BC); F("R"+r,lvl("P"+r,"Q"+r),x.curS,BC); x.q?F("S"+r,`IF(O${r}="","",O${r}*${mid("Q"+r)})`,x.cre,BN):put("S"+r,"",B); F("T"+r,`IF(Q${r}>0,${mid("Q"+r)},"")`,x.p?ORM_MID[x.p]:null,BP);
     put("Z"+r,x.plan,IN); put("AA"+r,x.done,IN); F("AB"+r,`IF(Z${r}>0,AA${r}/Z${r},"")`,x.I,BP); F("AC"+r,`Z${r}-AA${r}`,x.plan-x.done,BC); });
   const rT=r0+C.rows.length; put("C"+rT,"TOTAL (risiko kuantitatif)",{bd:"lrtb",font:{b:1}});
   F("H"+rT,`SUM(H${r0}:H${rT-1})`,C.T.ire,{...BN,font:{b:1}}); F("M"+rT,`SUM(M${r0}:M${rT-1})`,C.T.rre,{...BN,font:{b:1}}); F("S"+rT,`SUM(S${r0}:S${rT-1})`,C.T.cre,{...BN,font:{b:1}});
