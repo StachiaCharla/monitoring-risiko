@@ -345,6 +345,9 @@ body.r-viewer input[data-lg]::placeholder{color:transparent}
 #nav .hidden{display:none!important}
 body.r-viewer #ppCard,body.r-viewer #lossFormBox,body.r-viewer .rmOnly{display:none!important}
 /* ===== ORM ===== */
+#ormHist .hi{position:relative}#ormHist .hi .ht{padding-right:22px}#ormHist .ohdel{position:absolute;top:6px;right:6px;border:none;background:rgba(255,255,255,.1);color:#ffb3bb;border-radius:6px;font:inherit;font-size:12px;padding:1px 7px;cursor:pointer;opacity:0;transition:opacity .12s}
+#ormHist .hi:hover .ohdel,#ormHist .ohdel.cf,#ormHist .ohdel:focus{opacity:1}#ormHist .ohdel.cf{background:#c51e28;color:#fff}
+.ohp{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.ohp button{border:1px solid rgba(255,255,255,.25);background:none;color:#dbe6fb;border-radius:999px;font:inherit;font-size:11px;padding:1px 8px;cursor:pointer}.ohp button.on{background:#fff;color:var(--navy);border-color:#fff}
 .hgt{display:flex;align-items:center;gap:6px;width:calc(100% - 20px);margin:0 10px;border:none;background:none;cursor:pointer;font-family:inherit;text-align:left;border-radius:8px}
 .hgt:hover{background:rgba(255,255,255,.07);color:#c9d6ee}.hgt span:first-child{flex:1}.hgc{background:rgba(255,255,255,.14);color:#dbe6fb;border-radius:999px;padding:1px 7px;font-size:10.5px;letter-spacing:0}.hgc:empty{display:none}
 .hgv{width:15px;height:15px;transition:transform .15s}.hclosed .hgv{transform:rotate(-90deg)}.hclosed #histWrap{display:none}
@@ -353,7 +356,7 @@ body.r-viewer #ppCard,body.r-viewer #lossFormBox,body.r-viewer .rmOnly{display:n
 .stream button{flex:1;border:none;background:none;color:#c9d6ee;font:inherit;font-size:12px;font-weight:700;padding:7px 4px;border-radius:7px;cursor:pointer;line-height:1.2}
 .stream button small{display:block;font-weight:500;font-size:10.5px;opacity:.8}
 .stream button.on{background:#fff;color:var(--navy)}
-body.s-orm #nav [data-stream=prm],body.s-prm #nav [data-stream=orm],body.s-orm #histNew,body.s-orm #histList,body.s-orm #histMsg,body.s-prm #ormHist{display:none!important}
+body.s-orm #nav [data-stream=prm],body.s-prm #nav [data-stream=orm],body.s-orm #histList,body.s-orm #histMsg,body.s-prm #ormHist{display:none!important}
 body[data-route=orm] .gf,body[data-route=ormdata] .gf,body[data-route=ormguide] .gf,body[data-route=orm] .fbar,body[data-route=ormdata] .fbar,body[data-route=ormguide] .fbar{display:none!important}
 body[data-route=orm] section[data-pg~=orm],body[data-route=ormdata] section[data-pg~=ormdata],body[data-route=ormguide] section[data-pg~=ormguide]{display:block}
 #ormDashCard{background:none;border:none;padding:0}
@@ -487,7 +490,8 @@ body[data-route=orm] section[data-pg~=orm],body[data-route=ormdata] section[data
         <li><b>Unggah Monitoring Lifting dan Rekonsiliasi Produksi</b> bulan laporan; pastikan pesan hijau menyebut periode yang benar.</li>
         <li><b>Perbarui tabel A</b>: jumlah risk treatment selesai dan skala yang perlu dinilai manual.</li>
         <li><b>Buka Dashboard ORM</b>: ringkasan, Top Risk Level Status, Risk Management Performance, heatmap, rincian perhitungan.</li>
-        <li><b>Unduh Kertas Kerja ORM (.xlsx)</b> untuk diarsipkan atau dicocokkan dengan file tim.</li></ol></details>
+        <li><b>Unduh Kertas Kerja ORM (.xlsx)</b> untuk diarsipkan atau dicocokkan dengan file tim.</li></ol>
+        <p class="note" style="margin:6px 0 0"><b>Sesi Baru</b> (tombol merah di kiri atas) memulai sesi ORM kosong; parameter risk register disalin dari sesi sebelumnya. Sesi lama tetap ada di <b>Riwayat</b>: klik untuk membuka, klik bulan untuk berpindah periode, × untuk menghapus.</p></details>
       <details class="gd" open><summary><span class="gic">📂</span><span class="gtt"><b>Berkas yang dibaca</b><span>Apa yang diambil</span></span></summary><ul>
         <li><b>Monitoring Lifting</b> (wajib tiap bulan): sheet Dashboard, baris BOE Region 1 → Lift RKAP FY (V143), Lift Prognosa FY (AA143), Lift RKAP YTD, Lift Real YTD.</li>
         <li><b>Rekonsiliasi Produksi</b> (wajib tiap bulan): sheet Oil dan Gas, baris Regional 1 – Total (baris 332) → RKAP, Prognosa, YTD Target, YTD Actual. Cantumkan bulan di nama berkas, misalnya “Okt 26”.</li>
@@ -2776,9 +2780,22 @@ function ormDefaults(){ const blank=()=>({imp:null,d:null,p:null}); return {exam
 function ormMissing(par){ const out=[]; if(!par.rl) out.push("Risk Limit"); par.risks.forEach(r=>{ if(r.type==="Kualitatif") return; const m=[];
     if(r.inh.imp==null) m.push("dampak inherent"); if(r.res.imp==null) m.push("dampak residual"); if(!r.inh.d||!r.inh.p) m.push("skala inherent"); if(!r.res.d||!r.res.p) m.push("skala residual"); if(!r.rt.plan) m.push("jumlah risk treatment");
     if(m.length) out.push(`risk event ${r.no} (${m.join(", ")})`); }); return out; }
-function ormLoad(){ try{ const v=JSON.parse(localStorage.getItem(ORM_KEY)||"null"); if(v&&v.params&&Array.isArray(v.params.risks)){ if(v.params.example) v.params=ormDefaults(); return Object.assign({periods:{},cur:null},v); } }catch(e){} return {params:ormDefaults(),periods:{},cur:null}; }
-let ORM=ormLoad(); let ORMV={demo:false,mode:"cur",msg:[],busy:false};
-function ormSave(){ try{ localStorage.setItem(ORM_KEY,JSON.stringify(ORM)); return true; }catch(e){ ormMsg("bad","Data ORM tidak dapat disimpan di peramban: "+(e&&e.message||e)); return false; } }
+// ORM disimpan per sesi (seperti Riwayat PRM). ORM = objek sesi aktif {id,title,created,updated,u,params,periods,cur}.
+const ORM_KEY2="mrp:orm:v2";
+const ormNewId=()=>"o"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function ormMkSess(params){ const t=Date.now(); return {id:ormNewId(),created:t,updated:t,u:(()=>{ try{ return AUTH?AUTH.id:null; }catch(e){ return null; } })(),params:params||ormDefaults(),periods:{},cur:null}; }
+function ormLoadStore(){ try{ const v=JSON.parse(localStorage.getItem(ORM_KEY2)||"null"); if(v&&v.sessions&&Object.keys(v.sessions).length){ Object.values(v.sessions).forEach(x=>{ x.periods=x.periods||{}; if(!x.params||!Array.isArray(x.params.risks)||x.params.example) x.params=ormDefaults(); }); return v; } }catch(e){}
+  let first=ormMkSess(); try{ const o=JSON.parse(localStorage.getItem(ORM_KEY)||"null"); if(o&&o.params&&Array.isArray(o.params.risks)){ first.params=o.params.example?ormDefaults():o.params; first.periods=o.periods||{}; first.cur=o.cur||null; } }catch(e){}
+  return {active:first.id,sessions:{[first.id]:first}}; }
+let ORMS=ormLoadStore(); let ORM=ORMS.sessions[ORMS.active]||Object.values(ORMS.sessions)[0]; let ORMV={demo:false,mode:"cur",msg:[],busy:false};
+function ormSave(){ ORM.updated=Date.now(); ORMS.sessions[ORM.id]=ORM; ORMS.active=ORM.id; try{ localStorage.setItem(ORM_KEY2,JSON.stringify(ORMS)); return true; }catch(e){ ormMsg("bad","Data ORM tidak dapat disimpan di peramban: "+(e&&e.message||e)); return false; } }
+const ormMine=x=>!AUTH||isRM()||!x.u||x.u===AUTH.id;
+function ormSessTitle(x){ if(x.title) return x.title; const ks=Object.keys(x.periods||{}).sort(); if(!ks.length) return "Sesi ORM baru (kosong)"; return "ORM · "+(ks.length>1?`${monthLabel(ks[0])} – ${monthLabel(ks[ks.length-1])}`:monthLabel(ks[0])); }
+function ormNewSession(){ const keep=ORM&&ORM.params&&!ORM.params.example?JSON.parse(JSON.stringify(ORM.params)):ormDefaults();
+  if(keep.risks) keep.risks.forEach(r=>{ if(r.rt) r.rt.done=r.rt.done; }); keep.src=keep.src||null;
+  const n=ormMkSess(keep); ORMS.sessions[n.id]=n; ORM=n; ORMV.demo=false; ORMV.msg=[{k:"ok",t:"Sesi ORM baru dibuat. Parameter risk register disalin dari sesi sebelumnya; unggah berkas lifting dan produksi untuk mulai. Sesi lama tetap ada di Riwayat."}]; ormSave(); closeHist&&closeHist(); go("ormdata"); renderOrm(); }
+function ormOpenSession(id){ const x=ORMS.sessions[id]; if(!x) return; ORM=x; ORMV.demo=false; ORMV.msg=[]; ORMS.active=id; try{ localStorage.setItem(ORM_KEY2,JSON.stringify(ORMS)); }catch(e){} closeHist&&closeHist(); go(Object.keys(x.periods||{}).length?"orm":"ormdata"); renderOrm(); }
+function ormDelSession(id){ delete ORMS.sessions[id]; if(!Object.keys(ORMS.sessions).length){ const n=ormMkSess(); ORMS.sessions[n.id]=n; } if(!ORMS.sessions[ORM.id]) ORM=Object.values(ORMS.sessions).sort((a,b)=>b.updated-a.updated)[0]; ormSave(); renderOrm(); }
 function ormMsg(k,t){ ORMV.msg.push({k,t}); }
 const ORM_DEMO={key:"2026-10",days:304,demo:true,
   lift:{file:"Contoh_Monitoring_Lifting.xlsx",rkapFY:185.0,prognFY:172.0,rkapYTD:184.0,realYTD:170.5,oilRkapYTD:120.0,oilRealYTD:109.0},
@@ -3064,7 +3081,7 @@ function renderOrmData(){
     <li><b>Monitoring Lifting</b> → sheet <i>Dashboard</i>, baris BOE <i>Region 1</i>: Lift RKAP FY (V143), Lift Prognosa FY (AA143), Lift RKAP YTD, Lift Real YTD.</li>
     <li><b>Rekonsiliasi Produksi</b> → sheet <i>Oil</i> dan <i>Gas</i>, baris <i>Regional 1 – Total</i> (baris 332): RKAP, Prognosa, YTD Target, YTD Actual. Gas dikonversi ke BOE × ${fmt(p.conv,4)}, lalu dijumlah menjadi migas.</li>
     <li>Periode dibaca dari isi berkas lifting atau dari nama berkas (misal “Okt 26”).</li></ul></div>
-  <h3 class="oh3">Periode tersimpan</h3>${ks.length?`<div class="otw"><table class="otab"><thead><tr><th class="l">Periode</th><th class="l">Monitoring Lifting</th><th class="l">Rekonsiliasi Produksi</th><th>Σ CRE (000 USD)</th>${isRM()?"<th></th>":""}</tr></thead><tbody>${ks.map(k=>{ const P=ORM.periods[k];
+  <h3 class="oh3">Periode tersimpan · ${esc(ormSessTitle(ORM))}</h3>${ks.length?`<div class="otw"><table class="otab"><thead><tr><th class="l">Periode</th><th class="l">Monitoring Lifting</th><th class="l">Rekonsiliasi Produksi</th><th>Σ CRE (000 USD)</th>${isRM()?"<th></th>":""}</tr></thead><tbody>${ks.map(k=>{ const P=ORM.periods[k];
     return `<tr><td class="l">${monthLabel(k)}${k===ORM.cur?" <span class='badge'>aktif</span>":""}</td><td class="l">${P.lift?esc(P.lift.file):"<span class='neg'>belum</span>"}</td><td class="l">${P.prod?esc(P.prod.file):"<span class='neg'>belum</span>"}</td><td class="n">${P.snap?ormF0(P.snap.cre):"—"}</td>${isRM()?`<td class="c"><button class="btn sm" data-orm-del="${k}">Hapus</button></td>`:""}</tr>`; }).join("")}</tbody></table></div>`:`<p class="note">Belum ada.</p>`}
   @@PARAM@@${(()=>{ const ms=ormMissing(p); return ms.length?`<div class="owarn" style="margin-top:8px"><b>Perlu diisi sekali:</b> ${esc(ms.join("; "))}.</div>`:""; })()}
   <p class="note">Dashboard ORM berpusat pada <b>2 risk event: produksi dan lifting</b>. Angka RKAP, prognosa, dan YTD diambil otomatis dari 2 berkas bulanan. Yang diisi di sini: <b>Risk Limit</b>, <b>dampak dan skala inherent/residual</b> dari Risk Register (sekali setahun), serta <b>jumlah risk treatment</b> (diperbarui tiap bulan). Isian tersimpan di peramban ini. ${isRM()?"":"<b>Akun Viewer hanya dapat melihat parameter.</b>"}</p>
@@ -3092,13 +3109,21 @@ function renderOrmData(){
       ${isRM()?`<td><button class="btn sm" data-orm-rm="${i}" title="Hapus baris">×</button></td>`:""}</tr>`; }).join("")}</tbody></table></div>
   ${isRM()?`<div class="row" style="margin-top:10px"><button class="btn" id="ormAdd">＋ Tambah risk event</button><button class="btn" id="ormXls">Unduh Kertas Kerja ORM (.xlsx)</button><button class="btn" id="ormReset">Kosongkan parameter</button></div>`:""}`;
 }
-function renderOrmHist(){ const box=$("ormHist"); if(!box) return; const ks=Object.keys(ORM.periods).sort().reverse(), cur=ormView().cur;
-  box.innerHTML=ks.length?ks.map(k=>{ const P=ORM.periods[k]; return `<div class="hi ${k===cur&&!ORMV.demo?"act":""}" data-ormp="${k}" title="Buka periode ${esc(monthLabel(k))}"><div class="ht">ORM · ${esc(monthLabel(k))}</div><div class="hm">${P.lift?"<b>✓</b> Lifting":"<i>✗</i> Lifting"} · ${P.prod?"<b>✓</b> Produksi":"<i>✗</i> Produksi"}${P.snap?` · CRE ${ormF0(P.snap.cre)}`:""}</div></div>`; }).join(""):`<p class="empty">Belum ada periode ORM. Unggah berkas lifting dan produksi untuk menyimpan periode.</p>`;
+function renderOrmHist(){ const box=$("ormHist"); if(!box) return;
+  const list=Object.values(ORMS.sessions).filter(ormMine).sort((a,b)=>b.updated-a.updated);
+  box.innerHTML=list.map(x=>{ const ks=Object.keys(x.periods||{}).sort(), last=ks.length?x.periods[ks[ks.length-1]]:null, act=x.id===ORM.id&&!ORMV.demo;
+    const own=isRM()&&x.u&&AUTH&&x.u!==AUTH.id?` · <span class="hown">oleh ${esc(histOwner(x))}</span>`:"";
+    return `<div class="hi ${act?"act":""}" data-orms="${x.id}" title="Buka sesi ini"><div class="ht">${esc(ormSessTitle(x))}</div>
+      <div class="hm">${fmtWhen(x.updated)} · ${ks.length} periode${last&&last.snap&&last.snap.cre!=null?` · CRE ${ormF0(last.snap.cre)}`:""}${own}</div>
+      ${act&&ks.length>1?`<div class="ohp">${ks.slice().reverse().map(k=>`<button data-ormp="${k}" class="${k===x.cur?"on":""}">${ORM_BLN[+k.slice(5)]} ${k.slice(2,4)}</button>`).join("")}</div>`:""}
+      ${isRM()?`<button class="ohdel" data-ormdel="${x.id}" title="Hapus sesi" aria-label="Hapus sesi">×</button>`:""}</div>`; }).join("")||`<p class="empty">Belum ada sesi ORM.</p>`;
   histCnt(); }
-function histCnt(){ const c=$("histCnt"); if(!c) return; const orm=document.body.classList.contains("s-orm"); const n=orm?Object.keys(ORM.periods).length:($("histList")?$("histList").querySelectorAll(".hi").length:0); c.textContent=n?String(n):""; }
+function histCnt(){ const c=$("histCnt"); if(!c) return; const orm=document.body.classList.contains("s-orm"); const n=orm?Object.values(ORMS.sessions).filter(ormMine).length:($("histList")?$("histList").querySelectorAll(".hi").length:0); c.textContent=n?String(n):""; }
 function histFoldInit(){ let open=true; try{ open=localStorage.getItem("mrp:histOpen")!=="0"; }catch(e){} $("histDrawer").classList.toggle("hclosed",!open); $("histTog").setAttribute("aria-expanded",open); }
 document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("#histTog"); if(b){ const d=$("histDrawer"), open=d.classList.contains("hclosed"); d.classList.toggle("hclosed",!open); b.setAttribute("aria-expanded",open); try{ localStorage.setItem("mrp:histOpen",open?"1":"0"); }catch(x){} return; }
-  const o=e.target.closest&&e.target.closest("#ormHist [data-ormp]"); if(o){ ORM.cur=o.dataset.ormp; ORMV.demo=false; ormSave(); closeHist(); go("orm"); renderOrmHist(); } });
+  const dl=e.target.closest&&e.target.closest("#ormHist [data-ormdel]"); if(dl){ e.stopPropagation(); if(dl.classList.contains("cf")) ormDelSession(dl.dataset.ormdel); else { dl.classList.add("cf"); dl.textContent="Hapus?"; setTimeout(()=>{ if(dl.isConnected){ dl.classList.remove("cf"); dl.textContent="×"; } },3500); } return; }
+  const o=e.target.closest&&e.target.closest("#ormHist [data-ormp]"); if(o){ ORM.cur=o.dataset.ormp; ORMV.demo=false; ormSave(); closeHist(); go("orm"); renderOrmHist(); return; }
+  const ss=e.target.closest&&e.target.closest("#ormHist [data-orms]"); if(ss){ ormOpenSession(ss.dataset.orms); } });
 function renderOrm(){ renderOrmHist(); if(ROUTE==="orm") renderOrmDash(); if(ROUTE==="ormdata"){ renderOrmData(); const b=$("ormDataBody"), k=b.innerHTML.indexOf("@@PARAM@@"); if(k>=0){ $("ormParamBody").innerHTML=b.innerHTML.slice(k+9); b.innerHTML=b.innerHTML.slice(0,k); } ormSubFold($("ormDataBody")); ormSubFold($("ormParamBody")); } }
 function ormParseIn(s){ s=String(s||"").trim().replace(/\s/g,""); if(!s) return null;
   if(/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s=s.replace(/\./g,"").replace(",","."); else if(/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) s=s.replace(/,/g,""); else s=s.replace(",",".");
@@ -3285,7 +3310,7 @@ function showLogin(err){
     lgFail=0; sessSet(ok,$("lgRemember").checked); enterApp(ok); };
   setTimeout(()=>{ const i=$("lgUser"); if(i) i.focus(); },50);
 }
-function enterApp(u){ applyAuth(u); $("login").classList.add("hidden"); $("login").innerHTML=""; renderHist(); applyRoute(); }
+function enterApp(u){ applyAuth(u); if(!ormMine(ORM)){ const mine=Object.values(ORMS.sessions).filter(ormMine).sort((a,b)=>b.updated-a.updated)[0]; if(mine) ORM=mine; else { const n=ormMkSess(); ORMS.sessions[n.id]=n; ORM=n; ormSave(); } } $("login").classList.add("hidden"); $("login").innerHTML=""; renderHist(); applyRoute(); }
 function authInit(){ const u=sessGet(); if(u) enterApp(u); else { applyAuth(null); showLogin(); } }
 
 /* ===================== v0.5: HALAMAN, RINGKASAN, INFO, PANDUAN ===================== */
@@ -3567,7 +3592,7 @@ $("autoToday").value=new Date().toISOString().slice(0,10);
 $("autoPer").onchange=renderAuto; $("autoToday").onchange=renderAuto; $("autoBtn").onclick=()=>exportAuto("all"); $("autoBtnAlert").onclick=()=>exportAuto("alert"); $("autoBtnEws").onclick=()=>exportAuto("ews"); $("autoBtnDb").onclick=()=>exportAuto("db");
 $("autoArea").addEventListener("change",autoInput); $("autoArea").addEventListener("input",e=>{if(e.target.dataset.ai)autoInput(e);});
 $("resetBtn").onclick=newSession;
-$("histBtn").onclick=openHist; $("histClose").onclick=closeHist; $("histShade").onclick=closeHist; $("histNew").onclick=newSession;
+$("histBtn").onclick=openHist; $("histClose").onclick=closeHist; $("histShade").onclick=closeHist; $("histNew").onclick=()=>{ if(document.body.classList.contains("s-orm")) ormNewSession(); else newSession(); };
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&$("histDrawer").classList.contains("open")) closeHist(); });
 $("histList").addEventListener("click",histListClick);
 $("histResume").addEventListener("click",e=>{ const b=e.target.closest("[data-hr]"); if(!b) return; if(b.dataset.hr==="open") histOpen(b.dataset.id); else openHist(); });
