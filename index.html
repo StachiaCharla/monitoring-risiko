@@ -230,6 +230,12 @@ details.keyd{margin-top:10px}details.keyd>summary{cursor:pointer;font-size:12.5p
 /* layar laptop lebih sempit: baris 1 = proyek, NPV, potential; baris 2 = indikator; baris 3 = risk rating */
 @media (min-width:901px) and (max-width:1500px){.sc.sc.ind{order:3;flex:1 1 100%;border-right:none;border-top:1px solid #e6ecf5}.sc.full{order:4}.sc.pot{border-right:none}}
 .rrin{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;font-size:12px;color:var(--muted)}.rrin>span{display:inline-flex;align-items:center;gap:8px}
+/* ringkasan dashboard PRM: tulisan sedikit lebih besar */
+.sumstrip .sc .l,.sumstrip .kpi.mini .l{font-size:12px}
+.sumstrip .sc .v,.sumstrip .kpi.mini .v{font-size:21px}.sumstrip .sc.npv .v{font-size:20px}
+.sumstrip .sc .v small,.sumstrip .kpi.mini .v small{font-size:13px}.kpi.mini .v.vi{font-size:14.5px}.sumstrip .kpi.mini .v.vi{font-size:18px}
+.sumstrip .sc .s{font-size:13px}.sumstrip .lvlg{font-size:13px}.sumstrip .rrin{font-size:13.5px}.sumstrip .rrin .chipl{font-size:13px}
+.sumstrip .lvbar{height:12px}
 .lvlg{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:2px}.lvlg span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}.lvlg i{width:9px;height:9px;border-radius:50%;display:inline-block}
 .sc.ind{flex:2 1 300px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px 10px}
 .kpi.mini{border:1px solid transparent;border-radius:9px;padding:6px 8px;background:none;display:flex;flex-direction:column;gap:1px}
@@ -3531,7 +3537,7 @@ function sumHTML(forPage){
   const lvChip=(v)=>{const l=level(v);return l?`<span class="chipl" style="background:${LVC(l.k)};color:${LVT(l.k)}">${l.t} ${fr(v)}</span>`:"—";};
   if(foc){
     const r=foc, ec=effCur(r), pv=potOrCalc(r,k);
-    const ind=(key,lab,val)=>`<div class="kpi mini"><span class="l">${indCell(r,key,key==="risk"?riskFlag(r):r.f[key],lab+": "+val)} ${lab}</span><span class="v" style="font-size:14.5px">${val}</span></div>`;
+    const ind=(key,lab,val)=>`<div class="kpi mini"><span class="l">${indCell(r,key,key==="risk"?riskFlag(r):r.f[key],lab+": "+val)} ${lab}</span><span class="v vi">${val}</span></div>`;
     const loss=pv&&pv.pot!=null?pv.pot<0:false;
     return `<div class="sc npv"><span class="l">NPV FID → Actual</span><span class="v">${J(r.npvF)} <span class="arrow">→</span> ${J(r.npvA)}</span><span class="s">US$ juta · ${pct(r.npvW)} terhadap FID</span></div>
       <div class="sc ind">${ind("npv","NPV",pct(r.npvW))}${ind("cost","Cost",`EV−AC ${J(r.costW)}`)}${ind("sch","Schedule",pct(r.schW))}${ind("risk","Risk",fr(ec.v))}</div>
