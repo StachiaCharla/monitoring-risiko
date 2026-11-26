@@ -432,6 +432,33 @@ body[data-route=orm] section[data-pg~=orm],body[data-route=ormdata] section[data
 .oix-flow{display:flex;align-items:stretch;gap:6px}.oix-step{flex:1;border:2px solid #1d58c4;border-radius:12px;background:#fff;padding:8px 10px;min-width:0}.oix-st{font-weight:900;font-size:12px;color:#0b2b66;margin-bottom:4px}.oix-sb{display:flex;gap:8px;align-items:center;font-size:11.5px;color:#33415c;line-height:1.35}.oix-sb svg{width:26px;height:26px;flex:none;color:#1d58c4}.oix-sb svg.w{color:#d93025}.oix-arr{align-self:center;color:#0b2b66;font-size:20px;font-weight:900}
 .oix-foot{display:grid;grid-template-columns:1fr 1.4fr;gap:20px}.oix-foot ul{margin:0 0 0 16px;padding:0;font-size:12.5px;line-height:1.7;color:#33415c}.oix-defs{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;font-size:12px}.oix-defs div{display:flex;gap:6px}.oix-defs b{min-width:108px;color:#0b2b66}.oix-defs span{color:#33415c}
 @media (max-width:1100px){.oix-grid{grid-template-columns:1fr}.oix-top,.oix-foot{grid-template-columns:1fr}.oix-flow{flex-direction:column}.oix-arr{transform:rotate(90deg)}}
+/* ---------- Tampilan HP (iPhone/Android) ---------- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+@media (max-width:700px){
+  input,select,textarea{font-size:16px!important} /* cegah zoom otomatis Safari iPhone */
+  main{padding-left:max(10px,env(safe-area-inset-left))!important;padding-right:max(10px,env(safe-area-inset-right))!important}
+  .obanner{padding:14px 16px}.obt{font-size:18px}.obr{gap:10px}
+  .okpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.okpis>*:last-child:nth-child(odd){grid-column:1/-1}
+  .okpi{padding:10px 12px}.okt{font-size:10.5px}.okv{font-size:22px}.oks{font-size:11.5px}
+  .opan>*:not(.oph):not(.osub){margin-left:8px;margin-right:8px}.oph{font-size:13px;padding:9px 12px}
+  .otab.ocard thead{display:none}.otab.ocard,.otab.ocard tbody{display:block;width:100%}
+  .otab.ocard tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;border:1px solid #dfe5ee;border-radius:12px;padding:8px;margin:0 0 8px;background:#fff}
+  .otab.ocard td{display:flex;flex-direction:column;align-items:center;justify-content:center;border:0!important;padding:6px 4px;border-radius:8px;min-height:46px;font-size:13px;text-align:center;background:#f6f8fc}
+  .otab.ocard td::before{content:attr(data-l);font-size:9.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;opacity:.75;margin-bottom:2px}
+  .otab.ocard td.olv{font-size:17px;font-weight:800}
+  .otab.ocard td.ono{display:none}.otab.ocard td.oname{grid-column:1/-1;align-items:flex-start;text-align:left;background:none;min-height:0;font-weight:700;color:#0b2b66;padding:2px 4px 6px}
+  .otab.ocard td.oci,.otab.ocard td.opr,.otab.ocard td.oew{order:2}.otab.ocard td.opo{grid-column:1/-1;min-height:0}
+  .ohm{flex:1 1 100%;grid-template-columns:16px minmax(0,1fr)}.ohm-y{font-size:10px}
+  .ohm-g{grid-template-columns:58px repeat(5,minmax(0,1fr));gap:2px}.ohm-x{padding-left:58px;font-size:11px}
+  .ohm-pl,.ohm-dl{font-size:9px;padding:2px}.ohm-pl small,.ohm-dl small{display:none}.ohm-pl b,.ohm-dl b{font-size:11px}
+  .ohm-c{min-height:52px;padding:2px}.ohm-n{font-size:20px}.ohch{min-width:17px;height:17px;font-size:9.5px;border-width:1.5px;padding:0 2px}
+  .ohm-side{flex:1 1 100%;min-width:0}.ohm-tg{flex-direction:row;flex-wrap:wrap}.ohm-tg button{flex:1 1 30%;font-size:12px;padding:7px 8px}
+  .oixh{flex-direction:column;align-items:flex-start;padding:14px 16px}.oixh .obt{font-size:19px}
+  .oix-box{min-width:0;padding:12px;overflow-x:auto}.oix-grid,.oix-top,.oix-foot{grid-template-columns:minmax(0,1fr)!important}
+  .oixm-g{grid-template-columns:50px repeat(5,minmax(0,1fr))}.oixm-c{min-height:40px;font-size:8px}.oixm-c b{font-size:12px}.oixm-l,.oixm-b{font-size:8.5px}
+  .oix-defs{grid-template-columns:1fr}.oix-defs b{min-width:100px}
+  .odw{flex-direction:column;align-items:center}
+}
 .olvb{display:inline-block;min-width:34px;text-align:center;padding:1px 6px;border-radius:5px;font-size:10.5px;font-weight:800}
 .oyl{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:#33415c;margin:8px 2px 4px}.oyl>span{display:inline-flex;align-items:center;gap:5px}.oyl .oyc{font-size:11px}.oyt{display:block;font-size:10.5px;font-weight:700;margin-top:2px}.oyt.ok{color:#1e7b34}.oyt.warn{color:#9a6a00}.oyt.bad{color:#c5221f}
 .otrl{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:#33415c;margin:2px 0 6px}.otrl span{display:inline-flex;align-items:center;gap:6px}.otrl i{display:inline-block;width:12px;height:12px;border-radius:3px}.otrl i.d{width:18px;height:0;border-top:2px dashed;border-radius:0}
@@ -2973,7 +3000,7 @@ const ormLvLegend=()=>`<div class="oyl">${[3,8,13,17,22].map(v=>{ const L=ormLv(
 const ORM_YC_TX={ok:"Tercapai",warn:"Waspada",bad:"Di bawah target"};
 const ormYcLegend=()=>`<div class="oyl"><span><span class="oyc ok">Hijau</span> ≥ 100%: tercapai</span><span><span class="oyc warn">Kuning</span> 95% – &lt; 100%: waspada, sedikit di bawah target</span><span><span class="oyc bad">Merah</span> &lt; 95%: di bawah target, perlu perhatian</span></div>`;
 function ormEditable(){ try{ return isRM()&&!ORMV.demo; }catch(e){ return false; } }
-function ormCell(s,extra="",ed="",man=false){ const lv=ormLv(s), e=ed&&ormEditable(), at=e?` data-oedit="${ed}"`:"", tt=(extra?" · "+esc(extra):"")+(e?" · klik untuk mengubah":"");
+function ormCell(s,extra="",ed="",man=false){ const lv=ormLv(s), e=ed&&ormEditable(), at=(e?` data-oedit="${ed}"`:"")+(ed?` data-l="${{inh:"Inherent",cur:"Current",res:"Residual"}[ed.split("|")[1]]||""}"`:""), tt=(extra?" · "+esc(extra):"")+(e?" · klik untuk mengubah":"");
   return lv?`<td class="olv${e?" oedc":""}"${at} style="background:${lv.c};color:${lv.fg}" title="${esc(lv.t)}${tt}">${s}</td>`:`<td class="olv none${e?" oedc":""}"${at} title="Belum ada skala${tt}">—</td>`; }
 // Ubah skala langsung dari dashboard (akun Risk Management). Perubahan tersimpan ke parameter sesi ini.
 function ormEditOpen(td){ ormEditClose(); const [i,k]=td.dataset.oedit.split("|"), r=ORM.params.risks[+i]; if(!r) return;
@@ -2994,10 +3021,10 @@ document.addEventListener("change",e=>{ const t=e.target; if(!t.dataset||!t.data
   const i=keep.split(".")[1], k=keep.includes(".ews")?"ews":keep.split(".")[2], td=document.querySelector(`td.oedc[data-oedit="${i}|${k}"]`); if(td) ormEditOpen(td); });
 function ormTable(C,q){
   const rows=C.rows.filter(x=>x.q===q); if(!rows.length) return `<p class="note">Tidak ada risiko ${q?"kuantitatif":"kualitatif"}.</p>`;
-  return `<div class="otw"><table class="otab"><thead><tr><th>No</th><th class="l">Risk Event</th>${q?`<th>Current Impact<br><small>(000 USD)</small></th>`:""}<th>${ormDot("inh")}Inherent</th><th>${ormDot("cur")}Current</th><th>${ormDot("res")}Residual</th><th>Probability</th><th>EWS</th></tr></thead><tbody>${rows.map(x=>`
-    <tr><td class="c">${x.r.no}</td><td class="l">${esc(x.r.name)}</td>
-    ${q?`<td class="n">${x.needPar?`<a class="note" href="#/ormdata">isi parameter</a>`:x.waiting?`<span class="note">menunggu berkas</span>`:ormF0(x.civ)}</td>`:""}${ormCell(x.inhS,`D${x.r.inh.d||"?"} × P${x.r.inh.p||"?"}`,`${C.rows.indexOf(x)}|inh`)}${ormCell(x.curS,`dampak ${x.d||"?"}${x.dAuto?" (otomatis)":" (manual)"} · probabilitas ${x.p||"?"}${x.pAuto?" (otomatis)":" (manual)"}`,`${C.rows.indexOf(x)}|cur`,!x.dAuto||!x.pAuto)}${ormCell(x.resS,`D${x.r.res.d||"?"} × P${x.r.res.p||"?"}`,`${C.rows.indexOf(x)}|res`)}
-    <td class="c" title="Skala probabilitas ${x.p||"?"} · ${x.pAuto?"otomatis dari % risk treatment":"diisi manual"}">${x.p?fmt(ORM_MID[x.p]*100,0)+"%":"—"}</td><td class="c${ormEditable()?" oedc":""}" data-oedit="${C.rows.indexOf(x)}|ews" title="${x.ews?(x.ewsAuto?`WARNING: ${esc(x.ewsWhy.join(" · "))}`:"WARNING ditandai manual (actual loss/KRI)"):(x.ewsAuto?"NO WARNING: kondisi risiko terkendali":"Ditandai manual: NO WARNING")}${ormEditable()?" · klik untuk mengubah":""}"><span class="oews ${x.ews?"up":"ok"}">${x.ews?"▲":"○"}</span></td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="otw"><table class="otab ocard"><thead><tr><th>No</th><th class="l">Risk Event</th>${q?`<th>Current Impact<br><small>(000 USD)</small></th>`:""}<th>${ormDot("inh")}Inherent</th><th>${ormDot("cur")}Current</th><th>${ormDot("res")}Residual</th><th>Probability</th><th>EWS</th></tr></thead><tbody>${rows.map(x=>`
+    <tr><td class="c ono">${x.r.no}</td><td class="l oname" data-l="Risk event ${x.r.no}">${esc(x.r.name)}</td>
+    ${q?`<td class="n oci" data-l="Impact (000 USD)">${x.needPar?`<a class="note" href="#/ormdata">isi parameter</a>`:x.waiting?`<span class="note">menunggu berkas</span>`:ormF0(x.civ)}</td>`:""}${ormCell(x.inhS,`D${x.r.inh.d||"?"} × P${x.r.inh.p||"?"}`,`${C.rows.indexOf(x)}|inh`)}${ormCell(x.curS,`dampak ${x.d||"?"}${x.dAuto?" (otomatis)":" (manual)"} · probabilitas ${x.p||"?"}${x.pAuto?" (otomatis)":" (manual)"}`,`${C.rows.indexOf(x)}|cur`,!x.dAuto||!x.pAuto)}${ormCell(x.resS,`D${x.r.res.d||"?"} × P${x.r.res.p||"?"}`,`${C.rows.indexOf(x)}|res`)}
+    <td class="c opr" data-l="Probability" title="Skala probabilitas ${x.p||"?"} · ${x.pAuto?"otomatis dari % risk treatment":"diisi manual"}">${x.p?fmt(ORM_MID[x.p]*100,0)+"%":"—"}</td><td class="c oew${ormEditable()?" oedc":""}" data-l="EWS" data-oedit="${C.rows.indexOf(x)}|ews" title="${x.ews?(x.ewsAuto?`WARNING: ${esc(x.ewsWhy.join(" · "))}`:"WARNING ditandai manual (actual loss/KRI)"):(x.ewsAuto?"NO WARNING: kondisi risiko terkendali":"Ditandai manual: NO WARNING")}${ormEditable()?" · klik untuk mengubah":""}"><span class="oews ${x.ews?"up":"ok"}">${x.ews?"▲":"○"}</span></td></tr>`).join("")}</tbody></table></div>`;
 }
 function ormDonut(done,plan){ const out=Math.max(plan-done,0), f=plan?done/plan:0, R=46, L=2*Math.PI*R, pr=Math.round(f*100), pc=v=>fmt(v,0)+"%"; // persen dibulatkan (seperti Power BI)
   return `<svg viewBox="0 0 120 120" class="odonut" role="img" aria-label="Realisasi risk treatment ${pc(pr)}"><circle cx="60" cy="60" r="${R}" fill="none" stroke="#f08a24" stroke-width="18"/>
@@ -3028,7 +3055,7 @@ function ormTrend(V){
     return t?{k,cre:t.cre,ire:t.ire,rre:t.rre}:null; }).filter(Boolean);
   if(!pts.length) return `<p class="note">Grafik muncul setelah berkas lifting dan produksi diunggah dan parameter Risk Register lengkap.</p>`;
   const last=pts[pts.length-1], ire=Number.isFinite(last.ire)?last.ire:null, rre=Number.isFinite(last.rre)?last.rre:null;
-  const mx=Math.max(...pts.map(q=>q.cre),ire||0,rre||0)*1.12||1, W=640,H=230,pl=64,pr=24,pt=16,pb=30, n=pts.length, cw=(W-pl-pr)/n;
+  const mx=Math.max(...pts.map(q=>q.cre),ire||0,rre||0)*1.12||1, W=window.innerWidth<640?360:640,H=W<640?240:230,pl=W<640?52:64,pr=W<640?10:24,pt=16,pb=30, n=pts.length, cw=(W-pl-pr)/n;
   const x=i=>pl+cw*(i+.5), y=v=>H-pb-(H-pb-pt)*v/mx, bw=Math.min(56,cw*.5);
   const grid=[0,.25,.5,.75,1].map(t=>`<line x1="${pl}" x2="${W-pr}" y1="${y(mx*t)}" y2="${y(mx*t)}" stroke="#e3e9f2"/><text x="${pl-6}" y="${y(mx*t)+4}" text-anchor="end" font-size="10" fill="#6b7a90">${fmt(mx*t,0)}</text>`).join("");
   const ref=(v,c,lb)=>v==null?"":`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="${c}" stroke-width="1.6" stroke-dasharray="6 4"/><text x="${W-pr}" y="${y(v)-5}" text-anchor="end" font-size="10.5" font-weight="700" fill="${c}">${lb} ${fmt(v,0)}</text>`;
@@ -3101,9 +3128,9 @@ function renderOrmDash(){
 </div>
   </div>
   <div class="opan wide"><div class="oph">PETA RISIKO (HEATMAP) · RISK MANAGEMENT <button class="ib" data-info="ormHeat" aria-label="Penjelasan">i</button></div><div class="ohw" id="ormHeat">${ormHeat(C)}</div>
-    <div class="otw" style="margin-top:12px"><table class="otab"><thead><tr><th>No</th><th class="l">Risk Event</th><th>${ormDot("inh")}Inherent<br><small>dampak · prob → skala</small></th><th>${ormDot("cur")}Current<br><small>dampak · prob → skala</small></th><th>${ormDot("res")}Residual<br><small>dampak · prob → skala</small></th><th>Posisi current</th></tr></thead><tbody>
+    <div class="otw" style="margin-top:12px"><table class="otab ocard opos"><thead><tr><th>No</th><th class="l">Risk Event</th><th>${ormDot("inh")}Inherent<br><small>dampak · prob → skala</small></th><th>${ormDot("cur")}Current<br><small>dampak · prob → skala</small></th><th>${ormDot("res")}Residual<br><small>dampak · prob → skala</small></th><th>Posisi current</th></tr></thead><tbody>
     ${C.rows.map(x=>{ const mv=x.curS==null||x.resS==null?"—":x.curS>x.resS?`<span class="neg">di atas target residual</span>`:x.curS<x.resS?`<span class="pos">di bawah target residual</span>`:"sama dengan target residual";
-      return `<tr><td class="c">${x.r.no}</td><td class="l">${esc(x.r.name)}</td><td class="c">D${x.r.inh.d||"?"} · P${x.r.inh.p||"?"} → <b>${x.inhS??"—"}</b></td><td class="c">D${x.d||"?"} · P${x.p||"?"} → <b>${x.curS??"—"}</b></td><td class="c">D${x.r.res.d||"?"} · P${x.r.res.p||"?"} → <b>${x.resS??"—"}</b></td><td class="c">${mv}</td></tr>`; }).join("")}</tbody></table></div>
+      return `<tr><td class="c ono">${x.r.no}</td><td class="l oname" data-l="Risk event ${x.r.no}">${esc(x.r.name)}</td><td class="c" data-l="Inherent">D${x.r.inh.d||"?"} · P${x.r.inh.p||"?"} → <b>${x.inhS??"—"}</b></td><td class="c" data-l="Current">D${x.d||"?"} · P${x.p||"?"} → <b>${x.curS??"—"}</b></td><td class="c" data-l="Residual">D${x.r.res.d||"?"} · P${x.r.res.p||"?"} → <b>${x.resS??"—"}</b></td><td class="c opo" data-l="Posisi current">${mv}</td></tr>`; }).join("")}</tbody></table></div>
 </div>
   <div class="opan wide"><div class="oph">TREN Σ CURRENT RISK EXPOSURE (000 USD) <button class="ib" data-info="ormTrend" aria-label="Penjelasan">i</button></div>${ormTrend(V)}</div>
   ${isRM()?`<div class="opan wide"><div class="oph">RINCIAN PERHITUNGAN <button class="ib" data-info="ormCalc" aria-label="Penjelasan">i</button></div>${ormCalcDetail(C)||`<p class="note">Menunggu berkas.</p>`}</div>`:""}`; ormFoldApply();
@@ -3574,7 +3601,7 @@ document.addEventListener("click",e=>{
 
 /* ---------- panduan ---------- */
 const GUIDE=[
-  {ic:"🧩",t:"Berkas yang dibutuhkan setiap fitur",n:8,html:`<table class="need"><thead><tr><th>Fitur</th><th>RR</th><th>PDF MONEVA</th><th>Calculation EWS</th><th>Database Dashboard</th></tr></thead><tbody>
+  {ic:"🧩",t:"Berkas yang dibutuhkan setiap fitur",n:8,html:`<div style="overflow-x:auto"><table class="need"><thead><tr><th>Fitur</th><th>RR</th><th>PDF MONEVA</th><th>Calculation EWS</th><th>Database Dashboard</th></tr></thead><tbody>
     <tr><td><b>Isi Otomatis</b> (ALERT, EWS, sheet Dashboard)</td><td class="y">wajib</td><td class="y">wajib</td><td>—</td><td>—</td></tr>
     <tr><td><b>Tabel Early Warning</b> dan panel ringkasan</td><td class="y">cukup</td><td class="y">cukup</td><td class="o">melengkapi Cost dan Schedule</td><td class="o">riwayat bulan lalu</td></tr>
     <tr><td><b>Halaman Proyek</b>: Loss &amp; Gain, waterfall, Cashflow, Sensitivity</td><td>—</td><td class="y">wajib</td><td>—</td><td>—</td></tr>
@@ -3582,7 +3609,7 @@ const GUIDE=[
     <tr><td><b>Tren NPV dan Risk Exposure</b></td><td class="o">bulan terbaru</td><td>—</td><td>—</td><td class="y">riwayat (Trending PG)</td></tr>
     <tr><td><b>Risk Movement</b></td><td class="o">bulan terbaru</td><td>—</td><td>—</td><td class="y">riwayat</td></tr>
     <tr><td><b>Mitigasi, Loss Event, Potential Loss, Timeline</b></td><td>—</td><td class="o">potential terbaru</td><td>—</td><td class="y">wajib</td></tr>
-    <tr><td><b>Telusur Risiko</b> (drill-down)</td><td class="o">risk event</td><td>—</td><td class="y">wajib</td><td class="o">kategori</td></tr></tbody></table>
+    <tr><td><b>Telusur Risiko</b> (drill-down)</td><td class="o">risk event</td><td>—</td><td class="y">wajib</td><td class="o">kategori</td></tr></tbody></table></div>
     <p class="note" style="margin:8px 0 0">Ringkasnya: <b>RR + PDF MONEVA</b> sudah cukup untuk Isi Otomatis (ALERT, EWS, Dashboard) sekaligus tampilan Dashboard di website untuk periode itu. <b>Calculation EWS</b> melengkapi indikator Cost dan Schedule, dan <b>Database Dashboard</b> menambahkan riwayat bulan-bulan sebelumnya.</p>`},
   {ic:"📄",t:"Berkas yang diunggah",it:[
     "<b>Calculation EWS</b> (bulanan): satu sheet per bulan; dasar tabel Early Warning System.",
