@@ -218,14 +218,18 @@ details.keyd{margin-top:10px}details.keyd>summary{cursor:pointer;font-size:12.5p
 /* ringkasan satu panel */
 .sumcard{padding:0;overflow:hidden}
 .sumstrip{display:flex;flex-wrap:wrap;margin:0}
-.sc{flex:1 1 150px;padding:12px 16px;border-right:1px solid #e6ecf5;min-width:140px;display:flex;flex-direction:column;gap:2px;justify-content:center}
+.sc{flex:1 1 150px;padding:12px 16px;border-right:1px solid #e6ecf5;min-width:min-content;display:flex;flex-direction:column;gap:2px;justify-content:center}
 .sc:last-child{border-right:none}
 .sc .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:var(--muted)}
 .sc .v{font-size:17px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1.2;white-space:nowrap}
 .sc .l,.kpi.mini .l,.kpi.mini .v{white-space:nowrap}.sc.scp{flex:0 0 110px;min-width:110px}.sc.rr2{gap:4px}.sc.rr2 .s{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.sc.ind{flex:2.4 1 340px}.sc.npv{flex:1.3 1 200px;min-width:max-content}.sc.ind{min-width:max-content;column-gap:14px}.sc.npv{padding-right:22px}.sc.npv .v{font-size:16px}.sc .v .arrow{font-size:.8em;margin:0 2px}.sc.rr2{min-width:235px}
+.sc.ind{flex:2.4 1 340px}.sc.npv{flex:1.3 1 200px;min-width:max-content}.sc.ind{min-width:max-content;column-gap:14px}.sc.npv{padding-right:22px}.sc.npv .v{font-size:16px}.sc .v .arrow{font-size:.8em;margin:0 2px}.sc.rr2{flex-basis:235px;min-width:min-content}.sc .chipl{white-space:nowrap}
 .sc .v small{font-size:12px;font-weight:600;color:var(--muted)}
 .sc .s{font-size:11.5px;color:var(--muted)}
+.sc.full{flex:1 1 100%;border-right:none;border-top:1px solid #e6ecf5;padding-top:10px;padding-bottom:12px}.sc:has(+ .sc.full){border-right:none}
+@media (max-width:1250px){.sc{border-right:none}}
+.rrin{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;font-size:12px;color:var(--muted)}.rrin>span{display:inline-flex;align-items:center;gap:8px}
+.lvlg{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:2px}.lvlg span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}.lvlg i{width:9px;height:9px;border-radius:50%;display:inline-block}
 .sc.ind{flex:2 1 300px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px 10px}
 .kpi.mini{border:1px solid transparent;border-radius:9px;padding:6px 8px;background:none;display:flex;flex-direction:column;gap:1px}
 .kpi.mini .l{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:5px}
@@ -3531,7 +3535,7 @@ function sumHTML(forPage){
     return `<div class="sc npv"><span class="l">NPV FID → Actual</span><span class="v">${J(r.npvF)} <span class="arrow">→</span> ${J(r.npvA)}</span><span class="s">US$ juta · ${pct(r.npvW)} terhadap FID</span></div>
       <div class="sc ind">${ind("npv","NPV",pct(r.npvW))}${ind("cost","Cost",`EV−AC ${J(r.costW)}`)}${ind("sch","Schedule",pct(r.schW))}${ind("risk","Risk",fr(ec.v))}</div>
       <div class="sc"><span class="l">Potential Loss / Gain</span><span class="v" style="color:${pv&&pv.pot!=null?(loss?"#c51e28":"#1a7f37"):"inherit"}">${pv&&pv.pot!=null?fmt(pv.pot/1000):"—"}</span><span class="s">US$ juta · Actual ${pv?fmt((pv.act||0)/1000):"—"} · Limit ${pv&&pv.rmt!=null?fmt(pv.rmt/1000):"—"}</span></div>
-      <div class="sc rr2"><span class="l">Risk Rating</span><span class="s">Inherent ${lvChip(r.inh)}</span><span class="s">Current ${lvChip(ec.v)}</span></div>`;
+      <div class="sc rr2 full"><span class="l">Risk Rating</span><div class="rrin"><span>Inherent ${lvChip(r.inh)}</span><span>Current ${lvChip(ec.v)}</span></div></div>`;
   }
   if(forPage) return `<p class="empty">Proyek ini tidak tercantum pada EWS periode ${k?monthLabel(k):"terpilih"}.</p>`;
   const cnt={npv:0,cost:0,sch:0,risk:0}, worst={npv:0,cost:0,sch:0,risk:0}, rank={g:0,o:1,r:2};
@@ -3550,7 +3554,7 @@ function sumHTML(forPage){
     <div class="sc npv"><span class="l">Σ NPV FID → Actual</span><span class="v">${nF?fmt(sF):"—"} <span class="arrow">→</span> ${nF?fmt(sA):"—"}</span><span class="s">US$ juta${nF&&sF?" · "+pct((sA-sF)/Math.abs(sF))+" terhadap FID":""}</span></div>
     <div class="sc ind">${flagCell("npv")}${flagCell("cost")}${flagCell("sch")}${flagCell("risk")}</div>
     <div class="sc"><span class="l">Σ Potential Loss / Gain</span><span class="v" style="color:${nPot?(pot<0?"#c51e28":"#1a7f37"):"inherit"}">${nPot?fmt(pot/1000):"—"}</span><span class="s">${nPot?`US$ juta · ${over} proyek melebihi Risk Limit`:"unggah Database Dashboard"}</span></div>
-    <div class="sc"><span class="l">Current Risk Rating</span>${bar||`<span class="v">—</span>`}<span class="s">${LVORD.filter(([kk])=>lv[kk]).map(([kk,t])=>`${lv[kk]} ${t}`).join(" · ")}</span></div>`;
+    <div class="sc full"><span class="l">Current Risk Rating</span>${bar||`<span class="v">—</span>`}<span class="s lvlg">${LVORD.slice().reverse().filter(([kk])=>lv[kk]).map(([kk,t])=>`<span><i style="background:${LVC(kk)}"></i>${lv[kk]} ${t}</span>`).join("")}</span></div>`;
 }
 
 /* ---------- penjelasan interaktif (tombol i) ---------- */
